@@ -43,7 +43,7 @@
   </nav>
 
   <!-- PAGE HERO -->
-  <section class="page-hero">
+  <section class="page-hero page-hero--sand">
     <div class="container">
       <div class="page-hero__inner reveal">
         <p class="page-hero__eyebrow">Was wir anbieten</p>
@@ -56,10 +56,12 @@
   <!-- STICKY MENU NAV -->
   <nav class="menu-nav">
     <div class="menu-nav__inner">
-      <button class="menu-nav__btn active" data-target="getraenke">Getränke</button>
-      <button class="menu-nav__btn" data-target="heissgetraenke">Heißgetränke</button>
-      <button class="menu-nav__btn" data-target="speisen">Speisen</button>
-      <button class="menu-nav__btn" data-target="suesses">Süßes</button>
+      <button class="menu-nav__btn active" data-target="herzhaft">Herzhaft</button>
+      <button class="menu-nav__btn" data-target="suess">Süß</button>
+      <button class="menu-nav__btn" data-target="kalt">Kalt</button>
+      <button class="menu-nav__btn" data-target="heiss">Heiß</button>
+      <button class="menu-nav__btn" data-target="alkoholisch">Alkoholisch</button>
+      <button class="menu-nav__btn" data-target="hausgemacht">Hausgemacht</button>
     </div>
   </nav>
 
@@ -68,16 +70,22 @@
 
       <div style="padding-top: 48px;">
 
-        <!-- PDF-Download (Platzhalter — PDF kommt später) -->
+        <!-- PDF-Download — offizielle Speisekarte -->
         <div class="pdf-download-bar reveal">
           <div class="pdf-download-bar__text">
             <span class="pdf-download-bar__label">Speisekarte als PDF</span>
-            <span class="pdf-download-bar__desc">Die vollständige Speisekarte als PDF herunterladen</span>
+            <span class="pdf-download-bar__desc">Die vollständige Speisekarte ansehen oder herunterladen</span>
           </div>
-          <button class="btn--pdf" disabled aria-disabled="true">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            PDF herunterladen
-          </button>
+          <div class="pdf-download-bar__actions">
+            <a href="images/Tjorven_Speisekarte_Mobile.pdf" target="_blank" rel="noopener" class="btn--pdf">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14L21 3M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/></svg>
+              PDF ansehen
+            </a>
+            <a href="images/Tjorven_Speisekarte_Mobile.pdf" download class="btn--pdf btn--pdf-ghost">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Herunterladen
+            </a>
+          </div>
         </div>
 
         <div class="menu-note reveal">
@@ -85,47 +93,143 @@
         </div>
       </div>
 
-      <!-- GETRÄNKE -->
-      <section class="menu-section" id="getraenke">
+      <!-- HERZHAFT -->
+      <section class="menu-section" id="herzhaft">
         <div class="menu-section__header reveal">
-          <p class="eyebrow">Kalt & erfrischend</p>
-          <h2 class="menu-section__title">Getränke</h2>
+          <p class="eyebrow">Frisch & herzhaft</p>
+          <h2 class="menu-section__title">Herzhaft</h2>
+        </div>
+        <div class="menu-grid">
+
+          <div class="menu-item menu-item--special reveal">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Tjørvens saisonale Bowl</span>
+              <span class="menu-item__price">13,50 €</span>
+            </div>
+            <p class="menu-item__desc">Knackiger Blattsalat auf Quinoa und Buchweizen aus schwäbischem Anbau, dazu saisonales Ofengemüse und frische Kräuter, Kichererbsen, Pickles und kleine Leckereien an unserem hausgemachten French Dressing.</p>
+            <div class="menu-item__badges"><span class="badge badge--vegan">Vegan</span></div>
+          </div>
+
+          <div class="menu-item reveal reveal-delay-1">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Tagesgericht & kleiner Salat</span>
+              <span class="menu-item__price">12,50 €</span>
+            </div>
+            <p class="menu-item__desc">Du willst Abwechslung? Wir auch! Montag bis Freitag ab 11:30 Uhr.</p>
+            <p class="menu-item__desc" style="margin-top:8px;font-size:12px;color:var(--stone-light)">Unsere aktuelle Wochenkarte findest du auf Instagram: <a href="https://www.instagram.com/tjorvenbistro/" target="_blank" rel="noopener" style="color:var(--green)">@tjorvenbistro</a></p>
+            <div class="menu-item__badges"><span class="badge badge--vegan">Vegan</span></div>
+          </div>
+
+          <div class="menu-item reveal">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Knusprige Pommes</span>
+              <span class="menu-item__price">4,50 €</span>
+            </div>
+            <p class="menu-item__desc">Eine große Portion Pommes mit Ketchup & hausgemachter Mayonnaise.</p>
+            <div class="menu-item__badges"><span class="badge badge--vegan">Vegan</span></div>
+          </div>
+
+          <div class="menu-item reveal reveal-delay-1">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Saisonales Focaccia</span>
+              <span class="menu-item__price">5,50 €</span>
+            </div>
+            <p class="menu-item__desc">Selbstgebackenes Focaccia, belegt mit Hummus, grünem Pesto, saisonalem Gemüse und Salat. Knusprig getoastet.</p>
+            <div class="menu-item__badges"><span class="badge badge--vegan">Vegan</span></div>
+          </div>
+
+          <div class="menu-item reveal">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Bunter Blattsalat</span>
+              <span class="menu-item__price">4,50 €</span>
+            </div>
+            <p class="menu-item__desc">Knackiger Blattsalat, garniert mit kleinen Leckereien, an unserem hausgemachten French Dressing.</p>
+            <div class="menu-item__badges"><span class="badge badge--vegan">Vegan</span></div>
+          </div>
+
+          <div class="menu-item reveal reveal-delay-1">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Getoasteter Wrap</span>
+              <span class="menu-item__price">8,00 €</span>
+            </div>
+            <p class="menu-item__desc">Fladenbrote gefüllt mit saisonalem Gemüse, gekeimten schwäbischen Linsen, Kräutercreme und hausgemachten Pickles. Knusprig getoastet und immer erfrischend kühl.</p>
+            <div class="menu-item__badges"><span class="badge badge--vegan">Vegan</span></div>
+          </div>
+
+          <div class="menu-item menu-item--featured menu-item--wide reveal">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Loaded Pommes</span>
+              <span class="menu-item__price">9,00 €</span>
+            </div>
+            <p class="menu-item__desc">Unsere knusprigen Pommes dienen als Basis für leckere Toppings – dein Pommes-Upgrade in drei Varianten:</p>
+            <div class="menu-item__variants">
+              <div class="menu-item__variant"><strong>BBQ</strong> · BBQ Sauce · Mais · Krautsalat · Röstzwiebeln · Sprossen</div>
+              <div class="menu-item__variant"><strong>Veggie</strong> · Bolognese aus Sonnenblumenprotein · Sonnenblumenkernparmesan · Grün</div>
+              <div class="menu-item__variant"><strong>Bolo</strong> · Bolognese aus Sonnenblumenprotein · Sonnenblumenkernparmesan · Grün</div>
+            </div>
+            <div class="menu-item__badges"><span class="badge badge--vegan">Vegan</span></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SÜSS -->
+      <section class="menu-section" id="suess">
+        <div class="menu-section__header reveal">
+          <p class="eyebrow">Hausgemacht & verführerisch</p>
+          <h2 class="menu-section__title">Süß</h2>
         </div>
         <div class="menu-grid">
 
           <div class="menu-item reveal">
             <div class="menu-item__head">
-              <span class="menu-item__name">Hausgemachter Eistee</span>
-              <span class="menu-item__price">3,50 €</span>
+              <span class="menu-item__name">Hausgemachte belgische Waffel</span>
+              <span class="menu-item__price">4,50 €</span>
             </div>
-            <p class="menu-item__desc">Hagebutte · süß oder ungesüßt</p>
-            <span class="menu-item__vol">0,40 l</span>
+            <p class="menu-item__desc">Mix &amp; Match mit Toppings deiner Wahl.</p>
+            <p class="menu-item__desc" style="margin-top:8px;font-size:12.5px;color:var(--stone-light)">Puderzucker +0,50 € · Schokosauce +1,00 € · Rübensirup +1,00 € · Apfelmus +1,00 €</p>
             <div class="menu-item__badges"><span class="badge badge--vegan">Vegan</span></div>
           </div>
 
           <div class="menu-item reveal reveal-delay-1">
             <div class="menu-item__head">
-              <span class="menu-item__name">Hausgemachter Kombucha</span>
-              <span class="menu-item__price">4,50 €</span>
+              <span class="menu-item__name">Kuchen &amp; Co.</span>
             </div>
-            <p class="menu-item__desc">Fermentiertes Teegetränk</p>
-            <span class="menu-item__vol">0,40 l</span>
+            <p class="menu-item__desc">Ein Stück Kuchen, Muffin, plant-based Chocolate Chip Cookie, Tjørvens fluffige Zimtschnecken und weitere hausgemachte Leckereien warten auf dich.</p>
             <div class="menu-item__badges"><span class="badge badge--vegan">Vegan</span></div>
           </div>
 
           <div class="menu-item reveal">
             <div class="menu-item__head">
-              <span class="menu-item__name">Roter Apfelsaft</span>
-              <span class="menu-item__price">5,00 €</span>
+              <span class="menu-item__name">Eiscreme</span>
+              <span class="menu-item__price">2,20 € / 3,00 €</span>
             </div>
-            <p class="menu-item__desc">Von heimischen Streuobstwiesen</p>
-            <span class="menu-item__vol">0,40 l</span>
+            <p class="menu-item__desc">Eine Auswahl an cremigem Eis findest du in unserer Eistruhe.</p>
             <div class="menu-item__badges"><span class="badge badge--vegan">Vegan</span></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- KALT -->
+      <section class="menu-section" id="kalt">
+        <div class="menu-section__header reveal">
+          <p class="eyebrow">Kalt & erfrischend</p>
+          <h2 class="menu-section__title">Kalt</h2>
+        </div>
+        <div class="menu-grid">
+
+          <div class="menu-item reveal">
+            <div class="menu-item__head">
+              <span class="menu-item__name">fritz-kola original</span>
+              <span class="menu-item__price">3,50 €</span>
+            </div>
+            <span class="menu-item__vol">0,33 l</span>
           </div>
 
           <div class="menu-item reveal reveal-delay-1">
             <div class="menu-item__head">
-              <span class="menu-item__name">fritz-limo orange</span>
+              <span class="menu-item__name">fritz-kola superzero</span>
               <span class="menu-item__price">3,50 €</span>
             </div>
             <span class="menu-item__vol">0,33 l</span>
@@ -133,7 +237,23 @@
 
           <div class="menu-item reveal">
             <div class="menu-item__head">
+              <span class="menu-item__name">fritz-kola mischmasch</span>
+              <span class="menu-item__price">3,50 €</span>
+            </div>
+            <span class="menu-item__vol">0,33 l</span>
+          </div>
+
+          <div class="menu-item reveal reveal-delay-1">
+            <div class="menu-item__head">
               <span class="menu-item__name">fritz-limo zitrone</span>
+              <span class="menu-item__price">3,50 €</span>
+            </div>
+            <span class="menu-item__vol">0,33 l</span>
+          </div>
+
+          <div class="menu-item reveal">
+            <div class="menu-item__head">
+              <span class="menu-item__name">fritz-limo orange</span>
               <span class="menu-item__price">3,50 €</span>
             </div>
             <span class="menu-item__vol">0,33 l</span>
@@ -157,31 +277,7 @@
 
           <div class="menu-item reveal reveal-delay-1">
             <div class="menu-item__head">
-              <span class="menu-item__name">mischmasch kola + orange</span>
-              <span class="menu-item__price">3,50 €</span>
-            </div>
-            <span class="menu-item__vol">0,33 l</span>
-          </div>
-
-          <div class="menu-item reveal">
-            <div class="menu-item__head">
-              <span class="menu-item__name">fritz-kola original</span>
-              <span class="menu-item__price">3,50 €</span>
-            </div>
-            <span class="menu-item__vol">0,33 l</span>
-          </div>
-
-          <div class="menu-item reveal reveal-delay-1">
-            <div class="menu-item__head">
-              <span class="menu-item__name">fritz-kola classic light</span>
-              <span class="menu-item__price">3,50 €</span>
-            </div>
-            <span class="menu-item__vol">0,33 l</span>
-          </div>
-
-          <div class="menu-item reveal reveal-delay-1">
-            <div class="menu-item__head">
-              <span class="menu-item__name">Black Forest Mineralwasser Naturell</span>
+              <span class="menu-item__name">Black Forest Gourmet still</span>
               <span class="menu-item__price">2,50 € / 4,50 €</span>
             </div>
             <span class="menu-item__vol">0,25 l / 0,75 l</span>
@@ -189,7 +285,7 @@
 
           <div class="menu-item reveal">
             <div class="menu-item__head">
-              <span class="menu-item__name">Peterstaler Mineralwasser Classic</span>
+              <span class="menu-item__name">Peterstaler Gourmet Classic</span>
               <span class="menu-item__price">2,50 € / 4,50 €</span>
             </div>
             <span class="menu-item__vol">0,25 l / 0,75 l</span>
@@ -198,11 +294,11 @@
         </div>
       </section>
 
-      <!-- HEIßGETRÄNKE -->
-      <section class="menu-section" id="heissgetraenke">
+      <!-- HEISS -->
+      <section class="menu-section" id="heiss">
         <div class="menu-section__header reveal">
           <p class="eyebrow">Warm & wohlig</p>
-          <h2 class="menu-section__title">Heißgetränke</h2>
+          <h2 class="menu-section__title">Heiß</h2>
         </div>
         <div class="menu-grid">
 
@@ -211,164 +307,160 @@
               <span class="menu-item__name">Espresso</span>
               <span class="menu-item__price">2,50 €</span>
             </div>
+            <p class="menu-item__desc">Doppio · 3,50 €</p>
           </div>
 
           <div class="menu-item reveal reveal-delay-1">
             <div class="menu-item__head">
-              <span class="menu-item__name">Americano</span>
+              <span class="menu-item__name">Espresso Macchiato</span>
               <span class="menu-item__price">3,00 €</span>
             </div>
           </div>
 
           <div class="menu-item reveal">
             <div class="menu-item__head">
-              <span class="menu-item__name">Cappuccino</span>
-              <span class="menu-item__price">3,50 €</span>
+              <span class="menu-item__name">Cortado</span>
+              <span class="menu-item__price">3,20 €</span>
             </div>
           </div>
 
           <div class="menu-item reveal reveal-delay-1">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Americano</span>
+              <span class="menu-item__price">3,50 €</span>
+            </div>
+          </div>
+
+          <div class="menu-item reveal">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Cappuccino</span>
+              <span class="menu-item__price">4,00 €</span>
+            </div>
+          </div>
+
+          <div class="menu-item reveal reveal-delay-1">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Milchkaffee</span>
+              <span class="menu-item__price">4,00 €</span>
+            </div>
+          </div>
+
+          <div class="menu-item reveal">
             <div class="menu-item__head">
               <span class="menu-item__name">Latte Macchiato</span>
-              <span class="menu-item__price">3,90 €</span>
-            </div>
-          </div>
-
-          <div class="menu-item reveal">
-            <div class="menu-item__head">
-              <span class="menu-item__name">Heiße Schokolade</span>
-              <span class="menu-item__price">3,90 €</span>
-            </div>
-          </div>
-
-          <div class="menu-item reveal reveal-delay-1">
-            <div class="menu-item__head">
-              <span class="menu-item__name">Tee</span>
-              <span class="menu-item__price">3,50 €</span>
-            </div>
-            <p class="menu-item__desc">Früchte · Kräuter · Schwarz · Grün</p>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- SPEISEN -->
-      <section class="menu-section" id="speisen">
-        <div class="menu-section__header reveal">
-          <p class="eyebrow">Frisch & saisonal</p>
-          <h2 class="menu-section__title">Speisen</h2>
-        </div>
-        <div class="menu-grid">
-
-          <div class="menu-item menu-item--special reveal">
-            <div class="menu-item__head">
-              <span class="menu-item__name">Saisonale Bowl</span>
-              <span class="menu-item__price">13,50 €</span>
-            </div>
-            <p class="menu-item__desc">Basis aus schwäbischem Quinoa & Buchweizen · saisonales Gemüse · frisch gekeimte schwäbische Hülsenfrüchte · Pickles · Blattsalat</p>
-            <div class="menu-item__badges">
-              <span class="badge badge--vegan">Vegan</span>
-              <span class="badge badge--gf">Glutenfrei</span>
-            </div>
-          </div>
-
-          <div class="menu-item reveal reveal-delay-1">
-            <div class="menu-item__head">
-              <span class="menu-item__name">Tagesgericht & kleiner Salat</span>
-              <span class="menu-item__price">12,50 €</span>
-            </div>
-            <p class="menu-item__desc">Täglich wechselnder Mittagstisch · Mi bis Fr · ab 11:30 Uhr</p>
-            <p class="menu-item__desc" style="margin-top:8px;font-size:12px;color:var(--stone-light)">Aktuelle Gerichte auf Instagram: <a href="https://www.instagram.com/tjorvenbistro/" target="_blank" rel="noopener" style="color:var(--green)">@tjorvenbistro</a></p>
-            <div class="menu-item__badges"><span class="badge badge--vegan">Vegan</span></div>
-          </div>
-
-          <div class="menu-item reveal">
-            <div class="menu-item__head">
-              <span class="menu-item__name">Wrap – getoastet</span>
-              <span class="menu-item__price">8,90 €</span>
-            </div>
-            <p class="menu-item__desc">Kartoffeln · saisonales Grillgemüse · Kräutercreme · Sprossen · Blattsalat</p>
-            <div class="menu-item__badges"><span class="badge badge--vegan">Vegan</span></div>
-          </div>
-
-          <div class="menu-item reveal reveal-delay-1">
-            <div class="menu-item__head">
-              <span class="menu-item__name">Saisonales Focaccia – getoastet</span>
-              <span class="menu-item__price">4,90 €</span>
-            </div>
-            <p class="menu-item__desc">Hausgemachtes Brot · saisonales Gemüse · Hummus · grünes Pesto · Blattsalat</p>
-            <div class="menu-item__badges"><span class="badge badge--vegan">Vegan</span></div>
-          </div>
-
-          <div class="menu-item reveal">
-            <div class="menu-item__head">
-              <span class="menu-item__name">Kleiner Blattsalat</span>
-              <span class="menu-item__price">3,90 €</span>
-            </div>
-            <p class="menu-item__desc">Blattsalat · Hausdressing · Sonnenblumenkerne · Sprossen</p>
-            <div class="menu-item__badges">
-              <span class="badge badge--vegan">Vegan</span>
-              <span class="badge badge--gf">Glutenfrei</span>
-            </div>
-          </div>
-
-          <div class="menu-item reveal reveal-delay-1">
-            <div class="menu-item__head">
-              <span class="menu-item__name">Knusprige Pommes – klassisch</span>
-              <span class="menu-item__price">4,30 €</span>
-            </div>
-            <p class="menu-item__desc">Hausgemachte Mayonnaise oder Ketchup</p>
-            <div class="menu-item__badges"><span class="badge badge--vegan">Vegan</span></div>
-          </div>
-
-          <div class="menu-item menu-item--featured menu-item--wide reveal">
-            <div class="menu-item__head">
-              <span class="menu-item__name">Loaded Pommes</span>
-              <span class="menu-item__price">8,90 €</span>
-            </div>
-            <p class="menu-item__desc">Unsere knusprigen Pommes als Basis – dein Upgrade in drei Varianten:</p>
-            <div class="menu-item__variants">
-              <div class="menu-item__variant"><strong>BBQ</strong> · Pilze · Räuchertofu · BBQ Creme · Röstzwiebeln</div>
-              <div class="menu-item__variant"><strong>Veggie</strong> · Saisonales Grillgemüse · Kräutercreme · Pesto · Sprossen</div>
-              <div class="menu-item__variant"><strong>Bolo</strong> · Bolognese aus Sonnenblumenprotein · Sonnenblumenparmesan · Kräuter</div>
-            </div>
-            <div class="menu-item__badges"><span class="badge badge--vegan">Vegan</span></div>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- SÜSSES -->
-      <section class="menu-section" id="suesses">
-        <div class="menu-section__header reveal">
-          <p class="eyebrow">Hausgemacht & verführerisch</p>
-          <h2 class="menu-section__title">Süßes</h2>
-        </div>
-        <div class="menu-grid">
-
-          <div class="menu-item reveal">
-            <div class="menu-item__head">
-              <span class="menu-item__name">Hausgemachte belgische Waffel</span>
               <span class="menu-item__price">4,50 €</span>
             </div>
-            <p class="menu-item__desc">Mix & Match – wähle deinen Lieblingstopping</p>
-            <p class="menu-item__desc" style="margin-top:8px;font-size:12.5px;color:var(--stone-light)">Puderzucker · Zimt & Zucker · Rübensirup +1,00 € · Schokosauce +1,00 € · Apfelmus +1,00 €</p>
           </div>
 
           <div class="menu-item reveal reveal-delay-1">
             <div class="menu-item__head">
-              <span class="menu-item__name">Kuchen & süßes Gebäck</span>
-              <span class="menu-item__price">nach Angebot</span>
+              <span class="menu-item__name">Heiße Schokolade</span>
+              <span class="menu-item__price">3,50 €</span>
             </div>
-            <p class="menu-item__desc">Chocolate Chip Cookies, Tjorven's fluffige Zimtschnecken und weitere hausgemachte Leckereien – ein Blick in die Vitrine lohnt sich!</p>
           </div>
 
           <div class="menu-item reveal">
             <div class="menu-item__head">
-              <span class="menu-item__name">BIO-Eiskreation</span>
-              <span class="menu-item__price">2,20 € / 3,00 €</span>
+              <span class="menu-item__name">Tee</span>
             </div>
-            <p class="menu-item__desc">Cremiges BIO-Eis aus unserer bunten Eisruhe</p>
+            <p class="menu-item__desc">Kinder · Früchte · Grün · Schwarz</p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ALKOHOLISCH -->
+      <section class="menu-section" id="alkoholisch">
+        <div class="menu-section__header reveal">
+          <p class="eyebrow">Bier & Wein</p>
+          <h2 class="menu-section__title">Alkoholisch</h2>
+        </div>
+        <div class="menu-grid">
+
+          <div class="menu-item reveal">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Lammsbräu Bio Pils</span>
+              <span class="menu-item__price">4,00 €</span>
+            </div>
+            <span class="menu-item__vol">0,33 l</span>
+          </div>
+
+          <div class="menu-item reveal reveal-delay-1">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Lammsbräu Bio Radler</span>
+              <span class="menu-item__price">4,00 €</span>
+            </div>
+            <span class="menu-item__vol">0,33 l</span>
+          </div>
+
+          <div class="menu-item reveal">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Lammsbräu Bio alkoholfrei</span>
+              <span class="menu-item__price">4,00 €</span>
+            </div>
+            <span class="menu-item__vol">0,33 l</span>
+          </div>
+
+          <div class="menu-item reveal reveal-delay-1">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Hauswein Weiß</span>
+              <span class="menu-item__price">8,00 €</span>
+            </div>
+            <p class="menu-item__desc">Wechselnder Wein von deutschen Weingütern</p>
+            <span class="menu-item__vol">0,20 l</span>
+          </div>
+
+          <div class="menu-item reveal">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Hauswein Rot</span>
+              <span class="menu-item__price">8,00 €</span>
+            </div>
+            <p class="menu-item__desc">Wechselnder Wein von deutschen Weingütern</p>
+            <span class="menu-item__vol">0,20 l</span>
+          </div>
+
+          <div class="menu-item reveal reveal-delay-1">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Weißweinschorle sauer</span>
+              <span class="menu-item__price">4,50 €</span>
+            </div>
+            <span class="menu-item__vol">0,20 l</span>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- HAUSGEMACHT & CO. -->
+      <section class="menu-section" id="hausgemacht">
+        <div class="menu-section__header reveal">
+          <p class="eyebrow">Hausgemacht & regional</p>
+          <h2 class="menu-section__title">Hausgemacht &amp; Co.</h2>
+        </div>
+        <div class="menu-grid">
+
+          <div class="menu-item reveal">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Hagebutten-Eistee hausgemacht</span>
+              <span class="menu-item__price">3,50 €</span>
+            </div>
+            <p class="menu-item__desc">Cold Brew Eistee</p>
+          </div>
+
+          <div class="menu-item reveal reveal-delay-1">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Kombucha hausgemacht</span>
+              <span class="menu-item__price">4,50 €</span>
+            </div>
+            <p class="menu-item__desc">Fermentiertes Teegetränk auf Basis von Rooibos.</p>
+          </div>
+
+          <div class="menu-item menu-item--wide reveal">
+            <div class="menu-item__head">
+              <span class="menu-item__name">Apfelsaft vom roten Apfel</span>
+              <span class="menu-item__price">3,50 €</span>
+            </div>
+            <p class="menu-item__desc">Von „Der Apfel Schneider“ aus Eppingen-Kleingartach</p>
+            <span class="menu-item__vol">0,20 l / 0,40 l</span>
           </div>
 
         </div>
@@ -388,6 +480,10 @@
         <div class="footer__brand">
           <img src="images/tjorven-logo-gruen.png" alt="Tjorven Bistro" class="footer__logo" onerror="this.style.display='none'">
           <p class="footer__tagline">pflanzlich, herzlich &amp; lecker</p>
+          <div class="footer__social">
+            <a href="https://www.instagram.com/tjorvenbistro/" target="_blank" rel="noopener" aria-label="Instagram"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+            <a href="https://www.facebook.com/share/1bPB5eVJq9/" target="_blank" rel="noopener" aria-label="Facebook"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+          </div>
         </div>
         <div class="footer__col">
           <h4 class="footer__col-title">Navigation</h4>
@@ -428,7 +524,7 @@
     </div>
   </footer>
 
-  <a href="https://wa.me/4972611441199?text=Hallo%20Tjorven%20Bistro%2C%20ich%20habe%20eine%20Frage%3A" target="_blank" rel="noopener" class="whatsapp-fab" aria-label="WhatsApp schreiben"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+  <a href="https://wa.me/4917623324085?text=Hallo%20Tjorven%20Bistro%2C%20ich%20habe%20eine%20Frage%3A" target="_blank" rel="noopener" class="whatsapp-fab" aria-label="WhatsApp schreiben"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
 
   <script src="js/main.js"></script>
 </body>

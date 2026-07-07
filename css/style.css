@@ -88,8 +88,8 @@
   --sh-lg: 0 16px 48px rgba(26,24,22,.09), 0 4px 12px rgba(26,24,22,.05);
 
   /* Layout */
-  --max-w:  1160px;
-  --nav-h:  88px;
+  --max-w:  1320px;
+  --nav-h:  110px;
 
   /* Motion */
   --ease:     cubic-bezier(0.22, 1, 0.36, 1);
@@ -100,6 +100,11 @@
    RESET & BASE
    ============================================================ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Responsive nav height — larger logo needs a bit more room on desktop,
+   compact on mobile so the header never feels cramped */
+@media (max-width: 900px) { :root { --nav-h: 92px; } }
+@media (max-width: 480px) { :root { --nav-h: 76px; } }
 
 html {
   scroll-behavior: smooth;
@@ -358,13 +363,16 @@ input, textarea, select { font-family: inherit; }
 }
 
 .nav__logo-img {
-  height: 74px;
+  height: 100px;   /* präsenter — nutzt die Headerhöhe besser aus, wenig Rand */
   width: auto;
   display: block;
-  transition: opacity .2s;
+  transition: opacity .2s, height .3s var(--ease);
+}
+@media (max-width: 900px) {
+  .nav__logo-img { height: 80px; }
 }
 @media (max-width: 480px) {
-  .nav__logo-img { height: 56px; }
+  .nav__logo-img { height: 60px; }   /* mobil unverändert */
 }
 .nav__logo-img:hover { opacity: .7; }
 
@@ -500,6 +508,50 @@ input, textarea, select { font-family: inherit; }
   align-items: center;
 }
 
+/* Subtle sunset atmosphere — warm Essbereich photo behind everything.
+   Layered under a strong warm gradient so headline text stays crisp. */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    /* warm veil — left opaque for text, right stronger than before to tame the bright sun */
+    linear-gradient(
+      100deg,
+      var(--bg) 0%,
+      rgba(247,244,239,.94) 30%,
+      rgba(247,244,239,.76) 52%,
+      rgba(247,244,239,.58) 74%,
+      rgba(247,244,239,.48) 100%
+    ),
+    /* whisper-soft amber tint evens out the sun's highlight without going dark */
+    linear-gradient(120deg, rgba(120,74,20,.06), rgba(120,74,20,.12)),
+    url('../images/bistro-essbereich.png');
+  background-size: cover, cover, cover;
+  background-position: center, center, center 60%;
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  pointer-events: none;
+}
+/* Mobile: text sits over the full width → stronger veil for readability */
+@media (max-width: 1023px) {
+  .hero::before {
+    background-image:
+      linear-gradient(
+        180deg,
+        var(--bg) 0%,
+        rgba(247,244,239,.90) 42%,
+        rgba(247,244,239,.80) 70%,
+        rgba(247,244,239,.72) 100%
+      ),
+      linear-gradient(120deg, rgba(120,74,20,.06), rgba(120,74,20,.12)),
+      url('../images/bistro-essbereich.png');
+    background-size: cover, cover, cover;
+    background-position: center, center, center;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+  }
+}
+
 /* Organic blob — top right */
 .hero__blob-1 {
   position: absolute;
@@ -512,7 +564,7 @@ input, textarea, select { font-family: inherit; }
   animation: blobMorph 14s ease-in-out infinite alternate;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.55;
+  opacity: 0.28;   /* softened so it blends over the sunset background photo */
 }
 @keyframes blobMorph {
   0%   { border-radius: 63% 37% 54% 46% / 55% 48% 52% 45%; }
@@ -543,23 +595,6 @@ input, textarea, select { font-family: inherit; }
   background: linear-gradient(to bottom, transparent, var(--green-100), transparent);
   pointer-events: none;
   z-index: 0;
-}
-
-/* Decorative large character */
-.hero__deco-char {
-  position: absolute;
-  bottom: -5%;
-  right: 3%;
-  font-family: var(--f-display);
-  font-size: clamp(120px, 18vw, 240px);
-  font-style: italic;
-  font-weight: 600;
-  color: var(--green-50);
-  line-height: 1;
-  pointer-events: none;
-  user-select: none;
-  z-index: 0;
-  letter-spacing: -.04em;
 }
 
 .hero__inner {
@@ -1574,6 +1609,34 @@ input, textarea, select { font-family: inherit; }
 }
 .page-hero--green::after { background: var(--bg); }
 
+/* ── Exact brand-color page heroes ── */
+
+/* Speisekarte — Sand #d2b080 (dark text) */
+.page-hero--sand { background: #d2b080; }
+
+/* Catering — Weinrot #af2f3d (white text) */
+.page-hero--wine { background: #af2f3d; color: var(--warm-50); }
+.page-hero--wine::after              { background: var(--bg); }
+.page-hero--wine .page-hero__eyebrow { color: rgba(255,255,255,.6); }
+.page-hero--wine .page-hero__title   { color: #fff; }
+.page-hero--wine .page-hero__title em{ color: #f6cdd3; }
+.page-hero--wine .page-hero__sub     { color: rgba(255,255,255,.72); }
+
+/* Über uns — Goldgelb #e9ba5f (dark text — light enough) */
+.page-hero--gold { background: #e9ba5f; }
+.page-hero--gold .page-hero__eyebrow  { color: #7a4a12; }
+.page-hero--gold .page-hero__title    { color: #3a2408; }
+.page-hero--gold .page-hero__title em { color: var(--green); }
+.page-hero--gold .page-hero__sub      { color: #5a3d14; }
+
+/* Kontakt — Orange #c8482a (white text) */
+.page-hero--orange { background: #c8482a; color: var(--warm-50); }
+.page-hero--orange::after              { background: var(--bg); }
+.page-hero--orange .page-hero__eyebrow { color: rgba(255,255,255,.68); }
+.page-hero--orange .page-hero__title   { color: #fff; }
+.page-hero--orange .page-hero__title em{ color: #ffe0b8; }
+.page-hero--orange .page-hero__sub     { color: rgba(255,255,255,.74); }
+
 .page-hero__inner {
   position: relative;
   z-index: 1;
@@ -1927,80 +1990,6 @@ input, textarea, select { font-family: inherit; }
 @media (max-width: 600px) {
   .catering-preview-grid { grid-template-columns: 1fr; }
   .catering-preview-header { flex-direction: column; align-items: flex-start; }
-}
-
-/* ─── Editorial gallery (catering page) ────────── */
-.gallery-banner {
-  border-radius: var(--r-2xl);
-  overflow: hidden;
-  aspect-ratio: 16/6;
-  margin-bottom: var(--s-5);
-  cursor: default;
-}
-.gallery-banner img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform .9s var(--ease);
-}
-.gallery-banner:hover img { transform: scale(1.025); }
-
-.gallery-portrait-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--s-4);
-  margin-bottom: var(--s-5);
-}
-.gallery-portrait-item {
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  aspect-ratio: 3/4;
-}
-.gallery-portrait-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform .65s var(--ease);
-}
-.gallery-portrait-item:hover img { transform: scale(1.05); }
-
-/* Scrolling strip — sits outside .container for full width */
-.gallery-strip {
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(to right,
-    transparent 0px, black 80px, black calc(100% - 80px), transparent 100%);
-  mask-image: linear-gradient(to right,
-    transparent 0px, black 80px, black calc(100% - 80px), transparent 100%);
-}
-.gallery-strip__track {
-  display: flex;
-  width: max-content;          /* must be explicit — overflow:hidden parent would cap it otherwise */
-  will-change: transform;
-}
-.gallery-strip__item {
-  height: 240px;
-  flex-shrink: 0;
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  margin-right: 16px;          /* trailing gap on EVERY item → scrollWidth/2 is exact */
-}
-.gallery-strip__item img {
-  height: 240px;
-  width: auto;
-  max-width: none;
-  display: block;
-}
-
-@media (max-width: 900px) {
-  .gallery-portrait-grid { grid-template-columns: repeat(2, 1fr); }
-  .gallery-banner         { aspect-ratio: 16/7; }
-}
-@media (max-width: 600px) {
-  .gallery-portrait-grid       { gap: var(--s-3); }
-  .gallery-strip__item         { height: 175px; margin-right: 10px; }
-  .gallery-strip__item img     { height: 175px; }
 }
 
 .promise-block {
@@ -2398,15 +2387,15 @@ input[type="time"] {
 
 .footer__brand {}
 .footer__logo {
-  height: 30px;
+  height: 72px;   /* präsenter im Footer — harmonisch, hochwertig */
   width: auto;
-  opacity: .55;
-  margin-bottom: var(--s-3);
+  opacity: .8;
+  margin-bottom: var(--s-4);
   filter: brightness(0) invert(1);
 }
 .footer__tagline {
-  font-size: var(--t-xs);
-  letter-spacing: .06em;
+  font-size: 12.5px;
+  letter-spacing: .05em;
   color: rgba(255,255,255,.3);
   text-transform: uppercase;
 }
@@ -2700,11 +2689,6 @@ input[type="time"] {
   font-weight: 600;
 }
 
-/* ---- Tablet 640–900px: catering gallery 2-spaltig ---- */
-@media (min-width: 640px) and (max-width: 899px) {
-  .gallery-portrait-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
 /* ---- Tablet 560–720px: Menü-Grid 1-spaltig damit Karten nicht zu eng ---- */
 @media (min-width: 560px) and (max-width: 719px) {
   .menu-grid { grid-template-columns: 1fr; }
@@ -2737,11 +2721,6 @@ input[type="time"] {
 /* ---- Partner-Grid: Ab 540px besser lesbar ---- */
 @media (min-width: 540px) and (max-width: 619px) {
   .partners-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-/* ---- Footer brand: Logo etwas deutlicher ---- */
-.footer__logo {
-  opacity: 0.62;
 }
 
 /* ---- Sticky menu nav: sanfterer Blur-Hintergrund ---- */
@@ -3097,126 +3076,6 @@ input[type="time"] {
   text-align: center;
 }
 
-/* ─── Newsletter Section ─── */
-.newsletter-section {
-  background: var(--ink);
-  padding-block: var(--s-20);
-}
-@media (min-width: 768px) {
-  .newsletter-section { padding-block: clamp(80px, 8vw, 120px); }
-}
-
-.newsletter-inner {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--s-10);
-  max-width: 900px;
-  margin-inline: auto;
-}
-@media (min-width: 768px) {
-  .newsletter-inner {
-    grid-template-columns: 1fr 1.05fr;
-    align-items: center;
-    gap: var(--s-14);
-  }
-}
-
-.newsletter__eyebrow {
-  display: block;
-  font-size: var(--t-xs);
-  font-weight: 600;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: var(--s-4);
-}
-
-.newsletter__headline {
-  font-family: var(--f-display);
-  font-size: clamp(26px, 3.5vw, 42px);
-  font-weight: 500;
-  color: #fff;
-  line-height: 1.08;
-  letter-spacing: -.02em;
-  margin-bottom: var(--s-4);
-}
-.newsletter__headline em {
-  font-style: italic;
-  font-weight: 600;
-  color: var(--gold);
-}
-
-.newsletter__sub {
-  font-size: var(--t-base);
-  color: rgba(255,255,255,.5);
-  line-height: 1.72;
-  max-width: 380px;
-}
-
-.newsletter-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-4);
-}
-.newsletter-form__row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--s-3);
-}
-@media (min-width: 480px) {
-  .newsletter-form__row { grid-template-columns: 1fr 1fr; }
-}
-
-.newsletter-form input {
-  padding: 14px 18px;
-  border: 1.5px solid rgba(255,255,255,.12);
-  border-radius: var(--r-md);
-  background: rgba(255,255,255,.06);
-  color: #fff;
-  font-family: var(--f-body);
-  font-size: var(--t-base);
-  outline: none;
-  transition: border-color .22s, background .22s;
-  -webkit-appearance: none;
-  appearance: none;
-}
-.newsletter-form input::placeholder { color: rgba(255,255,255,.28); }
-.newsletter-form input:focus {
-  border-color: var(--gold);
-  background: rgba(255,255,255,.09);
-}
-
-.newsletter-form .btn--signup {
-  padding: 15px 28px;
-  background: var(--green);
-  color: #fff;
-  border: none;
-  border-radius: var(--r-full);
-  font-family: var(--f-body);
-  font-size: var(--t-base);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background .22s, box-shadow .22s, transform .22s var(--ease);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--s-2);
-  letter-spacing: .01em;
-}
-.newsletter-form .btn--signup:hover {
-  background: var(--green-mid);
-  box-shadow: 0 8px 28px rgba(24,97,24,.38);
-  transform: translateY(-2px);
-}
-
-.newsletter-privacy {
-  font-size: 11px;
-  color: rgba(255,255,255,.22);
-  line-height: 1.55;
-  margin-top: var(--s-1);
-}
-.newsletter-privacy a { color: rgba(255,255,255,.35); text-decoration: underline; text-underline-offset: 2px; }
-
 /* ─── WhatsApp FAB ─── */
 .whatsapp-fab {
   position: fixed;
@@ -3274,15 +3133,27 @@ input[type="time"] {
 }
 .whatsapp-inline-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
 
-/* ─── Footer Logo vergrößert ─── */
-.footer__logo {
-  height: 56px !important;
-  opacity: .75 !important;
-  margin-bottom: var(--s-4) !important;
+/* Footer social icons */
+.footer__social {
+  display: flex;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
 }
-.footer__tagline {
-  font-size: 12.5px !important;
-  letter-spacing: .05em !important;
+.footer__social a {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.07);
+  color: rgba(255,255,255,.6);
+  transition: background .2s, color .2s, transform .2s var(--ease);
+}
+.footer__social a:hover {
+  background: rgba(255,255,255,.14);
+  color: #fff;
+  transform: translateY(-2px);
 }
 
 /* ─── PDF-Download-Banner (Speisekarte) ─── */
@@ -3315,6 +3186,11 @@ input[type="time"] {
   color: var(--ink-60);
   font-weight: 500;
 }
+.pdf-download-bar__actions {
+  display: flex;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
 .pdf-download-bar .btn--pdf {
   display: inline-flex;
   align-items: center;
@@ -3325,10 +3201,26 @@ input[type="time"] {
   border-radius: var(--r-full);
   font-size: var(--t-sm);
   font-weight: 500;
-  opacity: .45;
-  cursor: not-allowed;
-  pointer-events: none;
-  border: none;
+  border: 1.5px solid var(--ink);
+  text-decoration: none;
+  transition: background .22s var(--ease), transform .22s var(--ease), box-shadow .22s var(--ease);
+}
+.pdf-download-bar .btn--pdf:hover {
+  background: #000;
+  transform: translateY(-2px);
+  box-shadow: var(--sh-md);
+}
+.pdf-download-bar .btn--pdf-ghost {
+  background: transparent;
+  color: var(--ink);
+}
+.pdf-download-bar .btn--pdf-ghost:hover {
+  background: var(--ink);
+  color: #fff;
+}
+@media (max-width: 520px) {
+  .pdf-download-bar__actions { width: 100%; }
+  .pdf-download-bar .btn--pdf { flex: 1; justify-content: center; }
 }
 
 /* ─── Instagram Landing Page ─── */
@@ -3427,6 +3319,11 @@ input[type="time"] {
   background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
   color: #fff;
 }
+.ig-lp__btn--fb {
+  background: #1877f2;
+  color: #fff;
+}
+.ig-lp__btn--fb:hover { background: #1465d8; }
 
 .ig-lp__hours {
   margin-top: var(--s-10);
@@ -3452,10 +3349,85 @@ input[type="time"] {
   color: #1a9945;
 }
 
-/* ─── Responsive: Slider mobile tweak ─── */
-@media (max-width: 599px) {
-  .food-slider__btn { width: 38px; height: 38px; }
-  .food-slider__caption { padding: 18px 18px 20px; }
-  .food-slider__expand { top: 10px; right: 10px; }
+/* ═══════════════════════════════════════
+   COOKIE / CONSENT BANNER (DSGVO)
+   ═══════════════════════════════════════ */
+.cookie-banner {
+  position: fixed;
+  z-index: 500;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%) translateY(140%);
+  width: min(560px, calc(100vw - 32px));
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-lg);
+  padding: var(--s-6);
+  opacity: 0;
+  transition: transform .45s var(--ease), opacity .45s var(--ease);
+}
+.cookie-banner.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+.cookie-banner__title {
+  font-family: var(--f-display);
+  font-size: var(--t-md);
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: var(--s-2);
+}
+.cookie-banner__text {
+  font-size: var(--t-sm);
+  color: var(--stone);
+  line-height: 1.65;
+  margin-bottom: var(--s-5);
+}
+.cookie-banner__text a {
+  color: var(--green);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.cookie-banner__actions {
+  display: flex;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+.cookie-banner__btn {
+  flex: 1;
+  min-width: 130px;
+  padding: 11px 20px;
+  border-radius: var(--r-full);
+  font-family: var(--f-body);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: background .2s var(--ease), border-color .2s, color .2s, transform .2s;
+}
+.cookie-banner__btn:hover { transform: translateY(-1px); }
+.cookie-banner__btn--accept {
+  background: var(--green);
+  color: #fff;
+}
+.cookie-banner__btn--accept:hover { background: var(--green-mid); }
+.cookie-banner__btn--decline {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--ink-60);
+}
+.cookie-banner__btn--decline:hover { border-color: var(--green); color: var(--green); }
+
+@media (max-width: 480px) {
+  .cookie-banner { bottom: 12px; padding: var(--s-5); }
+  .cookie-banner__actions { flex-direction: column; }
+  .cookie-banner__btn { width: 100%; }
+}
+/* While the consent banner is open, keep the WhatsApp FAB out of the way */
+body.consent-open .whatsapp-fab {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(.8);
 }
 

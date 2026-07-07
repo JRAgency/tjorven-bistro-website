@@ -298,8 +298,9 @@ document.querySelectorAll('.footer-year').forEach(el => {
       vid.src      = srcVid ? srcVid.src : '';
       vid.controls = true;
       vid.autoplay = true;
-      vid.muted    = false;
+      vid.muted    = true;   /* Ton standardmäßig aus — Nutzer kann per Controls aktivieren */
       vid.loop     = false;
+      vid.playsInline = true;
       vid.preload  = 'auto';
       vid.style.maxHeight = '80vh';
       mediaEl.appendChild(vid);
@@ -328,106 +329,44 @@ document.querySelectorAll('.footer-year').forEach(el => {
 
 /* portrait-slider handles everything above — no legacy food-slider needed */
 
-/* --- Newsletter Form (placeholder submit) --- */
-(function () {
-  var form = document.querySelector('.newsletter-form');
-  if (!form) return;
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var btn = form.querySelector('button[type="submit"]');
-    if (btn) {
-      btn.textContent = 'Angemeldet ✓';
-      btn.disabled = true;
-      btn.style.opacity = '.6';
-    }
-  });
-})();
-
-/* --- Gallery strip — seamless infinite scroll ---
- *
- * Strategy:
- *  1. HTML holds ONE set of images (7 items, loading="eager").
- *  2. After images load we measure the exact set width via getBoundingClientRect —
- *     this is more reliable than scrollWidth and includes the trailing margin-right.
- *  3. We clone the set as many times as needed so the track is always wider than
- *     (viewport + one set).  Formula: copies = ceil(vw / setWidth) + 2
- *  4. `half` = measured setWidth.  When pos >= half we subtract half — the next
- *     set lines up pixel-perfectly because every copy is identical.
- *  5. rAF loop at 30 px/s — slow, editorial.
- *  6. Pause on hover / touch.
+/* --- Cookie / Consent Banner (DSGVO) ---
+ * The site sets NO tracking cookies and embeds no third-party iframes.
+ * This banner records the visitor's choice in localStorage (not a cookie)
+ * and is shown once until a choice is made. No optional scripts load before consent.
  */
 (function () {
-  const SPEED = 30 / 1000; // px per ms → 30 px/s
+  var KEY = 'tjorven-consent';
+  var choice;
+  try { choice = localStorage.getItem(KEY); } catch (e) { choice = null; }
+  if (choice) return; // already decided — nothing to show
 
-  document.querySelectorAll('.gallery-strip').forEach(strip => {
-    const track = strip.querySelector('.gallery-strip__track');
-    if (!track) return;
+  var banner = document.createElement('div');
+  banner.className = 'cookie-banner';
+  banner.setAttribute('role', 'dialog');
+  banner.setAttribute('aria-live', 'polite');
+  banner.setAttribute('aria-label', 'Datenschutz-Hinweis');
+  banner.innerHTML =
+    '<p class="cookie-banner__title">Datenschutz &amp; Cookies</p>' +
+    '<p class="cookie-banner__text">Wir verwenden nur technisch notwendige Speicherung und laden ' +
+    'Google Fonts zur einheitlichen Darstellung. Es werden keine Tracking-Cookies gesetzt. ' +
+    'Mehr dazu in unserer <a href="datenschutz.html">Datenschutzerklärung</a>.</p>' +
+    '<div class="cookie-banner__actions">' +
+      '<button type="button" class="cookie-banner__btn cookie-banner__btn--accept">Akzeptieren</button>' +
+      '<button type="button" class="cookie-banner__btn cookie-banner__btn--decline">Nur notwendige</button>' +
+    '</div>';
 
-    let paused = false;
-    let pos    = 0;
-    let half   = 0;
+  document.body.appendChild(banner);
+  document.body.classList.add('consent-open');
+  // setTimeout (not rAF) so the slide-in reveal also fires when the tab is not focused
+  setTimeout(function () { banner.classList.add('show'); }, 60);
 
-    strip.addEventListener('mouseenter', () => { paused = true;  });
-    strip.addEventListener('mouseleave', () => { paused = false; });
-    strip.addEventListener('touchstart', () => { paused = true;  }, { passive: true });
-    strip.addEventListener('touchend',   () => { paused = false; });
+  function decide(value) {
+    try { localStorage.setItem(KEY, value); } catch (e) {}
+    banner.classList.remove('show');
+    document.body.classList.remove('consent-open');
+    setTimeout(function () { banner.remove(); }, 480);
+  }
 
-    function tick(ts, prev) {
-      if (!paused && half > 0) {
-        const dt = Math.min(ts - prev, 50); // cap delta — survives tab-switch
-        pos += SPEED * dt;
-        if (pos >= half) pos -= half;       // seamless wrap
-        track.style.transform = `translateX(-${pos.toFixed(2)}px)`;
-      }
-      requestAnimationFrame(next => tick(next, ts));
-    }
-
-    function buildAndStart() {
-      // One rAF guarantees the browser has reflowed after image load events
-      requestAnimationFrame(() => {
-        const origItems  = [...track.children];
-        const origCount  = origItems.length;
-        if (origCount === 0) return;
-
-        // Measure the exact width of ONE set.
-        // getBoundingClientRect().width on a flex container with width:max-content
-        // includes every item's margin-right (unlike scrollWidth in some browsers).
-        const setWidth = track.getBoundingClientRect().width;
-        if (setWidth <= 0) return;
-
-        half = setWidth; // this is our wrap distance
-
-        // How many extra copies do we need?
-        // Requirement: total_width >= viewport_width + setWidth
-        //   (so at any pos in [0, half) the right edge pos+vw stays within track)
-        // => (1 + copies) * setWidth >= vw + setWidth
-        // => copies >= vw / setWidth
-        const vw     = window.innerWidth;
-        const copies = Math.ceil(vw / setWidth) + 1; // +1 safety buffer
-
-        for (let c = 0; c < copies; c++) {
-          for (let i = 0; i < origCount; i++) {
-            track.appendChild(origItems[i].cloneNode(true));
-          }
-        }
-
-        requestAnimationFrame(ts => tick(ts, ts));
-      });
-    }
-
-    // Wait for every original image to have intrinsic dimensions before measuring
-    const imgs    = [...track.querySelectorAll('img')];
-    const pending = imgs.filter(img => !img.complete || img.naturalWidth === 0);
-
-    if (pending.length === 0) {
-      buildAndStart();
-    } else {
-      let loaded = 0;
-      const done = () => { if (++loaded === pending.length) buildAndStart(); };
-      pending.forEach(img => {
-        img.addEventListener('load',  done, { once: true });
-        img.addEventListener('error', done, { once: true });
-      });
-    }
-  });
+  banner.querySelector('.cookie-banner__btn--accept').addEventListener('click', function () { decide('accepted'); });
+  banner.querySelector('.cookie-banner__btn--decline').addEventListener('click', function () { decide('declined'); });
 })();

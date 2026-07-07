@@ -1,0 +1,16 @@
+# Ensure binary assets are never line-ending converted (prevents corruption)
+*.pdf  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.gif  binary
+*.mp4  binary
+*.ico  binary
+*.woff  binary
+*.woff2 binary
+
+# Normalize line endings for text sources
+*.html text eol=lf
+*.css  text eol=lf
+*.js   text eol=lf
