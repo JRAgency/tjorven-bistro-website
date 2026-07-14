@@ -3431,3 +3431,93 @@ body.consent-open .whatsapp-fab {
   transform: scale(.8);
 }
 
+/* ═══════════════════════════════════════
+   KARRIERE / CAREERS — dezente, erweiterbare Card
+   ═══════════════════════════════════════ */
+.careers-card {
+  background: var(--sand-50);
+  border: 1px solid var(--sand-light);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-sm);
+  padding: clamp(28px, 4vw, 52px);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s-8);
+  align-items: center;
+}
+@media (min-width: 820px) {
+  .careers-card {
+    grid-template-columns: 1.5fr 1fr;
+    gap: var(--s-14);
+  }
+}
+
+.careers-card__text {
+  color: var(--stone);
+  font-size: var(--t-base);
+  line-height: 1.72;
+  margin-top: var(--s-4);
+  max-width: 480px;
+}
+
+/* Optional Stellenliste — bleibt leer unsichtbar, wächst sauber mit Einträgen */
+.careers-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  margin-top: var(--s-6);
+}
+.careers-list:empty { display: none; }
+
+.careers-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  background: var(--bg-surface);
+  border: 1px solid var(--sand-light);
+  border-radius: var(--r-lg);
+  transition: border-color .25s var(--ease), box-shadow .25s var(--ease);
+}
+.careers-list__item:hover {
+  border-color: var(--sand);
+  box-shadow: 0 4px 16px rgba(210,176,128,.16);
+}
+.careers-list__role {
+  font-size: var(--t-base);
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.careers-list__mfd {
+  font-weight: 400;
+  color: var(--stone-light);
+}
+.careers-list__type {
+  flex-shrink: 0;
+  font-size: var(--t-xs);
+  font-weight: 500;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--green);
+  background: var(--green-50);
+  padding: 5px 12px;
+  border-radius: var(--r-full);
+}
+
+.careers-card__action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-4);
+}
+
+.careers-card__note {
+  font-size: var(--t-sm);
+  color: var(--stone-light);
+  line-height: 1.6;
+  max-width: 360px;
+}
+
