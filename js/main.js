@@ -73,12 +73,34 @@ const menuBtns = document.querySelectorAll('.menu-nav__btn');
 const menuSections = document.querySelectorAll('.menu-section[id]');
 
 if (menuBtns.length && menuSections.length) {
+  const menuNav = document.querySelector('.menu-nav');
+
+  /* Sprungziel: unter der fixierten Kopfzeile UND unter der klebenden
+     Tab-Leiste. Beides wird gemessen statt geraten, weil die Kopfhöhe
+     inzwischen mit der Viewportbreite skaliert. */
+  const stickyOffset = () => {
+    const navH = document.getElementById('nav')?.offsetHeight ?? 0;
+    const tabsH = menuNav?.offsetHeight ?? 0;
+    return navH + tabsH + 12;
+  };
+
+  /* Aktiven Tab in der horizontal scrollbaren Leiste sichtbar halten */
+  const revealActiveTab = () => {
+    const active = [...menuBtns].find(b => b.classList.contains('active'));
+    if (!active || !menuNav) return;
+    const strip = menuNav.querySelector('.menu-nav__inner');
+    if (!strip || strip.scrollWidth <= strip.clientWidth) return;
+    const left = active.offsetLeft - (strip.clientWidth - active.offsetWidth) / 2;
+    strip.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+  };
+
   const sectionIO = new IntersectionObserver(
     entries => {
       entries.forEach(e => {
         if (e.isIntersecting) {
           const id = e.target.id;
           menuBtns.forEach(b => b.classList.toggle('active', b.dataset.target === id));
+          revealActiveTab();
         }
       });
     },
@@ -91,9 +113,8 @@ if (menuBtns.length && menuSections.length) {
     btn.addEventListener('click', () => {
       const target = document.getElementById(btn.dataset.target);
       if (!target) return;
-      const offset = 120;
       window.scrollTo({
-        top: target.getBoundingClientRect().top + window.scrollY - offset,
+        top: target.getBoundingClientRect().top + window.scrollY - stickyOffset(),
         behavior: 'smooth'
       });
     });
@@ -121,8 +142,19 @@ document.querySelectorAll('.footer-year').forEach(el => {
 
 /* --- Portrait Slider (Food Story — Instagram/Story style) --- */
 (function () {
-  var AUTOPLAY_MS = 5500;
-  var GAP_PX      = 16;
+  var AUTOPLAY_MS     = 5500;   // Standzeit eines Fotos
+  var VIDEO_MIN_MS    = 7000;   // Videos bekommen mindestens so lange Zeit …
+  var VIDEO_MAX_MS    = 14000;  // … und höchstens so lange
+  var FALLBACK_GAP_PX = 16;     // nur falls die Lücke nicht auslesbar ist
+
+  // Nutzer mit reduzierter Bewegung bekommen weder Auto-Weiterschaltung
+  // noch automatisch startende Videos.
+  var reducedMotion = window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : { matches: false, addEventListener: null };
+
+  // Angemeldete Slider — die Lightbox hält sie beim Öffnen an
+  var sliders = [];
 
   document.querySelectorAll('.portrait-slider').forEach(function (root) {
     var viewport  = root.querySelector('.portrait-slider__viewport');
@@ -140,7 +172,9 @@ document.querySelectorAll('.footer-year').forEach(el => {
     var current = 0;
     var total   = slides.length;
     var timer   = null;
-    var startX = 0, isDrag = false, dragDx = 0;
+    var startX = 0, startY = 0, isDrag = false, dragDx = 0, dragDy = 0;
+    var suppressClick = false;   // nach einem Drag darf kein Klick durchschlagen
+    var hovering = false;        // Zeiger liegt auf dem Slider → nicht weiterschalten
     var resizeT = null;
 
     // Build dots
@@ -156,11 +190,18 @@ document.querySelectorAll('.footer-year').forEach(el => {
       return slides[0] ? slides[0].offsetWidth : 0;
     }
 
+    /* Lücke aus dem CSS lesen, damit Track-Gap und Rechnung nicht auseinanderlaufen */
+    function gapPx() {
+      if (!track) return FALLBACK_GAP_PX;
+      var g = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap);
+      return isNaN(g) ? FALLBACK_GAP_PX : g;
+    }
+
     function calcOffset(idx) {
       var vw = viewport ? viewport.offsetWidth : root.offsetWidth;
       var sw = slideWidth();
       if (!sw) return 0;
-      return (vw - sw) / 2 - idx * (sw + GAP_PX);
+      return (vw - sw) / 2 - idx * (sw + gapPx());
     }
 
     function updateCaption() {
@@ -170,7 +211,43 @@ document.querySelectorAll('.footer-year').forEach(el => {
       if (capDesc)  capDesc.textContent  = s.dataset.desc  || '';
     }
 
-    function updateUI() {
+    /* Nur das Video des aktiven Slides läuft — stumm, in Schleife, inline.
+       Alle anderen werden angehalten und zurückgesetzt. */
+    function syncVideos() {
+      slides.forEach(function (slide, i) {
+        var video = slide.querySelector('video');
+        if (!video) return;
+        var badge  = slide.querySelector('.portrait-slider__play-badge');
+        var isLive = i === current && !reducedMotion.matches &&
+                     !document.hidden && !lightboxOpen();
+
+        if (isLive) {
+          /* Erst wenn das Video wirklich gebraucht wird, darf es laden */
+          if (video.preload !== 'auto') video.preload = 'auto';
+          video.muted = true;          // Voraussetzung für Autoplay ohne Geste
+          video.playsInline = true;
+          var played = video.play();
+          if (played && played.catch) {
+            played.catch(function () {
+              /* Browser hat Autoplay blockiert — Play-Hinweis bleibt sichtbar */
+              if (badge) badge.classList.remove('is-playing');
+            });
+          }
+          if (badge) badge.classList.add('is-playing');
+        } else {
+          video.pause();
+          if (i !== current) {
+            try { video.currentTime = 0; } catch (e) {}
+          }
+          if (badge) badge.classList.remove('is-playing');
+        }
+      });
+    }
+
+    function updateUI(instant) {
+      /* instant = Sprung ohne Animation (Wrap-around und erste Darstellung) */
+      if (instant) track.style.transition = 'none';
+
       var offset = calcOffset(current);
       track.style.transform = 'translateX(' + offset.toFixed(1) + 'px)';
 
@@ -183,48 +260,86 @@ document.querySelectorAll('.footer-year').forEach(el => {
         : [];
       dots.forEach(function (d, i) { d.classList.toggle('active', i === current); });
 
+      if (instant) {
+        void track.offsetWidth;      // Reflow erzwingen, bevor die Animation zurückkommt
+        track.style.transition = '';
+      }
+
       updateCaption();
+      syncVideos();
     }
 
     function goTo(idx) {
-      current = ((idx % total) + total) % total;
-      updateUI();
+      var next = ((idx % total) + total) % total;
+      /* Beim Sprung vom letzten zum ersten Slide (und umgekehrt) würde der Track
+         sonst sichtbar über alle neun Bilder zurückfahren. */
+      var wrapped = (current === total - 1 && next === 0) ||
+                    (current === 0 && next === total - 1);
+      current = next;
+      updateUI(wrapped);
       resetTimer();
     }
 
+    /* Videos bekommen ungefähr eine volle Laufzeit, Fotos die kürzere Standzeit */
+    function dwellMs() {
+      var video = slides[current] && slides[current].querySelector('video');
+      if (!video) return AUTOPLAY_MS;
+      var dur = video.duration;
+      if (!dur || isNaN(dur) || !isFinite(dur)) return VIDEO_MIN_MS;
+      return Math.min(Math.max(dur * 1000, VIDEO_MIN_MS), VIDEO_MAX_MS);
+    }
+
+    function stopTimer() {
+      clearTimeout(timer);
+      timer = null;
+    }
+
     function resetTimer() {
-      clearInterval(timer);
-      timer = setInterval(function () { goTo(current + 1); }, AUTOPLAY_MS);
+      stopTimer();
+      if (reducedMotion.matches || document.hidden || hovering || lightboxOpen()) return;
+      timer = setTimeout(function () { goTo(current + 1); }, dwellMs());
     }
 
     // Buttons
     btnPrev && btnPrev.addEventListener('click', function () { goTo(current - 1); });
     btnNext && btnNext.addEventListener('click', function () { goTo(current + 1); });
 
+    /* Wischgeste. Nur auslösen, wenn die Bewegung überwiegend waagerecht war —
+       sonst wechselt der Slider beim senkrechten Scrollen die Bilder. */
+    function swipeEnd() {
+      if (!isDrag) return;
+      isDrag = false;
+      var horizontal = Math.abs(dragDx) > 44 && Math.abs(dragDx) > Math.abs(dragDy) * 1.5;
+      if (horizontal) {
+        suppressClick = true;
+        goTo(dragDx < 0 ? current + 1 : current - 1);
+      }
+    }
+
     // Touch swipe
     viewport && viewport.addEventListener('touchstart', function (e) {
-      startX = e.touches[0].clientX; isDrag = true; dragDx = 0;
+      startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+      isDrag = true; dragDx = 0; dragDy = 0;
     }, { passive: true });
     viewport && viewport.addEventListener('touchmove', function (e) {
       if (!isDrag) return;
       dragDx = e.touches[0].clientX - startX;
+      dragDy = e.touches[0].clientY - startY;
     }, { passive: true });
-    viewport && viewport.addEventListener('touchend', function () {
-      if (!isDrag) return; isDrag = false;
-      if (Math.abs(dragDx) > 44) goTo(dragDx < 0 ? current + 1 : current - 1);
-    });
+    viewport && viewport.addEventListener('touchend', swipeEnd);
+    viewport && viewport.addEventListener('touchcancel', function () { isDrag = false; });
 
     // Mouse drag
     viewport && viewport.addEventListener('mousedown', function (e) {
-      startX = e.clientX; isDrag = true; dragDx = 0;
+      startX = e.clientX; startY = e.clientY;
+      isDrag = true; dragDx = 0; dragDy = 0;
     });
     viewport && viewport.addEventListener('mousemove', function (e) {
-      if (!isDrag) return; dragDx = e.clientX - startX;
+      if (!isDrag) return;
+      dragDx = e.clientX - startX;
+      dragDy = e.clientY - startY;
     });
-    viewport && viewport.addEventListener('mouseup', function () {
-      if (!isDrag) return; isDrag = false;
-      if (Math.abs(dragDx) > 44) goTo(dragDx < 0 ? current + 1 : current - 1);
-    });
+    viewport && viewport.addEventListener('mouseup', swipeEnd);
     viewport && viewport.addEventListener('mouseleave', function () { isDrag = false; });
 
     // Click on frame: inactive → navigate; active image → lightbox; active video → lightbox
@@ -232,6 +347,8 @@ document.querySelectorAll('.footer-year').forEach(el => {
       var frame = slide.querySelector('.portrait-slider__frame');
       if (!frame) return;
       frame.addEventListener('click', function () {
+        /* Ein Klick direkt nach einer Wischgeste würde sonst die Lightbox öffnen */
+        if (suppressClick) { suppressClick = false; return; }
         if (!slide.classList.contains('active')) {
           goTo(i);
         } else {
@@ -240,16 +357,22 @@ document.querySelectorAll('.footer-year').forEach(el => {
       });
     });
 
-    // Keyboard
+    // Tastatur — greift nur, solange der Slider im Blickfeld ist und
+    // keine Lightbox offen ist, damit die Pfeiltasten sonst frei bleiben.
     document.addEventListener('keydown', function (e) {
-      if (document.querySelector('.lb-overlay.open')) return;
-      if (e.key === 'ArrowLeft')  goTo(current - 1);
-      if (e.key === 'ArrowRight') goTo(current + 1);
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      if (lightboxOpen()) return;
+      /* Nicht eingreifen, während jemand in einem Formularfeld tippt */
+      var t = e.target;
+      if (t && (t.closest('input, textarea, select, [contenteditable]'))) return;
+      var box = root.getBoundingClientRect();
+      if (box.bottom <= 0 || box.top >= (window.innerHeight || 0)) return;
+      goTo(e.key === 'ArrowLeft' ? current - 1 : current + 1);
     });
 
-    // Pause on hover
-    root.addEventListener('mouseenter', function () { clearInterval(timer); });
-    root.addEventListener('mouseleave', function () { resetTimer(); });
+    // Pause on hover — hovering blockiert auch ein resetTimer() aus Klicks heraus
+    root.addEventListener('mouseenter', function () { hovering = true;  stopTimer(); });
+    root.addEventListener('mouseleave', function () { hovering = false; resetTimer(); });
 
     // Resize
     window.addEventListener('resize', function () {
@@ -257,17 +380,37 @@ document.querySelectorAll('.footer-year').forEach(el => {
       resizeT = setTimeout(function () { updateUI(); }, 80);
     });
 
-    // Init — disable transition for first render
-    track.style.transition = 'none';
-    updateUI();
-    requestAnimationFrame(function () {
-      track.style.transition = '';
-      resetTimer();
+    // Im Hintergrund-Tab weder weiterschalten noch Video abspielen
+    document.addEventListener('visibilitychange', function () {
+      syncVideos();
+      if (document.hidden) stopTimer(); else resetTimer();
     });
+
+    // Reagiert live, wenn die Systemeinstellung „Bewegung reduzieren“ wechselt
+    if (reducedMotion.addEventListener) {
+      reducedMotion.addEventListener('change', function () {
+        syncVideos();
+        resetTimer();
+      });
+    }
+
+    // Damit die Lightbox den Slider anhalten kann
+    sliders.push({
+      pause:  function () { stopTimer(); syncVideos(); },
+      resume: function () { syncVideos(); resetTimer(); }
+    });
+
+    // Init — erste Darstellung ohne Animation
+    updateUI(true);
+    resetTimer();
   });
 
   /* ---- Shared Lightbox ---- */
   var lbEl = null;
+
+  function lightboxOpen() {
+    return !!(lbEl && lbEl.classList.contains('open'));
+  }
 
   function buildLightbox() {
     lbEl = document.createElement('div');
@@ -312,14 +455,19 @@ document.querySelectorAll('.footer-year').forEach(el => {
 
     lbEl.classList.add('open');
     document.body.style.overflow = 'hidden';
+    // Slider anhalten, damit im Hintergrund kein zweites Video läuft
+    sliders.forEach(function (s) { s.pause(); });
+    var closeBtn = lbEl.querySelector('.lb-overlay__close');
+    if (closeBtn) closeBtn.focus();
   }
 
   function closeLightbox() {
-    if (!lbEl) return;
+    if (!lbEl || !lbEl.classList.contains('open')) return;
     lbEl.classList.remove('open');
     document.body.style.overflow = '';
     var vid = lbEl.querySelector('video');
     if (vid) { vid.pause(); vid.currentTime = 0; }
+    sliders.forEach(function (s) { s.resume(); });
   }
 
   document.addEventListener('keydown', function (e) {

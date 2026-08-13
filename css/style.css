@@ -15,6 +15,10 @@
   --red:          #b8173a;
   --red-100:      #f3dfe5;
 
+  /* Deep brand green — same family as --green, dark enough for small text
+     on the light brand backgrounds (sand #d2b080, gold #e9ba5f) */
+  --green-deep:   #124a12;
+
   /* Brand sand/gold — #d2b080 palette */
   --sand:         #d2b080;
   --sand-dark:    #b8966a;
@@ -31,14 +35,17 @@
   --ink:          #1a1816;
   --ink-80:       #2a2724;
   --ink-60:       #4a4643;
-  --stone:        #8a7f74;
-  --stone-light:  #b0a9a3;
+  /* Sekundärtext. War #8a7f74 → nur 3,6:1 auf allen hellen Flächen und damit
+     unter der Lesbarkeitsgrenze; #726859 liegt bei ~5:1 und bleibt warm-grau. */
+  --stone:        #726859;
+  --stone-light:  #8a7f74;
   --warm-300:     #cec4b5;
   --warm-200:     #e0d8cd;
   --warm-150:     #ece5da;
   --warm-100:     #f2ece3;
   --warm-50:      #f7f4ef;
   --surface:      #fdfaf7;
+  --cream:        #fbf6ee;   /* warmes Off-White — Typo & Logo-Fläche auf farbigen Heros */
 
   /* Semantic */
   --bg:           var(--warm-50);
@@ -87,9 +94,12 @@
   --sh-md: 0 6px 20px rgba(26,24,22,.07), 0 2px 6px rgba(26,24,22,.04);
   --sh-lg: 0 16px 48px rgba(26,24,22,.09), 0 4px 12px rgba(26,24,22,.05);
 
-  /* Layout */
+  /* Layout — Header wächst mit der Viewportbreite mit, das Logo ebenso.
+     --logo-h ist die Bildhöhe; die Wortmarke füllt davon ~93 % (Asset ist
+     eng beschnitten), also ergibt 84px Bildhöhe ≈ 78px sichtbare Markenhöhe. */
   --max-w:  1320px;
-  --nav-h:  110px;
+  --nav-h:  clamp(112px, 9.4vw, 126px);
+  --logo-h: clamp(66px, 6.2vw, 84px);
 
   /* Motion */
   --ease:     cubic-bezier(0.22, 1, 0.36, 1);
@@ -102,9 +112,13 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* Responsive nav height — larger logo needs a bit more room on desktop,
-   compact on mobile so the header never feels cramped */
-@media (max-width: 900px) { :root { --nav-h: 92px; } }
-@media (max-width: 480px) { :root { --nav-h: 76px; } }
+   kompakt auf dem Smartphone, damit der Header dort nie gedrungen wirkt.
+   Die Grenze 879px entspricht dem Umschaltpunkt Burger ↔ Desktop-Navigation. */
+@media (max-width: 879px) { :root { --nav-h: 96px; --logo-h: 64px; } }
+@media (max-width: 480px) { :root { --nav-h: 80px; --logo-h: 48px; } }
+
+/* Sprungziele (#anker) dürfen nicht unter der fixierten Kopfzeile landen */
+:where([id]) { scroll-margin-top: calc(var(--nav-h) + var(--s-4)); }
 
 html {
   scroll-behavior: smooth;
@@ -166,6 +180,10 @@ input, textarea, select { font-family: inherit; }
   margin-bottom: var(--s-3);
 }
 .eyebrow--light { color: rgba(255,255,255,.5); }
+/* Auf dem Sand-Hintergrund #d2b080 erreicht das Marken-Grün nur 3,7:1 —
+   der dunklere Ton derselben Farbfamilie kommt auf 5,1:1. */
+.section--warm .eyebrow,
+.form-card .eyebrow { color: var(--green-deep); }
 .eyebrow--muted { color: var(--stone); }
 
 /* Display headings */
@@ -246,6 +264,7 @@ input, textarea, select { font-family: inherit; }
   font-weight: 500;
   letter-spacing: .025em;
   white-space: nowrap;
+  max-width: 100%;
   border: 1.5px solid transparent;
   transition:
     background .24s var(--ease),
@@ -300,6 +319,12 @@ input, textarea, select { font-family: inherit; }
 .btn--sm {
   padding: 10px 20px;
   font-size: var(--t-xs);
+}
+
+/* Auf sehr schmalen Screens dürfen lange Beschriftungen umbrechen,
+   statt aus dem Container zu laufen (z. B. „Alle Rezensionen auf Google ansehen“). */
+@media (max-width: 480px) {
+  .btn { white-space: normal; text-align: center; justify-content: center; }
 }
 
 .btn--lg {
@@ -363,16 +388,11 @@ input, textarea, select { font-family: inherit; }
 }
 
 .nav__logo-img {
-  height: 100px;   /* präsenter — nutzt die Headerhöhe besser aus, wenig Rand */
+  height: var(--logo-h);
   width: auto;
+  aspect-ratio: 720 / 524;   /* Maße des Logo-Assets — verhindert Layout-Shift beim Laden */
   display: block;
   transition: opacity .2s, height .3s var(--ease);
-}
-@media (max-width: 900px) {
-  .nav__logo-img { height: 80px; }
-}
-@media (max-width: 480px) {
-  .nav__logo-img { height: 60px; }   /* mobil unverändert */
 }
 .nav__logo-img:hover { opacity: .7; }
 
@@ -435,8 +455,8 @@ input, textarea, select { font-family: inherit; }
   flex-direction: column;
   justify-content: center;
   gap: 5px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;   /* einziges Navigations-Element auf Mobil — volles Touch-Ziel */
   padding: var(--s-2);
   background: none;
   border: none;
@@ -454,7 +474,7 @@ input, textarea, select { font-family: inherit; }
   height: 1.5px;
   background: var(--ink-80);
   border-radius: 2px;
-  transition: transform .3s var(--ease), opacity .2s;
+  transition: transform .3s var(--ease), opacity .2s, background .3s var(--ease);
   transform-origin: center;
 }
 .nav__burger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
@@ -471,6 +491,13 @@ input, textarea, select { font-family: inherit; }
   padding: var(--s-4) var(--s-6) var(--s-8);
   border-bottom: 1px solid var(--border);
   box-shadow: 0 12px 32px rgba(26,24,22,.08);
+  /* Im Querformat ist der Drawer höher als der Bildschirm und der Body-Scroll
+     ist gesperrt — ohne eigenen Scroll bliebe der Kontakt-Button unerreichbar. */
+  max-height: calc(100vh - var(--nav-h));
+  max-height: calc(100dvh - var(--nav-h));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 .nav__drawer.open {
   display: flex;
@@ -495,13 +522,75 @@ input, textarea, select { font-family: inherit; }
   border-top: 1px solid var(--border);
 }
 
+/* ── Navigation über den farbigen Seiten-Heros ─────────────────────────────
+   Solange nicht gescrollt wird, liegt die transparente Leiste direkt auf der
+   Markenfarbe. Zwei bewusst gestaltete Varianten:
+     .nav--on-dark   Weinrot #af2f3d / Orange #c8482a → helle Navigation,
+                     cremefarbene Trägerfläche unter dem grünen Logo,
+                     aktiver Punkt als cremefarbener Pill.
+     .nav--on-light  Sand #d2b080 / Gold #e9ba5f → dunklere Navigation,
+                     Kontakt-Button mit heller Fläche statt reinem Outline.
+   Ab .scrolled gilt wieder die normale helle Leiste — daher :not(.scrolled). */
+
+.nav--on-dark:not(.scrolled) .nav__logo {
+  background: var(--cream);
+  padding: clamp(5px, .55vw, 9px) clamp(11px, 1.1vw, 17px);
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, .12);
+}
+.nav--on-dark:not(.scrolled) .nav__logo-fallback { color: var(--green); }
+
+.nav--on-dark:not(.scrolled) .nav__links .nav__link {
+  color: #fff;   /* Orange #c8482a lässt keine Transparenz zu: 4,76:1 nur mit reinem Weiß */
+}
+.nav--on-dark:not(.scrolled) .nav__links .nav__link:hover {
+  background: rgba(255, 255, 255, .16);
+  color: #fff;
+}
+.nav--on-dark:not(.scrolled) .nav__links .nav__link.active {
+  background: var(--cream);
+  color: var(--green);
+}
+
+.nav--on-dark:not(.scrolled) .nav__cta {
+  background: rgba(255, 255, 255, .1);
+  border-color: rgba(255, 255, 255, .6);
+  color: #fff;
+}
+.nav--on-dark:not(.scrolled) .nav__cta:hover {
+  background: var(--cream);
+  border-color: var(--cream);
+  color: var(--green);
+}
+
+.nav--on-dark:not(.scrolled) .nav__burger span { background: #fff; }
+.nav--on-dark:not(.scrolled) .nav__burger:hover { background: rgba(255, 255, 255, .16); }
+
+.nav--on-light:not(.scrolled) .nav__links .nav__link { color: var(--ink-80); }
+.nav--on-light:not(.scrolled) .nav__cta {
+  background: rgba(255, 255, 255, .74);
+  border-color: rgba(18, 74, 18, .5);
+  color: var(--green-deep);
+}
+.nav--on-light:not(.scrolled) .nav__cta:hover {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+
+/* Weicher Übergang der Logo-Trägerfläche beim Wechsel auf .scrolled */
+.nav__logo {
+  transition: background .3s var(--ease), box-shadow .3s var(--ease),
+              padding .3s var(--ease);
+}
+
 /* ============================================================
    HERO
    ============================================================ */
 .hero {
   position: relative;
-  min-height: 100svh;
-  min-height: 100vh;
+  min-height: 100vh;   /* Fallback */
+  min-height: 100svh;  /* echte sichtbare Höhe auf Mobilgeräten */
   background: var(--bg);
   overflow: hidden;
   display: flex;
@@ -547,7 +636,10 @@ input, textarea, select { font-family: inherit; }
       linear-gradient(120deg, rgba(120,74,20,.06), rgba(120,74,20,.12)),
       url('../images/bistro-essbereich.png');
     background-size: cover, cover, cover;
-    background-position: center, center, center;
+    /* Hochformat schneidet das querformatige Foto seitlich stark zu — 42%
+       rückt die Abendsonne und die Fensterfront in die Bildmitte, statt sie
+       an den Rand zu drängen. */
+    background-position: center, center, 42% center;
     background-repeat: no-repeat, no-repeat, no-repeat;
   }
 }
@@ -1062,8 +1154,6 @@ input, textarea, select { font-family: inherit; }
   border-radius: var(--r-xl);
 }
 .split__image-accent--br {
-  bottom: -var(--s-6);
-  right: -var(--s-6);
   bottom: -24px;
   right: -24px;
   width: 55%;
@@ -1124,7 +1214,8 @@ input, textarea, select { font-family: inherit; }
   grid-template-columns: 1fr;
   gap: var(--s-3);
 }
-@media (min-width: 540px) {
+/* Erst ab 620px drei Spalten — darunter werden die Karten zu schmal. */
+@media (min-width: 620px) {
   .partners-grid { grid-template-columns: repeat(3, 1fr); }
 }
 .partner-card {
@@ -1360,6 +1451,7 @@ input, textarea, select { font-family: inherit; }
   align-items: center;
   gap: 5px;
   margin-top: var(--s-4);
+  padding-block: 3px;   /* Karten-CTA statt Fließtext-Link — 25px Trefferhöhe */
   font-size: var(--t-xs);
   font-weight: 500;
   color: var(--green);
@@ -1609,33 +1701,39 @@ input, textarea, select { font-family: inherit; }
 }
 .page-hero--green::after { background: var(--bg); }
 
-/* ── Exact brand-color page heroes ── */
+/* ── Exakte Marken-Hintergründe der Seiten-Heros ───────────────────────────
+   Die vier HEX-Werte sind gesetzt und bleiben unverändert. Die Typografie
+   darüber richtet sich nach der Lesbarkeit, nicht nach der Markenfarbe:
+   auf den dunklen Tönen warmes Off-White, auf den hellen ein tiefes Grün
+   bzw. Braun. Kommentierte Werte = WCAG-Kontrast gegen den Hintergrund
+   (≥ 4,5:1 für Fließtext, ≥ 3:1 für Display-Größen). */
 
-/* Speisekarte — Sand #d2b080 (dark text) */
+/* Speisekarte — Sand #d2b080 (dunkle Typo) */
 .page-hero--sand { background: #d2b080; }
+.page-hero--sand .page-hero__eyebrow { color: var(--green-deep); }   /* 5,1  (war Grün 3,7) */
 
-/* Catering — Weinrot #af2f3d (white text) */
-.page-hero--wine { background: #af2f3d; color: var(--warm-50); }
+/* Catering — Weinrot #af2f3d (warmes Off-White) */
+.page-hero--wine { background: #af2f3d; color: var(--cream); }
 .page-hero--wine::after              { background: var(--bg); }
-.page-hero--wine .page-hero__eyebrow { color: rgba(255,255,255,.6); }
-.page-hero--wine .page-hero__title   { color: #fff; }
-.page-hero--wine .page-hero__title em{ color: #f6cdd3; }
-.page-hero--wine .page-hero__sub     { color: rgba(255,255,255,.72); }
+.page-hero--wine .page-hero__eyebrow { color: #f4dfd2; }   /* 4,95 */
+.page-hero--wine .page-hero__title   { color: #fff; }      /* 6,37 */
+.page-hero--wine .page-hero__title em{ color: #ffd9c4; }   /* 4,85 */
+.page-hero--wine .page-hero__sub     { color: #f6e9df; }   /* 5,35 */
 
-/* Über uns — Goldgelb #e9ba5f (dark text — light enough) */
+/* Über uns — Goldgelb #e9ba5f (dunkle Typo) */
 .page-hero--gold { background: #e9ba5f; }
-.page-hero--gold .page-hero__eyebrow  { color: #7a4a12; }
-.page-hero--gold .page-hero__title    { color: #3a2408; }
-.page-hero--gold .page-hero__title em { color: var(--green); }
-.page-hero--gold .page-hero__sub      { color: #5a3d14; }
+.page-hero--gold .page-hero__eyebrow  { color: #6b4110; }        /* 4,88 (war 4,14) */
+.page-hero--gold .page-hero__title    { color: #3a2408; }        /* 8,12 */
+.page-hero--gold .page-hero__title em { color: var(--green); }   /* 4,22 — Display */
+.page-hero--gold .page-hero__sub      { color: #5a3d14; }        /* 5,52 */
 
-/* Kontakt — Orange #c8482a (white text) */
-.page-hero--orange { background: #c8482a; color: var(--warm-50); }
+/* Kontakt — Orange #c8482a — kräftiger Ton, verlangt nahezu reines Weiß */
+.page-hero--orange { background: #c8482a; color: var(--cream); }
 .page-hero--orange::after              { background: var(--bg); }
-.page-hero--orange .page-hero__eyebrow { color: rgba(255,255,255,.68); }
-.page-hero--orange .page-hero__title   { color: #fff; }
-.page-hero--orange .page-hero__title em{ color: #ffe0b8; }
-.page-hero--orange .page-hero__sub     { color: rgba(255,255,255,.74); }
+.page-hero--orange .page-hero__eyebrow { color: #fffaf3; }   /* 4,58 */
+.page-hero--orange .page-hero__title   { color: #fff; }      /* 4,76 */
+.page-hero--orange .page-hero__title em{ color: #ffe0b8; }   /* 3,76 — Display */
+.page-hero--orange .page-hero__sub     { color: #fffaf3; }   /* 4,58 */
 
 .page-hero__inner {
   position: relative;
@@ -2025,10 +2123,13 @@ input, textarea, select { font-family: inherit; }
   gap: var(--s-5);
 }
 @media (min-width: 560px) {
-  .form-row { grid-template-columns: 1fr 1fr; }
+  .form-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (min-width: 640px) {
-  .form-row--3 { grid-template-columns: 1fr 1fr 1fr; }
+  /* minmax(0,…) statt 1fr: sonst weiten längere Labels ihre Spalte auf
+     und die drei Felder werden unterschiedlich breit. */
+  .form-row--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .form-row--3 .form-group label { min-height: 2.4em; }
 }
 
 /* time input — consistent with date input */
@@ -2071,7 +2172,7 @@ input[type="time"] {
   box-shadow: 0 0 0 3px rgba(45,107,58,.1);
 }
 .form-group input::placeholder,
-.form-group textarea::placeholder { color: var(--stone-light); }
+.form-group textarea::placeholder { color: #7a7168; }   /* --stone-light lag bei 2,2:1 */
 
 .form-group textarea { resize: vertical; min-height: 110px; }
 
@@ -2297,6 +2398,11 @@ input[type="time"] {
   letter-spacing: -.02em;
   color: var(--ink);
   margin-bottom: var(--s-2);
+  overflow-wrap: break-word;
+  hyphens: auto;   /* „Datenschutzerklärung“ passt sonst nicht auf 360px */
+}
+@media (max-width: 420px) {
+  .legal-wrap h1 { font-size: 28px; }
 }
 
 .legal-wrap .legal-date {
@@ -2387,8 +2493,11 @@ input[type="time"] {
 
 .footer__brand {}
 .footer__logo {
-  height: 72px;   /* präsenter im Footer — harmonisch, hochwertig */
+  /* Das Logo-Asset ist jetzt eng beschnitten — 52px Bildhöhe entsprechen
+     optisch etwa der früheren Wirkung bei 72px, nur einen Tick präsenter. */
+  height: 52px;
   width: auto;
+  aspect-ratio: 720 / 524;
   opacity: .8;
   margin-bottom: var(--s-4);
   filter: brightness(0) invert(1);
@@ -2416,6 +2525,12 @@ input[type="time"] {
   line-height: 1.85;
   transition: color .2s;
 }
+/* Footer-Links sind Navigation, kein Fließtext — sie bekommen eine
+   Trefferfläche von mindestens 24px Höhe (WCAG 2.5.8). */
+.footer__col ul a {
+  display: inline-block;
+  padding-block: 4px;
+}
 .footer__col a:hover { color: white; }
 .footer__col p { font-size: var(--t-sm); color: rgba(255,255,255,.55); line-height: 1.85; }
 
@@ -2425,7 +2540,7 @@ input[type="time"] {
   flex-direction: column;
   gap: var(--s-3);
   font-size: var(--t-xs);
-  color: rgba(255,255,255,.25);
+  color: rgba(255,255,255,.5);
 }
 @media (min-width: 560px) {
   .footer__bottom {
@@ -2450,43 +2565,48 @@ input[type="time"] {
   gap: var(--s-5);
 }
 .footer__legal a {
-  color: rgba(255,255,255,.25);
+  color: rgba(255,255,255,.62);   /* war .25 = 2,3:1 auf #1a1816 */
   transition: color .2s;
 }
-.footer__legal a:hover { color: rgba(255,255,255,.6); }
+.footer__legal a:hover { color: #fff; }
 
 .footer__credit {
   font-size: 10px;
-  color: rgba(255,255,255,.2);
+  color: rgba(255,255,255,.45);
 }
 .footer__credit a {
-  color: rgba(255,255,255,.28);
+  color: rgba(255,255,255,.58);   /* war .28 = 2,5:1 */
   text-decoration: underline;
   text-underline-offset: 2px;
   transition: color .2s;
 }
-.footer__credit a:hover { color: rgba(255,255,255,.55); }
+.footer__credit a:hover { color: #fff; }
 
 /* ============================================================
    REVEAL ANIMATIONS
    ============================================================ */
-.reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition:
-    opacity .65s var(--ease),
-    transform .65s var(--ease);
-}
-.reveal-delay-1 { transition-delay: .1s; }
-.reveal-delay-2 { transition-delay: .2s; }
-.reveal-delay-3 { transition-delay: .3s; }
+/* Einblenden per @keyframes statt per transition.
+   Wichtig: .reveal setzt weder `transition` noch `transform` dauerhaft.
+   Vorher überschrieb die transition-Kurzschreibweise (gleiche Spezifität,
+   aber später im File) die Übergänge sämtlicher Karten — deren Hover-
+   Animationen liefen dadurch mit 0,65s statt 0,25s, und bei .menu-item
+   blockierte `transform: translateY(0)` den Hover-Lift komplett. */
+.reveal { opacity: 0; }
 
 .reveal.visible,
 .reveal-delay-1.visible,
 .reveal-delay-2.visible,
 .reveal-delay-3.visible {
   opacity: 1;
-  transform: translateY(0);
+  animation: revealIn .65s var(--ease);
+}
+.reveal-delay-1.visible { animation-delay: .1s; }
+.reveal-delay-2.visible { animation-delay: .2s; }
+.reveal-delay-3.visible { animation-delay: .3s; }
+
+@keyframes revealIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: none; }
 }
 
 /* ============================================================
@@ -2509,7 +2629,7 @@ input[type="time"] {
 
 /* ---- Team photo (tjorven-anton.jpg): landscape, force 4:3 so both fit ---- */
 .split__image-frame--team {
-  aspect-ratio: 4 / 3 !important;   /* landscape image needs landscape frame */
+  aspect-ratio: 4 / 3;   /* Querformat-Foto braucht einen Querformat-Rahmen */
 }
 .split__image-frame--team img {
   object-position: center 15%;
@@ -2566,12 +2686,6 @@ input[type="time"] {
 /* ---- Roman section — landscape ratio on mobile ---- */
 @media (max-width: 599px) {
   .roman-section .split__image-frame { aspect-ratio: 16 / 9; }
-}
-
-/* ---- Partner grid — 3-col only from 620px to avoid tight cards ---- */
-.partners-grid { grid-template-columns: 1fr; }
-@media (min-width: 620px) {
-  .partners-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* ---- Mobile nav drawer ---- */
@@ -2718,11 +2832,6 @@ input[type="time"] {
   .highlights-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ---- Partner-Grid: Ab 540px besser lesbar ---- */
-@media (min-width: 540px) and (max-width: 619px) {
-  .partners-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
 /* ---- Sticky menu nav: sanfterer Blur-Hintergrund ---- */
 .menu-nav {
   background: rgba(250, 245, 236, 0.97);
@@ -2780,16 +2889,9 @@ input[type="time"] {
   --orange:       #c8482a;   /* Marken-Orange */
 }
 
-/* ─── Catering-Hero: Bistro-Weinrot (#af2f3d) ─── */
-.page-hero--wine {
-  background: linear-gradient(135deg, #af2f3d 0%, #8e2133 55%, #6e1726 100%);
-  color: var(--warm-50);
-}
-.page-hero--wine::after              { background: var(--bg); }
-.page-hero--wine .page-hero__eyebrow { color: rgba(255,255,255,.55); }
-.page-hero--wine .page-hero__title   { color: #fff; }
-.page-hero--wine .page-hero__title em{ color: #f5c0c8; }
-.page-hero--wine .page-hero__sub     { color: rgba(255,255,255,.65); }
+/* Der Catering-Hero wird vollständig im Abschnitt PAGE HERO definiert
+   (exakt #af2f3d, ohne Verlauf) — der frühere Gradient-Override hier
+   entfällt, damit die Markenfarbe nicht doppelt gesetzt wird. */
 
 /* ─── Portrait Slider (Food Story — Instagram/Story Style) ─── */
 .foodstory-section {
@@ -2797,9 +2899,17 @@ input[type="time"] {
   overflow: hidden;
 }
 
+/* Kartenbreite steuert die Gesamthöhe des Medienblocks. Alle Motive liegen im
+   Hochformat 9:16 vor (Fotos 2268×4032, Videos 1080×1920) — der Rahmen
+   übernimmt genau dieses Verhältnis, dadurch wird kein Gericht beschnitten.
+   Gleichzeitig wird der Block auf dem Desktop deutlich ruhiger: Rahmenhöhe
+   max. ~620 px statt zuvor ~1120 px. */
 .portrait-slider {
   position: relative;
+  --ps-w: min(82vw, 320px);
 }
+@media (min-width: 700px)  { .portrait-slider { --ps-w: min(46vw, 300px); } }
+@media (min-width: 1024px) { .portrait-slider { --ps-w: clamp(258px, 25vw, 348px); } }
 
 /* Viewport: clips neighbours; no border-radius — slides clip themselves */
 .portrait-slider__viewport {
@@ -2816,11 +2926,11 @@ input[type="time"] {
   will-change: transform;
 }
 
-/* Slides: narrower than viewport → neighbours peek at sides */
+/* Slides: schmaler als das Viewport → Nachbarn schauen seitlich hervor */
 .portrait-slider__slide {
-  flex: 0 0 72%;
+  flex: 0 0 var(--ps-w);
+  width: var(--ps-w);
   min-width: 0;
-  flex-shrink: 0;
   transition: opacity .38s var(--ease), transform .38s var(--ease);
 }
 .portrait-slider__slide:not(.active) {
@@ -2829,31 +2939,27 @@ input[type="time"] {
 }
 .portrait-slider__slide.active { opacity: 1; transform: scale(1); }
 
-@media (max-width: 900px)  { .portrait-slider__slide { flex: 0 0 78%; } }
-@media (max-width: 640px)  { .portrait-slider__slide { flex: 0 0 84%; } }
-@media (max-width: 420px)  { .portrait-slider__slide { flex: 0 0 90%; } }
-
-/* Frame: portrait 3:4 ratio, rounded corners, shadow */
+/* Rahmen: exakt das Motivformat 9:16, weiche Ecken, ruhigerer Schatten */
 .portrait-slider__frame {
-  aspect-ratio: 3 / 4;
-  border-radius: var(--r-xl);
+  aspect-ratio: 9 / 16;
+  border-radius: var(--r-lg);
   overflow: hidden;
   background: #1a1816;
-  box-shadow: 0 20px 60px rgba(0,0,0,.22), 0 4px 16px rgba(0,0,0,.12);
+  box-shadow: 0 14px 40px rgba(0,0,0,.18), 0 3px 12px rgba(0,0,0,.10);
   position: relative;
   cursor: pointer;
 }
+/* contain statt cover: das Gericht bleibt garantiert vollständig sichtbar.
+   Da Rahmen- und Motivformat übereinstimmen, füllt das Bild den Rahmen
+   trotzdem randlos aus — es entstehen keine Balken. */
 .portrait-slider__frame img,
 .portrait-slider__frame video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
-  transition: transform .9s var(--ease);
-}
-.portrait-slider__slide.active .portrait-slider__frame img,
-.portrait-slider__slide.active .portrait-slider__frame video {
-  transform: scale(1.04);
+  -webkit-user-drag: none;   /* sonst startet beim Wischen der native Bild-Drag */
+  user-select: none;
 }
 
 /* Video: play badge overlay */
@@ -2864,13 +2970,21 @@ input[type="time"] {
   align-items: center;
   justify-content: center;
   background: rgba(0,0,0,.25);
-  transition: background .25s;
+  transition: background .25s, opacity .45s var(--ease);
 }
 .portrait-slider__play-badge:hover { background: rgba(0,0,0,.38); }
 
+/* Läuft das Video bereits, blendet der Play-Hinweis aus — das Bild soll wirken,
+   nicht das Bedienelement. Bei angehaltenem Autoplay bleibt er sichtbar. */
+.portrait-slider__play-badge.is-playing {
+  opacity: 0;
+  background: transparent;
+  pointer-events: none;
+}
+
 .portrait-slider__play-icon {
-  width: 68px;
-  height: 68px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: rgba(255,255,255,.18);
   border: 2px solid rgba(255,255,255,.5);
@@ -2913,7 +3027,7 @@ input[type="time"] {
   text-align: center;
   max-width: 580px;
   margin: 0 auto;
-  min-height: 90px;  /* prevents layout shift while content changes */
+  min-height: 132px;  /* längste Bildunterschrift — verhindert Springen der Bedienzeile */
 }
 .portrait-slider__tag {
   display: inline-block;
@@ -2974,27 +3088,33 @@ input[type="time"] {
 
 .portrait-slider__dots {
   display: flex;
-  gap: 6px;
+  gap: 2px;
   align-items: center;
   flex-wrap: wrap;
   justify-content: center;
-  max-width: 200px;
+  max-width: 240px;
 }
+/* Der Punkt bleibt optisch klein, die anklickbare Fläche ist 24px hoch —
+   background-clip: content-box zeichnet die Farbe nur in der Innenfläche. */
 .portrait-slider__dot {
   width: 7px;
   height: 7px;
+  box-sizing: content-box;
+  padding: 8.5px 4px;
   border-radius: 50%;
   background: var(--warm-300);
+  background-clip: content-box;
   border: none;
   cursor: pointer;
-  transition: all .28s var(--ease);
-  padding: 0;
+  transition: background .28s var(--ease), width .28s var(--ease),
+              border-radius .28s var(--ease);
   flex-shrink: 0;
 }
 .portrait-slider__dot.active {
   background: var(--green);
+  background-clip: content-box;
   width: 24px;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .portrait-slider__counter {
@@ -3005,10 +3125,10 @@ input[type="time"] {
   text-align: center;
 }
 
-/* Mobile tweaks */
+/* Mobile: Die Pfeil-Buttons behalten bewusst ihre 44px (sicheres Touch-Ziel),
+   die Bildunterschrift bekommt etwas mehr Reserve für zwei Textzeilen. */
 @media (max-width: 599px) {
-  .portrait-slider__frame { border-radius: var(--r-lg); }
-  .portrait-slider__btn   { width: 38px; height: 38px; }
+  .portrait-slider__caption { padding-top: 18px; min-height: 152px; }
 }
 
 /* ─── Lightbox ─── */
@@ -3225,8 +3345,8 @@ input[type="time"] {
 
 /* ─── Instagram Landing Page ─── */
 .ig-lp {
-  min-height: 100svh;
-  min-height: 100vh;
+  min-height: 100vh;   /* Fallback */
+  min-height: 100svh;  /* echte sichtbare Höhe auf Mobilgeräten */
   background: var(--bg);
   display: flex;
   flex-direction: column;
@@ -3243,8 +3363,9 @@ input[type="time"] {
   margin-bottom: var(--s-10);
 }
 .ig-lp__logo {
-  height: 80px;
+  height: 64px;
   width: auto;
+  aspect-ratio: 720 / 524;
   margin-bottom: var(--s-4);
 }
 .ig-lp__name {
@@ -3380,7 +3501,7 @@ input[type="time"] {
 }
 .cookie-banner__text {
   font-size: var(--t-sm);
-  color: var(--stone);
+  color: var(--ink-60);
   line-height: 1.65;
   margin-bottom: var(--s-5);
 }
