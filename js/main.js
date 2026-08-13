@@ -15,11 +15,24 @@ onScroll();
 const navBurger = document.getElementById('navBurger');
 const navDrawer = document.getElementById('navDrawer');
 
-navBurger?.addEventListener('click', () => {
-  const open = navDrawer.classList.toggle('open');
+const setDrawer = (open) => {
+  navDrawer.classList.toggle('open', open);
   navBurger.classList.toggle('open', open);
-  navBurger.setAttribute('aria-expanded', open);
+  navBurger.setAttribute('aria-expanded', String(open));
+  navBurger.setAttribute('aria-label', open ? 'Menü schließen' : 'Menü öffnen');
   document.body.style.overflow = open ? 'hidden' : '';
+};
+
+navBurger?.addEventListener('click', () => {
+  setDrawer(!navDrawer.classList.contains('open'));
+});
+
+/* Escape schließt das Menü und gibt den Fokus zurück auf den Button */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && navDrawer?.classList.contains('open')) {
+    setDrawer(false);
+    navBurger?.focus();
+  }
 });
 
 document.addEventListener('click', (e) => {
@@ -53,7 +66,14 @@ const revealEls = document.querySelectorAll(
   '.reveal, .reveal-delay-1, .reveal-delay-2, .reveal-delay-3'
 );
 
-if ('IntersectionObserver' in window) {
+const prefersReducedMotion = window.matchMedia
+  ? window.matchMedia('(prefers-reduced-motion: reduce)')
+  : { matches: false };
+
+if (!('IntersectionObserver' in window) || prefersReducedMotion.matches) {
+  /* Ohne Observer bzw. bei reduzierter Bewegung alles sofort zeigen */
+  revealEls.forEach(el => el.classList.add('visible'));
+} else {
   const io = new IntersectionObserver(
     entries => entries.forEach(e => {
       if (e.isIntersecting) {
@@ -61,11 +81,13 @@ if ('IntersectionObserver' in window) {
         io.unobserve(e.target);
       }
     }),
-    { threshold: 0.08, rootMargin: '0px 0px -36px 0px' }
+    /* Positiver unterer rootMargin: Der Bereich startet, BEVOR er in den sichtbaren
+       Bereich scrollt. Vorher lag hier -36px zusammen mit threshold 0.08 — ein Abschnitt
+       musste also bereits zu 8 % im Bild sein, bevor die 0,65s-Animation überhaupt
+       begann. Genau das ließ Inhalte beim Scrollen „verzögert" erscheinen. */
+    { threshold: 0, rootMargin: '0px 0px 15% 0px' }
   );
   revealEls.forEach(el => io.observe(el));
-} else {
-  revealEls.forEach(el => el.classList.add('visible'));
 }
 
 /* --- Speisekarte sticky nav --- */
@@ -91,7 +113,7 @@ if (menuBtns.length && menuSections.length) {
     const strip = menuNav.querySelector('.menu-nav__inner');
     if (!strip || strip.scrollWidth <= strip.clientWidth) return;
     const left = active.offsetLeft - (strip.clientWidth - active.offsetWidth) / 2;
-    strip.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+    strip.scrollTo({ left: Math.max(0, left), behavior: prefersReducedMotion.matches ? 'auto' : 'smooth' });
   };
 
   const sectionIO = new IntersectionObserver(
@@ -115,7 +137,7 @@ if (menuBtns.length && menuSections.length) {
       if (!target) return;
       window.scrollTo({
         top: target.getBoundingClientRect().top + window.scrollY - stickyOffset(),
-        behavior: 'smooth'
+        behavior: prefersReducedMotion.matches ? 'auto' : 'smooth'
       });
     });
   });
@@ -175,6 +197,7 @@ document.querySelectorAll('.footer-year').forEach(el => {
     var startX = 0, startY = 0, isDrag = false, dragDx = 0, dragDy = 0;
     var suppressClick = false;   // nach einem Drag darf kein Klick durchschlagen
     var hovering = false;        // Zeiger liegt auf dem Slider → nicht weiterschalten
+    var inView = true;           // Slider im Sichtbereich? sonst Video + Timer anhalten
     var resizeT = null;
 
     // Build dots
@@ -218,7 +241,7 @@ document.querySelectorAll('.footer-year').forEach(el => {
         var video = slide.querySelector('video');
         if (!video) return;
         var badge  = slide.querySelector('.portrait-slider__play-badge');
-        var isLive = i === current && !reducedMotion.matches &&
+        var isLive = i === current && inView && !reducedMotion.matches &&
                      !document.hidden && !lightboxOpen();
 
         if (isLive) {
@@ -253,6 +276,8 @@ document.querySelectorAll('.footer-year').forEach(el => {
 
       slides.forEach(function (s, i) {
         s.classList.toggle('active', i === current);
+        var f = s.querySelector('.portrait-slider__frame');
+        if (f) f.tabIndex = i === current ? 0 : -1;   // nur der aktive Rahmen ist Tab-Stopp
       });
 
       var dots = dotsWrap
@@ -296,7 +321,7 @@ document.querySelectorAll('.footer-year').forEach(el => {
 
     function resetTimer() {
       stopTimer();
-      if (reducedMotion.matches || document.hidden || hovering || lightboxOpen()) return;
+      if (reducedMotion.matches || document.hidden || hovering || !inView || lightboxOpen()) return;
       timer = setTimeout(function () { goTo(current + 1); }, dwellMs());
     }
 
@@ -342,18 +367,32 @@ document.querySelectorAll('.footer-year').forEach(el => {
     viewport && viewport.addEventListener('mouseup', swipeEnd);
     viewport && viewport.addEventListener('mouseleave', function () { isDrag = false; });
 
-    // Click on frame: inactive → navigate; active image → lightbox; active video → lightbox
+    // Klick/Tastatur auf dem Rahmen: inaktiv → hinspringen; aktiv → Lightbox
     slides.forEach(function (slide, i) {
       var frame = slide.querySelector('.portrait-slider__frame');
       if (!frame) return;
+
+      /* Der Rahmen wird per JS zum Bedienelement — kein Markup-Umbau nötig.
+         Nur der aktive Slide ist ein Tab-Stopp (roving tabindex), sonst müsste
+         man sich durch neun Rahmen hindurchtabben. */
+      frame.setAttribute('role', 'button');
+      frame.setAttribute('aria-label', 'Bild vergrößern: ' + (slide.dataset.title || ''));
+      frame.tabIndex = i === 0 ? 0 : -1;
+
+      function activate() {
+        if (!slide.classList.contains('active')) goTo(i);
+        else openLightbox(slide);
+      }
+
       frame.addEventListener('click', function () {
         /* Ein Klick direkt nach einer Wischgeste würde sonst die Lightbox öffnen */
         if (suppressClick) { suppressClick = false; return; }
-        if (!slide.classList.contains('active')) {
-          goTo(i);
-        } else {
-          openLightbox(slide);
-        }
+        activate();
+      });
+      frame.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+        e.preventDefault();   // Leertaste darf die Seite nicht scrollen
+        activate();
       });
     });
 
@@ -374,17 +413,36 @@ document.querySelectorAll('.footer-year').forEach(el => {
     root.addEventListener('mouseenter', function () { hovering = true;  stopTimer(); });
     root.addEventListener('mouseleave', function () { hovering = false; resetTimer(); });
 
-    // Resize
+    /* Resize — nur bei echter Breitenaenderung.
+       Chrome auf Android feuert beim Ein-/Ausblenden der URL-Leiste waehrend des
+       Scrollens ein resize-Event. Ohne diese Pruefung wuerde der Slider mitten im
+       Scrollen Layout lesen und schreiben (Layout Thrashing) — genau dort, wo es
+       am meisten weh tut. */
+    var lastW = window.innerWidth;
     window.addEventListener('resize', function () {
+      if (window.innerWidth === lastW) return;   // nur Hoehe: URL-Leiste, ignorieren
+      lastW = window.innerWidth;
       clearTimeout(resizeT);
-      resizeT = setTimeout(function () { updateUI(); }, 80);
-    });
+      resizeT = setTimeout(function () { updateUI(true); }, 120);
+    }, { passive: true });
 
     // Im Hintergrund-Tab weder weiterschalten noch Video abspielen
     document.addEventListener('visibilitychange', function () {
       syncVideos();
       if (document.hidden) stopTimer(); else resetTimer();
     });
+
+    /* Scrollt der Slider aus dem Bild, wird das Video angehalten und die
+       Auto-Weiterschaltung gestoppt — ein 1080×1920-Video ausserhalb des
+       Sichtbereichs weiterlaufen zu lassen kostet auf dem Smartphone spürbar
+       Rechenzeit, ohne dass jemand es sieht. */
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        inView = entries[0].isIntersecting;
+        syncVideos();
+        if (inView) resetTimer(); else stopTimer();
+      }, { threshold: 0 }).observe(root);
+    }
 
     // Reagiert live, wenn die Systemeinstellung „Bewegung reduzieren“ wechselt
     if (reducedMotion.addEventListener) {
@@ -415,6 +473,9 @@ document.querySelectorAll('.footer-year').forEach(el => {
   function buildLightbox() {
     lbEl = document.createElement('div');
     lbEl.className = 'lb-overlay';
+    lbEl.setAttribute('role', 'dialog');
+    lbEl.setAttribute('aria-modal', 'true');
+    lbEl.setAttribute('aria-label', 'Bildansicht');
     lbEl.innerHTML =
       '<div class="lb-overlay__inner">' +
         '<button class="lb-overlay__close" aria-label="Schließen">&#215;</button>' +
@@ -428,8 +489,11 @@ document.querySelectorAll('.footer-year').forEach(el => {
     document.body.appendChild(lbEl);
   }
 
+  var lastTrigger = null;
+
   function openLightbox(slide) {
     if (!lbEl) buildLightbox();
+    lastTrigger = slide.querySelector('.portrait-slider__frame');
     var mediaEl   = lbEl.querySelector('.lb-overlay__media');
     var captionEl = lbEl.querySelector('.lb-overlay__caption');
     mediaEl.innerHTML = '';
@@ -468,6 +532,9 @@ document.querySelectorAll('.footer-year').forEach(el => {
     var vid = lbEl.querySelector('video');
     if (vid) { vid.pause(); vid.currentTime = 0; }
     sliders.forEach(function (s) { s.resume(); });
+    /* Fokus zurück auf das Bild, von dem aus geöffnet wurde — sonst landet er
+       wieder am Seitenanfang und die Scrollposition geht gefühlt verloren. */
+    if (lastTrigger) { lastTrigger.focus(); lastTrigger = null; }
   }
 
   document.addEventListener('keydown', function (e) {

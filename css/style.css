@@ -107,6 +107,51 @@
 }
 
 /* ============================================================
+   PAGE-ACCENT-SYSTEM
+   Jede Hauptseite trägt ihre Markenfarbe als AKZENT — nicht als Thema.
+   Die neutralen Grundfarben (Off-White, Creme, Sand, Dunkel) bleiben
+   flächenbestimmend; der Akzent erscheint nur an wenigen, wiederkehrenden
+   Trägern: Eyebrow-Labels, Formular-Fokus und Tastatur-Fokusring.
+
+     --accent-ink   Textfassung für helle neutrale Flächen   (>= 4,5:1)
+     --accent-deep  Textfassung für die volle Sandfläche #d2b080 (>= 4,5:1)
+     --accent-soft  sehr helle Tönung für kleine Flächen (Icon-Chips)
+     --accent-ring  weicher Fokusschimmer und Akzentkante
+
+   Die Startseite behält bewusst Grün — dort ändert sich dadurch nichts.
+   ============================================================ */
+:root {
+  --accent-ink:  #186118;
+  --accent-deep: #124a12;
+  --accent-soft: #eaf3eb;
+  --accent-ring: rgba(24, 97, 24, .14);
+}
+.page-speisekarte {
+  --accent-ink:  #7d5a1c;   /* 5,71:1 auf Off-White */
+  --accent-deep: #523a10;   /* 5,21:1 auf Sand */
+  --accent-soft: #f7efdd;
+  --accent-ring: rgba(125, 90, 28, .16);
+}
+.page-catering {
+  --accent-ink:  #9e2a37;   /* 6,74:1 */
+  --accent-deep: #6e1726;   /* 5,66:1 auf Sand */
+  --accent-soft: #fbeef0;
+  --accent-ring: rgba(158, 42, 55, .14);
+}
+.page-ueber-uns {
+  --accent-ink:  #7d5110;   /* 6,26:1 */
+  --accent-deep: #553609;   /* 5,35:1 auf Sand */
+  --accent-soft: #fdf6e7;
+  --accent-ring: rgba(125, 81, 16, .16);
+}
+.page-kontakt {
+  --accent-ink:  #a5381d;   /* 6,01:1 */
+  --accent-deep: #73220f;   /* 5,22:1 auf Sand */
+  --accent-soft: #fdf0eb;
+  --accent-ring: rgba(165, 56, 29, .15);
+}
+
+/* ============================================================
    RESET & BASE
    ============================================================ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -142,6 +187,20 @@ address { font-style: normal; }
 button { cursor: pointer; font-family: inherit; }
 input, textarea, select { font-family: inherit; }
 
+/* Tastatur-Fokus: sichtbarer Ring in der Seitenfarbe. :focus-visible greift nur
+   bei Tastaturbedienung, Mausklicks bleiben unverändert. Zuvor gab es website-
+   weit gar keinen Fokusindikator ausser an den Formularfeldern. */
+:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 3px;
+}
+/* Auf den farbigen Heros steht der Ring auf dunklem Grund — dort hell */
+.page-hero--wine :focus-visible,
+.page-hero--orange :focus-visible,
+.nav--on-dark:not(.scrolled) :focus-visible {
+  outline-color: var(--cream);
+}
+
 /* ============================================================
    UTILITIES
    ============================================================ */
@@ -176,15 +235,30 @@ input, textarea, select { font-family: inherit; }
   font-weight: 500;
   letter-spacing: .14em;
   text-transform: uppercase;
-  color: var(--green);
+  color: var(--accent-ink);
   margin-bottom: var(--s-3);
 }
 .eyebrow--light { color: rgba(255,255,255,.5); }
-/* Auf dem Sand-Hintergrund #d2b080 erreicht das Marken-Grün nur 3,7:1 —
-   der dunklere Ton derselben Farbfamilie kommt auf 5,1:1. */
+/* Auf der vollen Sandfläche #d2b080 reicht die helle Fassung nicht aus */
 .section--warm .eyebrow,
-.form-card .eyebrow { color: var(--green-deep); }
+.form-card .eyebrow { color: var(--accent-deep); }
 .eyebrow--muted { color: var(--stone); }
+
+/* Eyebrows sind kleine Labels, keine Fließtext-Absätze. Container-Regeln wie
+   `.split__content p` und `.dark-cta p` haben mit (0,1,1) eine höhere
+   Spezifität als `.eyebrow` (0,1,0) und haben die Labels dort bisher auf
+   15px Fließtextgröße samt Fließtextfarbe aufgeblasen. */
+.split__content p.eyebrow,
+.dark-cta p.eyebrow,
+.promise-block p.eyebrow {
+  font-size: var(--t-xs);
+  line-height: 1.7;
+  letter-spacing: .14em;
+  margin-bottom: var(--s-3);
+}
+.split__content p.eyebrow { color: var(--accent-ink); }
+.dark-cta p.eyebrow,
+.promise-block p.eyebrow { color: rgba(255,255,255,.55); }
 
 /* Display headings */
 .display-xl {
@@ -357,13 +431,15 @@ input, textarea, select { font-family: inherit; }
   inset-inline: 0;
   z-index: 200;
   height: var(--nav-h);
-  transition: background .35s var(--ease), box-shadow .35s var(--ease), backdrop-filter .35s;
+  transition: background .35s var(--ease), box-shadow .35s var(--ease);
 }
 
 .nav.scrolled {
-  background: rgba(247,244,239,.96);
-  backdrop-filter: blur(20px) saturate(1.3);
-  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  /* Deckend statt 97 % + backdrop-filter: Der Blur lag hinter einer nahezu
+     undurchsichtigen Fläche und war damit nicht sichtbar — kostete aber auf einem
+     fixierten, bildschirmbreiten Element pro Scroll-Frame einen eigenen GPU-Pass.
+     Der Farbwert entspricht exakt der bisherigen Mischung. */
+  background: #faf6f0;
   box-shadow: 0 1px 0 var(--border);
 }
 
@@ -390,7 +466,7 @@ input, textarea, select { font-family: inherit; }
 .nav__logo-img {
   height: var(--logo-h);
   width: auto;
-  aspect-ratio: 720 / 524;   /* Maße des Logo-Assets — verhindert Layout-Shift beim Laden */
+  aspect-ratio: 500 / 364;   /* Maße des Logo-Assets — verhindert Layout-Shift beim Laden */
   display: block;
   transition: opacity .2s, height .3s var(--ease);
 }
@@ -443,9 +519,22 @@ input, textarea, select { font-family: inherit; }
   display: none;
 }
 @media (min-width: 880px) {
+  /* Eine Stufe präsenter als ein .btn--sm, damit der CTA zum grösseren Logo passt:
+     13px statt 11px Schrift, mehr Innenabstand, 46px Mindesthöhe (zugleich ein
+     volles Touch-Ziel). Bei 880px — dort ist der Platz am knappsten — bleiben
+     danach immer noch rund 70px Reserve in der Leiste. */
   .nav__cta {
     display: inline-flex;
     margin-left: var(--s-3);
+    min-height: 46px;
+    padding: 13px 28px;
+    font-size: var(--t-sm);
+    font-weight: 500;
+    letter-spacing: .03em;
+    border-width: 1.5px;
+  }
+  .nav__cta:hover {
+    box-shadow: 0 6px 18px rgba(24, 97, 24, .18);
   }
 }
 
@@ -616,7 +705,7 @@ input, textarea, select { font-family: inherit; }
     ),
     /* whisper-soft amber tint evens out the sun's highlight without going dark */
     linear-gradient(120deg, rgba(120,74,20,.06), rgba(120,74,20,.12)),
-    url('../images/bistro-essbereich.png');
+    url('../images/bistro-essbereich.jpg');
   background-size: cover, cover, cover;
   background-position: center, center, center 60%;
   background-repeat: no-repeat, no-repeat, no-repeat;
@@ -634,7 +723,7 @@ input, textarea, select { font-family: inherit; }
         rgba(247,244,239,.72) 100%
       ),
       linear-gradient(120deg, rgba(120,74,20,.06), rgba(120,74,20,.12)),
-      url('../images/bistro-essbereich.png');
+      url('../images/bistro-essbereich.jpg');
     background-size: cover, cover, cover;
     /* Hochformat schneidet das querformatige Foto seitlich stark zu — 42%
        rückt die Abendsonne und die Fensterfront in die Bildmitte, statt sie
@@ -653,15 +742,18 @@ input, textarea, select { font-family: inherit; }
   aspect-ratio: 1;
   background: var(--green-50);
   border-radius: 63% 37% 54% 46% / 55% 48% 52% 45%;
-  animation: blobMorph 14s ease-in-out infinite alternate;
+  /* Zuvor wurde border-radius animiert — das ist nicht kompositierbar und hat die
+     komplette Blob-Fläche in jedem Frame neu gezeichnet, dauerhaft. transform läuft
+     auf der GPU und sieht bei 28 % Deckkraft hinter dem Foto identisch aus. */
+  animation: blobDrift 18s ease-in-out infinite alternate;
   pointer-events: none;
   z-index: 0;
   opacity: 0.28;   /* softened so it blends over the sunset background photo */
 }
-@keyframes blobMorph {
-  0%   { border-radius: 63% 37% 54% 46% / 55% 48% 52% 45%; }
-  50%  { border-radius: 40% 60% 65% 35% / 45% 60% 40% 55%; }
-  100% { border-radius: 54% 46% 38% 62% / 60% 44% 56% 40%; }
+@keyframes blobDrift {
+  0%   { transform: scale(1)     rotate(0deg); }
+  50%  { transform: scale(1.045) rotate(4deg); }
+  100% { transform: scale(0.985) rotate(-3deg); }
 }
 
 /* Small decorative circle — lower left */
@@ -878,9 +970,7 @@ input, textarea, select { font-family: inherit; }
   position: absolute;
   bottom: var(--s-10);
   left: calc(-1 * var(--s-12));
-  background: rgba(253, 250, 247, 0.96);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: #fdfaf7;   /* deckend — lag über dem dauerhaft animierten Hero-Foto */
   border-radius: var(--r-xl);
   padding: var(--s-4) var(--s-5);
   box-shadow: 0 8px 36px rgba(26,24,22,0.11), 0 2px 8px rgba(26,24,22,0.06);
@@ -1788,8 +1878,7 @@ input, textarea, select { font-family: inherit; }
   position: sticky;
   top: var(--nav-h);
   z-index: 100;
-  background: rgba(247,244,239,.96);
-  backdrop-filter: blur(12px);
+  background: #faf5ec;   /* deckend — siehe .nav.scrolled */
   border-bottom: 1px solid var(--border);
 }
 
@@ -2165,11 +2254,19 @@ input[type="time"] {
   -webkit-appearance: none;
   appearance: none;
 }
+/* appearance:none nimmt <select> den Aufklapp-Pfeil — ohne ihn ist das Feld
+   optisch nicht von einem Textfeld zu unterscheiden. Pfeil als Inline-SVG. */
+.form-group select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%234a4643' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 42px;
+}
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: var(--green);
-  box-shadow: 0 0 0 3px rgba(45,107,58,.1);
+  border-color: var(--accent-ink);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 .form-group input::placeholder,
 .form-group textarea::placeholder { color: #7a7168; }   /* --stone-light lag bei 2,2:1 */
@@ -2203,12 +2300,12 @@ input[type="time"] {
 .contact-item__icon {
   width: 42px;
   height: 42px;
-  background: var(--green-50);
+  background: var(--accent-soft);
   border-radius: var(--r-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--green);
+  color: var(--accent-ink);
   flex-shrink: 0;
 }
 
@@ -2497,7 +2594,7 @@ input[type="time"] {
      optisch etwa der früheren Wirkung bei 72px, nur einen Tick präsenter. */
   height: 52px;
   width: auto;
-  aspect-ratio: 720 / 524;
+  aspect-ratio: 500 / 364;
   opacity: .8;
   margin-bottom: var(--s-4);
   filter: brightness(0) invert(1);
@@ -2593,20 +2690,39 @@ input[type="time"] {
    blockierte `transform: translateY(0)` den Hover-Lift komplett. */
 .reveal { opacity: 0; }
 
+/* Kürzer und mit weniger Weg als zuvor (0,65s / 24px). Zusammen mit dem früheren
+   Auslösepunkt im JS ist ein Abschnitt fertig eingeblendet, sobald er im Blick ist —
+   die Bewegung bleibt spürbar, wirkt aber nicht mehr nachlaufend. */
 .reveal.visible,
 .reveal-delay-1.visible,
 .reveal-delay-2.visible,
 .reveal-delay-3.visible {
   opacity: 1;
-  animation: revealIn .65s var(--ease);
+  animation: revealIn .5s var(--ease);
 }
-.reveal-delay-1.visible { animation-delay: .1s; }
-.reveal-delay-2.visible { animation-delay: .2s; }
-.reveal-delay-3.visible { animation-delay: .3s; }
+.reveal-delay-1.visible { animation-delay: .07s; }
+.reveal-delay-2.visible { animation-delay: .14s; }
+.reveal-delay-3.visible { animation-delay: .21s; }
 
 @keyframes revealIn {
-  from { opacity: 0; transform: translateY(24px); }
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: none; }
+}
+
+/* Der erste Bildschirm nimmt am Reveal NICHT teil.
+   Zuvor lag der komplette Hero auf opacity: 0 und wurde erst sichtbar, wenn
+   js/main.js geladen, geparst und der IntersectionObserver ausgelöst hatte —
+   bei langsamer Verbindung blieb der erste Bildschirm solange leer. Jetzt
+   erscheint er zusammen mit dem HTML. Alles unterhalb der Falz behält den
+   Reveal-Effekt unverändert.
+   Muss nach den .visible-Regeln stehen und deren Spezifität übertreffen,
+   sonst würde die Animation beim Setzen von .visible erneut anlaufen. */
+.hero .reveal,
+.hero .reveal.visible,
+.page-hero__inner.reveal,
+.page-hero__inner.reveal.visible {
+  opacity: 1;
+  animation: none;
 }
 
 /* ============================================================
@@ -2787,7 +2903,7 @@ input[type="time"] {
 
 /* ---- Kontakt-Karten: warme Akzentborder on hover ---- */
 .contact-item__icon {
-  border: 1px solid var(--green-100);
+  border: 1px solid var(--accent-ring);
 }
 
 /* ---- Map placeholder: warmer Ton ---- */
@@ -2832,11 +2948,6 @@ input[type="time"] {
   .highlights-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ---- Sticky menu nav: sanfterer Blur-Hintergrund ---- */
-.menu-nav {
-  background: rgba(250, 245, 236, 0.97);
-}
-
 /* ---- Review cards: hover stärker hervorheben ---- */
 .review-card:hover {
   box-shadow: 0 8px 32px rgba(210, 176, 128, 0.22);
@@ -2868,11 +2979,6 @@ input[type="time"] {
 /* ---- Scroll indicator: sanftere Einblendung ---- */
 .hero__scroll-label {
   opacity: .6;
-}
-
-/* ---- Nav scrolled: etwas stärkere sand-tinte statt reinem weiß ---- */
-.nav.scrolled {
-  background: rgba(250, 246, 240, 0.97);
 }
 
 /* ============================================================
@@ -2923,7 +3029,6 @@ input[type="time"] {
   display: flex;
   gap: 16px;
   transition: transform .55s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
 }
 
 /* Slides: schmaler als das Viewport → Nachbarn schauen seitlich hervor */
@@ -3171,11 +3276,15 @@ input[type="time"] {
   display: block;
 }
 .lb-overlay__close {
-  position: absolute;
-  top: -48px;
-  right: 0;
-  width: 38px;
-  height: 38px;
+  /* Hing zuvor 48px oberhalb des Inhaltsblocks. Steht der Block am oberen
+     Rand — auf niedrigen bzw. gedrehten Smartphone-Viewports der Normalfall —
+     lag der einzige Schließen-Knopf ausserhalb des Bildschirms. Jetzt fest
+     am Viewport, mit vollem Touch-Ziel. */
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: rgba(255,255,255,.14);
   border: 1px solid rgba(255,255,255,.28);
@@ -3365,7 +3474,7 @@ input[type="time"] {
 .ig-lp__logo {
   height: 64px;
   width: auto;
-  aspect-ratio: 720 / 524;
+  aspect-ratio: 500 / 364;
   margin-bottom: var(--s-4);
 }
 .ig-lp__name {
@@ -3518,6 +3627,7 @@ input[type="time"] {
 .cookie-banner__btn {
   flex: 1;
   min-width: 130px;
+  min-height: 44px;   /* erstes Bedienelement jedes Besuchers — volles Touch-Ziel */
   padding: 11px 20px;
   border-radius: var(--r-full);
   font-family: var(--f-body);
@@ -3642,3 +3752,38 @@ body.consent-open .whatsapp-fab {
   max-width: 360px;
 }
 
+
+/* ═══════════════════════════════════════
+   REDUZIERTE BEWEGUNG
+   Respektiert die Systemeinstellung „Bewegung reduzieren“. Dekorative
+   Dauerschleifen werden angehalten, Einblendungen erscheinen sofort.
+   Bedienbarkeit und Layout bleiben unverändert.
+   ═══════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  .hero__blob-1,
+  .hero__photo-frame,
+  .hero__ig-dot,
+  .hero__scroll-line,
+  .marquee-track {
+    animation: none !important;
+  }
+
+  .reveal,
+  .reveal.visible,
+  .reveal-delay-1.visible,
+  .reveal-delay-2.visible,
+  .reveal-delay-3.visible {
+    opacity: 1;
+    animation: none !important;
+  }
+
+  /* Übergänge nicht abschalten, nur auf ein unauffälliges Maß kürzen */
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .08s !important;
+    scroll-behavior: auto !important;
+  }
+}
