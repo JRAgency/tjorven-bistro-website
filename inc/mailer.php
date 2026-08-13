@@ -62,9 +62,15 @@ function tj_send_mail(array $config, string $subject, string $body, string $repl
 {
     $transport = $config['transport'] ?? 'mail';
 
-    // Zeilenenden für den Mailtransport normalisieren
+    // Zeilenenden für den Mailtransport normalisieren …
     $body = str_replace(["\r\n", "\r"], "\n", $body);
     $body = str_replace("\n", "\r\n", $body);
+
+    // … und Quoted-Printable kodieren. Damit bleiben Umlaute auch dann
+    // unversehrt, wenn ein Server auf dem Weg kein 8BITMIME beherrscht, und
+    // die von RFC 5321 vorgeschriebene maximale Zeilenlänge wird eingehalten
+    // (eine sehr lange Nachricht ohne Umbruch würde sie sonst überschreiten).
+    $body = quoted_printable_encode($body);
 
     if ($transport === 'smtp') {
         return tj_send_via_smtp($config, $subject, $body, $replyTo, $replyToName);
@@ -83,7 +89,7 @@ function tj_send_via_mail(array $config, string $subject, string $body, string $
     $headers = [
         'MIME-Version: 1.0',
         'Content-Type: text/plain; charset=UTF-8',
-        'Content-Transfer-Encoding: 8bit',
+        'Content-Transfer-Encoding: quoted-printable',
         'From: ' . tj_address($from, $config['from_name'] ?? ''),
         'Reply-To: ' . tj_address($replyTo, $replyToName),
         'X-Mailer: Tjorven-Website',
@@ -194,7 +200,7 @@ function tj_send_via_smtp(array $config, string $subject, string $body, string $
         'Subject: ' . tj_encode_header($subject),
         'MIME-Version: 1.0',
         'Content-Type: text/plain; charset=UTF-8',
-        'Content-Transfer-Encoding: 8bit',
+        'Content-Transfer-Encoding: quoted-printable',
         'X-Mailer: Tjorven-Website',
     ];
 

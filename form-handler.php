@@ -256,7 +256,13 @@ $ok = tj_send_mail($config, $subject, $body, $values['email'], $values['name']);
 
 if (!$ok) {
     // Nur der technische Fehler wird vermerkt — niemals Formularinhalte.
-    error_log('[tjorven] Mailversand fehlgeschlagen (Formular: ' . $formKey . ')');
+    $last = error_get_last();
+    error_log('[tjorven] Mailversand fehlgeschlagen'
+        . ' | Formular: ' . $formKey
+        . ' | Versandweg: ' . ($config['transport'] ?? 'mail')
+        . ' | Absender: ' . $config['from']
+        . ' | Empfaenger: ' . $config['recipient']
+        . ' | PHP: ' . (($last && isset($last['message'])) ? $last['message'] : 'keine Meldung'));
     tj_respond(false, 'Deine Nachricht konnte gerade nicht versendet werden. '
         . 'Bitte versuche es später noch einmal oder schreib uns direkt an '
         . $config['recipient'] . '.', [], 500);
