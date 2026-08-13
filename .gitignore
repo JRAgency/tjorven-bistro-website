@@ -37,3 +37,10 @@ yarn.lock
 dist/
 build/
 .cache/
+
+# Formular-Konfiguration mit Zugangsdaten — nur auf dem Webspace,
+# niemals im Repository. Vorlage: inc/config.example.php
+inc/config.php
+
+# Lokaler Rate-Limit-Speicher (falls storage_dir im Projekt liegt)
+inc/.storage/

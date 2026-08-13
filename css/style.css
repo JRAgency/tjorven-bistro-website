@@ -2232,6 +2232,67 @@ input[type="time"] {
   gap: var(--s-2);
 }
 
+/* ---- Spam-Schutz: Honigtopf ----
+   Bewusst nicht display:none — manche Bots überspringen versteckte Felder.
+   Aus dem Sichtfeld geschoben, aus dem Tabfluss und für Screenreader entfernt. */
+.form-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ---- Datenschutzhinweis direkt vor dem Absenden ---- */
+.form-privacy {
+  font-size: var(--t-xs);
+  line-height: 1.6;
+  color: var(--ink-60);
+  margin-block: var(--s-5) var(--s-4);
+}
+.form-privacy a {
+  color: var(--accent-deep);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ---- Rückmeldung nach dem Absenden ---- */
+.form-status {
+  margin-top: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  font-size: var(--t-sm);
+  line-height: 1.6;
+  border: 1px solid transparent;
+}
+.form-status--pending {
+  color: var(--ink-60);
+  background: rgba(255, 255, 255, .55);
+  border-color: var(--warm-200);
+}
+.form-status--success {
+  color: #14520f;
+  background: #e7f3e6;
+  border-color: #bcdcb8;
+}
+.form-status--error {
+  color: #7d1f1f;
+  background: #fbeaea;
+  border-color: #e6c3c3;
+}
+
+/* ---- Feldbezogene Fehler ---- */
+.form-group--error input,
+.form-group--error select,
+.form-group--error textarea {
+  border-color: #a83232;
+}
+.form-error {
+  font-size: var(--t-xs);
+  color: #7d1f1f;
+  font-weight: 500;
+}
+
 .form-group label {
   font-size: var(--t-xs);
   font-weight: 600;

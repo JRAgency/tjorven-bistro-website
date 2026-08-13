@@ -167,7 +167,14 @@
               <h2 class="display-sm" style="margin-top:8px">Wie können wir <em>helfen?</em></h2>
               <p class="form-card__subtitle">Wir antworten innerhalb von 1–2 Werktagen. Für Cateringanfragen empfehlen wir die <a href="catering.html" style="color:var(--green);text-decoration:underline;text-underline-offset:3px">Catering-Seite</a>.</p>
 
-              <form class="form" action="#" method="post">
+              <form class="form" action="form-handler.php" method="post" data-form="kontakt">
+                <input type="hidden" name="form" value="kontakt">
+                <input type="hidden" name="form_started" value="">
+                <!-- Spam-Schutz: für Besucher unsichtbar, Bots füllen es aus -->
+                <div class="form-hp" aria-hidden="true">
+                  <label for="c-website">Dieses Feld bitte leer lassen</label>
+                  <input type="text" id="c-website" name="website" tabindex="-1" autocomplete="off">
+                </div>
                 <div class="form-row">
                   <div class="form-group">
                     <label for="c-name">Name *</label>
@@ -197,7 +204,12 @@
                   <label for="c-message">Nachricht *</label>
                   <textarea id="c-message" name="message" rows="5" placeholder="Was liegt dir auf dem Herzen?" required></textarea>
                 </div>
+                <p class="form-privacy">
+                  Mit dem Absenden werden deine Angaben zur Bearbeitung deiner Anfrage verarbeitet.
+                  Näheres in der <a href="datenschutz.html">Datenschutzerklärung</a>.
+                </p>
                 <button type="submit" class="btn btn--primary btn--lg" style="width:100%;justify-content:center">Nachricht senden</button>
+                <p class="form-status" role="status" aria-live="polite" hidden></p>
               </form>
             </div>
           </div>

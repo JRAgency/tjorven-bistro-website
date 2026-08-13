@@ -1,0 +1,14 @@
+# Dieses Verzeichnis enthält ausschließlich serverseitigen Code und die
+# Konfiguration mit Zugangsdaten. Es darf nie direkt über den Browser
+# erreichbar sein — auch nicht, falls die PHP-Verarbeitung einmal ausfällt.
+
+<IfModule mod_authz_core.c>
+    # Apache 2.4
+    Require all denied
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    # Apache 2.2
+    Order allow,deny
+    Deny from all
+</IfModule>

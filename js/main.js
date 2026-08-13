@@ -143,16 +143,88 @@ if (menuBtns.length && menuSections.length) {
   });
 }
 
-/* --- Forms (placeholder handler) --- */
-document.querySelectorAll('.form').forEach(form => {
-  form.addEventListener('submit', e => {
+/* --- Formulare (Kontakt & Catering) ---------------------------------------
+ * Abgeschickt wird per fetch an form-handler.php. Der Vorteil gegenüber einem
+ * normalen POST: Bei einem Validierungsfehler wird die Seite nicht neu geladen,
+ * die Eingaben bleiben also vollständig erhalten.
+ * Ohne JavaScript greift der normale POST — dann antwortet form-handler.php
+ * mit einer eigenen Ergebnisseite.
+ * -------------------------------------------------------------------------- */
+document.querySelectorAll('.form[data-form]').forEach(form => {
+  const statusEl = form.querySelector('.form-status');
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const startedField = form.querySelector('input[name="form_started"]');
+  const originalLabel = submitBtn ? submitBtn.textContent : '';
+
+  // Zeitpunkt des Seitenaufrufs — der Server erkennt daran zu schnelle Bots
+  if (startedField) startedField.value = String(Date.now());
+
+  const setStatus = (text, kind) => {
+    if (!statusEl) return;
+    statusEl.textContent = text;
+    statusEl.className = 'form-status form-status--' + kind;
+    statusEl.hidden = false;
+  };
+
+  const clearFieldErrors = () => {
+    form.querySelectorAll('.form-group--error').forEach(g => g.classList.remove('form-group--error'));
+    form.querySelectorAll('.form-error').forEach(e => e.remove());
+    form.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
+  };
+
+  const showFieldErrors = (errors) => {
+    Object.keys(errors || {}).forEach(name => {
+      const field = form.querySelector('[name="' + name + '"]');
+      if (!field) return;
+      const group = field.closest('.form-group') || field.parentElement;
+      if (group) {
+        group.classList.add('form-group--error');
+        const hint = document.createElement('span');
+        hint.className = 'form-error';
+        hint.textContent = errors[name];
+        group.appendChild(hint);
+      }
+      field.setAttribute('aria-invalid', 'true');
+    });
+    const first = form.querySelector('.form-group--error [name]');
+    if (first && typeof first.focus === 'function') first.focus();
+  };
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const btn = form.querySelector('button[type="submit"]');
-    if (btn) {
-      btn.textContent = 'Nachricht gesendet ✓';
-      btn.disabled = true;
-      btn.style.opacity = '.65';
-      btn.style.pointerEvents = 'none';
+    clearFieldErrors();
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Wird gesendet …';
+    }
+    setStatus('Deine Anfrage wird gesendet …', 'pending');
+
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        form.reset();
+        if (startedField) startedField.value = String(Date.now());
+        setStatus(result.message, 'success');
+        if (submitBtn) submitBtn.textContent = 'Gesendet ✓';
+        return;   // Button bleibt bewusst deaktiviert — kein Doppelversand
+      }
+
+      showFieldErrors(result.errors);
+      setStatus(result.message || 'Bitte prüfe deine Eingaben.', 'error');
+    } catch (err) {
+      setStatus('Verbindung fehlgeschlagen. Bitte versuche es erneut oder schreib uns an kontakt@tjorven-bistro.de.', 'error');
+    }
+
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalLabel;
     }
   });
 });

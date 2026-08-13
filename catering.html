@@ -324,7 +324,14 @@
         </div>
 
         <div class="form-card reveal">
-          <form class="form" action="#" method="post">
+          <form class="form" action="form-handler.php" method="post" data-form="catering">
+            <input type="hidden" name="form" value="catering">
+            <input type="hidden" name="form_started" value="">
+            <!-- Spam-Schutz: für Besucher unsichtbar, Bots füllen es aus -->
+            <div class="form-hp" aria-hidden="true">
+              <label for="cat-website">Dieses Feld bitte leer lassen</label>
+              <input type="text" id="cat-website" name="website" tabindex="-1" autocomplete="off">
+            </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="name">Name *</label>
@@ -371,9 +378,14 @@
               <label for="message">Deine Wünsche & Details</label>
               <textarea id="message" name="message" rows="5" placeholder="Beschreib uns deinen Anlass, besondere Wünsche oder Diätanforderungen..."></textarea>
             </div>
+            <p class="form-privacy">
+              Mit dem Absenden werden deine Angaben zur Bearbeitung deiner Anfrage verarbeitet.
+              Näheres in der <a href="datenschutz.html">Datenschutzerklärung</a>.
+            </p>
             <div style="display:flex;justify-content:flex-end">
               <button type="submit" class="btn btn--primary btn--lg" style="min-width:180px">Anfrage senden</button>
             </div>
+            <p class="form-status" role="status" aria-live="polite" hidden></p>
           </form>
         </div>
 
