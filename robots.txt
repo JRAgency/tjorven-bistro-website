@@ -1,0 +1,15 @@
+# robots.txt — https://tjorven-bistro.de
+#
+# Die Website darf vollständig gecrawlt werden. Impressum, Datenschutz und die
+# Linkseite tragen ein eigenes noindex im HTML und werden deshalb hier NICHT
+# per Disallow gesperrt: Eine gesperrte Seite kann von Suchmaschinen nicht
+# gelesen werden — das noindex würde dann nie ausgewertet.
+
+User-agent: *
+Allow: /
+
+# Serverseitiger Formular-Endpunkt, kein Inhalt für den Index
+Disallow: /form-handler.php
+Disallow: /inc/
+
+Sitemap: https://tjorven-bistro.de/sitemap.xml

@@ -6,10 +6,11 @@
   <title>Tjorven Bistro – Links</title>
   <meta name="robots" content="noindex, follow">
   <meta name="description" content="Tjorven Bistro Sinsheim – Alle Links auf einen Blick. Speisekarte, Catering, Wochenkarte, WhatsApp und mehr.">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="fonts/nunito-400-normal-latin.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="fonts/nunito-500-normal-latin.woff2">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
   <style>
     /* Page-specific overrides */
     body { background: var(--warm-50); }
@@ -19,7 +20,7 @@
 </head>
 <body>
 
-  <div class="ig-lp">
+  <main class="ig-lp">
 
     <!-- Header / Logo -->
     <div class="ig-lp__header">
@@ -27,7 +28,7 @@
            alt="Tjorven Bistro"
            class="ig-lp__logo"
            onerror="this.style.display='none'">
-      <p class="ig-lp__name">Tjorven – Bistro</p>
+      <h1 class="ig-lp__name">Tjorven – Bistro</h1>
       <p class="ig-lp__tagline">pflanzlich · herzlich · lecker</p>
       <span class="ig-lp__location">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -92,13 +93,13 @@
     </div>
 
     <!-- Footer credit -->
-    <div class="ig-lp__footer">
+    <footer class="ig-lp__footer">
       <a href="impressum.html" style="color:var(--ink-60);text-decoration:underline;text-underline-offset:2px">Impressum</a>
       &nbsp;·&nbsp;
       <a href="datenschutz.html" style="color:var(--ink-60);text-decoration:underline;text-underline-offset:2px">Datenschutz</a>
-    </div>
+    </footer>
 
-  </div>
+  </main>
 
   <script src="js/main.js"></script>
 </body>

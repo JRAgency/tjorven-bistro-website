@@ -57,7 +57,12 @@ navDrawer?.querySelectorAll('.nav__link').forEach(l => {
   const path = window.location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('.nav__link').forEach(link => {
     const href = link.getAttribute('href') ?? '';
-    link.classList.toggle('active', href === path || (path === '' && href === 'index.html'));
+    const active = href === path || (path === '' && href === 'index.html');
+    link.classList.toggle('active', active);
+    /* Die aktive Seite war bisher nur farblich markiert. aria-current sagt sie
+       auch Screenreadern an, ohne die Darstellung zu verändern. */
+    if (active) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
   });
 })();
 
@@ -634,8 +639,13 @@ document.querySelectorAll('.footer-year').forEach(el => {
   banner.setAttribute('aria-label', 'Datenschutz-Hinweis');
   banner.innerHTML =
     '<p class="cookie-banner__title">Datenschutz &amp; Cookies</p>' +
-    '<p class="cookie-banner__text">Wir verwenden nur technisch notwendige Speicherung und laden ' +
-    'Google Fonts zur einheitlichen Darstellung. Es werden keine Tracking-Cookies gesetzt. ' +
+    /* Sachstand nach der Umstellung auf lokal gehostete Schriften: Beim Aufruf
+       der Seite werden nachweislich keine Inhalte von Drittanbietern geladen.
+       Die frühere Formulierung nannte Google Fonts und wäre jetzt unzutreffend.
+       Endgültige Formulierung folgt über die IT-Recht-Kanzlei-Texte. */
+    '<p class="cookie-banner__text">Wir verwenden nur technisch notwendige Speicherung. ' +
+    'Es werden keine Tracking-Cookies gesetzt und beim Seitenaufruf keine Inhalte ' +
+    'von Drittanbietern geladen. ' +
     'Mehr dazu in unserer <a href="datenschutz.html">Datenschutzerklärung</a>.</p>' +
     '<div class="cookie-banner__actions">' +
       '<button type="button" class="cookie-banner__btn cookie-banner__btn--accept">Akzeptieren</button>' +
