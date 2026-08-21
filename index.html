@@ -142,6 +142,15 @@
       <div class="hero__content">
         <p class="hero__eyebrow reveal">Bistro in der Klima Arena Sinsheim</p>
 
+        <!-- Marke im Hero — erscheint nur dort, wo die rechte Hero-Spalte entfaellt
+             (unter 1024px). Gleiche Bilddatei wie im Header, daher kein zusaetzlicher
+             Request. alt bleibt leer: Screenreader lesen die Marke bereits ueber das
+             Header-Logo und den Seitentitel, eine Wiederholung waere nur Ballast. -->
+        <div class="hero__brand reveal">
+          <img class="hero__brand-logo" src="images/tjorven-logo-gruen.png"
+               alt="" aria-hidden="true" width="500" height="364" decoding="async">
+        </div>
+
         <h1 class="hero__headline reveal reveal-delay-1">
           pflanzlich,<br>herzlich<br><em>&amp; lecker</em>
         </h1>
@@ -696,7 +705,7 @@
   ═══════════════════════════════════════ -->
 
   <!-- WhatsApp Floating Button -->
-  <a href="https://wa.me/4917623324085?text=Hallo%20Tjorven%20Bistro%2C%20ich%20habe%20eine%20Frage%3A"
+  <a href="https://wa.me/4915159181021?text=Hallo%20Tjorven%20Bistro%2C%20ich%20habe%20eine%20Frage%3A"
      target="_blank" rel="noopener"
      class="whatsapp-fab"
      aria-label="WhatsApp schreiben">

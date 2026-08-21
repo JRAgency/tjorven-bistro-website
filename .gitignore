@@ -44,3 +44,11 @@ inc/config.php
 
 # Lokaler Rate-Limit-Speicher (falls storage_dir im Projekt liegt)
 inc/.storage/
+
+# Abholmonitor — echte Konfiguration mit Passwort-Hash (nur auf dem Webspace)
+inc/abholmonitor-config.php
+
+# Abholmonitor — Live-Bestelldaten. Duerfen nie im Repository landen und
+# nie durch ein Deployment ueberschrieben werden.
+inc/abholmonitor-data.php
+inc/abholmonitor-login.php

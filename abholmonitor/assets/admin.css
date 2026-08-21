@@ -1,0 +1,122 @@
+/* ============================================================
+   ABHOLMONITOR — Administration
+   Ausgelegt auf Touchscreen und Smartphone: grosse Schaltflächen,
+   klare Trennung, keine versteckten Bedienschritte.
+   Erbt Schrift und Farbtoken aus monitor.css.
+   ============================================================ */
+
+body.adm {
+  min-height: 100%;
+  background: var(--am-bg);
+  color: var(--am-cream);
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+  padding: clamp(14px, 2vw, 28px);
+  display: block;
+  overflow: auto;
+  line-height: 1.5;
+}
+
+.adm__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 14px;
+  margin-bottom: clamp(16px, 2vh, 26px);
+  border-bottom: 3px solid var(--am-red);
+  flex-wrap: wrap;
+}
+.adm__logo {
+  height: 46px; width: auto; aspect-ratio: 500/364;
+  background: var(--am-cream); border-radius: 12px; padding: 4px 10px;
+}
+.adm__title { font-size: clamp(18px, 3vw, 26px); font-weight: 600; }
+.adm__logout {
+  margin-left: auto; color: var(--am-cream); text-decoration: underline;
+  text-underline-offset: 3px; min-height: 44px; display: inline-flex; align-items: center;
+}
+
+.adm__main { max-width: 720px; margin-inline: auto; }
+
+.adm__box {
+  background: var(--am-panel);
+  border: 2px solid var(--am-line);
+  border-radius: 16px;
+  padding: clamp(14px, 2vw, 22px);
+  margin-bottom: clamp(14px, 2vh, 20px);
+}
+.adm__box h2 { font-size: clamp(16px, 2.4vw, 21px); font-weight: 600; margin-bottom: 12px; }
+.adm__box--warn { border-color: var(--am-gold); }
+.adm__box--warn h2 { color: var(--am-gold); }
+.adm__box code {
+  background: #2a251f; padding: 2px 6px; border-radius: 5px;
+  font-size: .92em; word-break: break-all;
+}
+.adm__box p + p { margin-top: 10px; }
+
+/* ---- Formular ---- */
+.adm__addrow { display: flex; gap: 10px; flex-wrap: wrap; }
+.adm__login  { display: flex; flex-direction: column; gap: 10px; max-width: 380px; }
+
+.adm input[type="text"], .adm input[type="password"] {
+  flex: 1; min-width: 140px;
+  font: inherit; font-size: clamp(18px, 3vw, 22px); font-weight: 600;
+  padding: 12px 14px; min-height: 52px;
+  background: #2a251f; color: var(--am-cream);
+  border: 2px solid var(--am-line); border-radius: 12px;
+}
+.adm input:focus-visible, .adm button:focus-visible, .adm a:focus-visible {
+  outline: 3px solid var(--am-gold); outline-offset: 2px;
+}
+.adm label { font-size: 14px; color: var(--am-muted); }
+
+.adm__btn {
+  font: inherit; font-weight: 600; font-size: clamp(15px, 2.4vw, 17px);
+  min-height: 52px; padding: 12px 22px;
+  border: 2px solid transparent; border-radius: 12px;
+  cursor: pointer;
+}
+.adm__btn--primary { background: var(--am-green); color: #08210c; }
+.adm__btn--danger  { background: transparent; border-color: var(--am-red); color: var(--am-red); width: 100%; }
+.adm__btn--ghost   { background: #2a251f; color: var(--am-cream); border-color: var(--am-line); }
+.adm__btn[disabled] { opacity: .5; cursor: default; }
+
+.adm__hint  { font-size: 13.5px; color: var(--am-muted); margin-top: 8px; }
+.adm__hint a { color: var(--am-cream); }
+.adm__error { color: var(--am-red); font-weight: 600; }
+.adm__empty { color: var(--am-muted); font-size: 14.5px; }
+
+.adm__msg { min-height: 1.5em; font-size: 15px; margin-bottom: 12px; }
+.adm__msg--ok   { color: var(--am-green); }
+.adm__msg--fail { color: var(--am-red); }
+
+/* ---- Bestellliste ---- */
+.adm__list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.adm__item {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: #2a251f; border: 2px solid var(--am-line);
+  border-radius: 12px; padding: 10px 12px;
+}
+.adm__itemnr {
+  font-size: clamp(22px, 4vw, 30px); font-weight: 600;
+  font-variant-numeric: tabular-nums; min-width: 2.6em;
+}
+.adm__item--ready .adm__itemnr { color: var(--am-green); }
+.adm__itemactions { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+
+.adm__sronly {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* Auf schmalen Geraeten stehen die Schaltflaechen unter der Nummer und
+   beginnen linksbuendig — sonst rutschen sie durch margin-left:auto in die
+   rechte Ecke und wirken zusammenhanglos. */
+@media (max-width: 560px) {
+  .adm__item { align-items: flex-start; }
+  .adm__itemactions { margin-left: 0; width: 100%; }
+  .adm__itemactions .adm__btn { flex: 1; padding-inline: 12px; }
+}

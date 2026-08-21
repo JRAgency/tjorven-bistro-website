@@ -972,6 +972,45 @@ input, textarea, select { font-family: inherit; }
   margin-bottom: var(--s-5);
 }
 
+/* ============================================================
+   HERO-MARKE (nur unterhalb 1024px)
+   Ab 1024px traegt die rechte Hero-Spalte (Foto + Oeffnungszeiten) die
+   visuelle Last. Faellt sie weg, uebernimmt das Logo diese Rolle: Es wird
+   zum ersten Blickfang, der Claim rueckt eine Stufe zurueck. Die H1 bleibt
+   unveraendert echte H1 im Markup, nur kleiner gesetzt.
+   Reihenfolge der Wirkung: Marke -> Claim -> Subline -> Buttons.
+   ============================================================ */
+.hero__brand { display: none; }
+
+@media (max-width: 1023px) {
+  .hero__brand {
+    display: block;
+    margin-bottom: var(--s-5);
+  }
+  .hero__brand-logo {
+    display: block;
+    width: clamp(158px, 44vw, 216px);
+    height: auto;
+    aspect-ratio: 500 / 364;   /* Masse des Assets — verhindert Layout-Shift */
+  }
+
+  /* Claim tritt hinter die Marke zurueck. Basis ist clamp(48px, 8vw, 82px),
+     was auf einem 390px-Geraet 43px ergab und den Hero dominierte. */
+  .hero__headline {
+    font-size: clamp(34px, 5.6vw, 46px);
+    margin-bottom: var(--s-5);
+  }
+
+  /* Etwas engere Rhythmik, damit der Hero durch das Logo nicht spuerbar
+     laenger wird als vorher */
+  .hero__sub { margin-bottom: var(--s-8); }
+}
+
+@media (max-width: 480px) {
+  .hero__headline { font-size: clamp(27px, 7.8vw, 34px); }
+  .hero__brand    { margin-bottom: var(--s-4); }
+}
+
 .hero__link-cta {
   display: inline-flex;
   align-items: center;
@@ -3098,7 +3137,6 @@ input[type="time"] {
   .display-lg { font-size: clamp(28px, 8.5vw, 34px); }
   .display-md { font-size: clamp(22px, 7.5vw, 26px); }
   .page-hero__title { font-size: clamp(28px, 9vw, 38px); }
-  .hero__headline   { font-size: clamp(40px, 11vw, 54px); }
 }
 
 /* ---- Mobile ≤ 400px: Hero-Content oben näher ---- */
