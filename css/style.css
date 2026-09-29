@@ -2651,6 +2651,13 @@ input[type="time"] {
   padding-bottom: var(--s-28);
 }
 
+/* Die Rechtstexte nennen einzelne Zieladressen ausgeschrieben. So eine Adresse
+   ist ein einziges langes Wort ohne Umbruchstelle und sprengt auf dem Handy
+   sonst die Seitenbreite (gemessen: +115px bei 360px). */
+.legal-wrap a {
+  overflow-wrap: anywhere;
+}
+
 .legal-wrap h1 {
   font-family: var(--f-display);
   font-size: clamp(32px, 4.5vw, 52px);
@@ -3400,12 +3407,6 @@ input[type="time"] {
   background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
   color: #fff;
 }
-.ig-lp__btn--fb {
-  background: #1877f2;
-  color: #fff;
-}
-.ig-lp__btn--fb:hover { background: #1465d8; }
-
 .ig-lp__hours {
   margin-top: var(--s-10);
   text-align: center;
@@ -3636,4 +3637,56 @@ body.consent-open .whatsapp-fab {
     transition-duration: .08s !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ═══════════════════════════════════════
+   CATERING — Aufruf zur Broschüre mit Preisrechner
+   Ersetzt das frühere allgemeine Cateringformular, damit es nur
+   noch einen Anfrageweg für Catering gibt (catering-broschuere.html).
+   ═══════════════════════════════════════ */
+.catering-cta {
+  display: grid;
+  gap: var(--s-6);
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-md);
+  padding: clamp(18px, 3vw, 28px);
+}
+.catering-cta__vorschau {
+  display: block;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  box-shadow: var(--sh-md);
+  transition: transform .3s var(--ease), box-shadow .3s var(--ease);
+}
+.catering-cta__vorschau:hover { transform: translateY(-3px); box-shadow: var(--sh-lg); }
+.catering-cta__vorschau img { width: 100%; height: auto; }
+.catering-cta__titel {
+  font-family: var(--f-display);
+  font-size: var(--t-xl);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink);
+}
+.catering-cta__beschreibung {
+  margin-top: var(--s-3);
+  font-size: var(--t-base);
+  line-height: 1.7;
+  color: var(--text-sub);
+}
+.catering-cta__aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin-top: var(--s-6);
+}
+/* Die lange Beschriftung darf umbrechen, statt auf schmalen Geräten überzustehen */
+.catering-cta__aktionen .btn { white-space: normal; text-align: center; justify-content: center; }
+@media (min-width: 700px) {
+  .catering-cta { grid-template-columns: 300px 1fr; }
+}
+@media (max-width: 479px) {
+  .catering-cta__aktionen .btn { width: 100%; }
 }

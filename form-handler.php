@@ -86,6 +86,26 @@ $forms = [
             'message'  => ['label' => 'Wünsche & Details', 'required' => false, 'type' => 'textarea', 'max' => TJ_MAX_MESSAGE],
         ],
     ],
+    // Catering-Rechner (catering-broschuere.html). Die Auswahl kommt zusätzlich
+    // als JSON im Feld "auswahl" und wird in Abschnitt 4b serverseitig berechnet.
+    // Die Personengrenzen 10–200 prüft dort data/catering-preise.json; die Werte
+    // hier sind nur technische Grenzen.
+    'catering-rechner' => [
+        'subject_prefix' => 'Cateringanfrage (Preisrechner)',
+        'fields' => [
+            'name'     => ['label' => 'Name',              'required' => true,  'type' => 'text', 'max' => TJ_MAX_SHORTTEXT],
+            'email'    => ['label' => 'E-Mail',            'required' => true,  'type' => 'email'],
+            'phone'    => ['label' => 'Telefon',           'required' => false, 'type' => 'text', 'max' => 60],
+            'date'     => ['label' => 'Gewünschtes Datum', 'required' => false, 'type' => 'date'],
+            'time'     => ['label' => 'Uhrzeit',           'required' => false, 'type' => 'time'],
+            'guests'   => ['label' => 'Anzahl Personen',   'required' => true,  'type' => 'int', 'min' => 1, 'max' => 2000],
+            'occasion' => ['label' => 'Anlass',            'required' => false, 'type' => 'choice',
+                           'options' => ['firma' => 'Firmenevent / Business Lunch', 'privat' => 'Private Feier',
+                                         'kindergeburtstag' => 'Kindergeburtstag', 'verein' => 'Vereinsevent',
+                                         'schule' => 'Schulausflug / Gruppe', 'sonstiges' => 'Sonstiges']],
+            'message'  => ['label' => 'Nachricht', 'required' => false, 'type' => 'textarea', 'max' => TJ_MAX_MESSAGE],
+        ],
+    ],
 ];
 
 $formKey = (string) ($_POST['form'] ?? '');
@@ -204,6 +224,21 @@ if ($errors) {
 }
 
 /* ==================================================================
+   4b. Catering-Rechner: Kostenschätzung serverseitig neu berechnen.
+   Der im Browser angezeigte Betrag wird nie übernommen, nur verglichen.
+   ================================================================== */
+
+$extraLines = [];
+if ($formKey === 'catering-rechner') {
+    require __DIR__ . '/inc/catering-preise.php';
+    $calc = tj_catering_calculate((string) ($_POST['auswahl'] ?? ''), (int) $values['guests']);
+    if (!$calc['ok']) {
+        tj_respond(false, $calc['message'], $calc['errors'], 422);
+    }
+    $extraLines = tj_catering_mail_lines($calc, (string) ($_POST['summe_anzeige'] ?? ''));
+}
+
+/* ==================================================================
    5. Mail zusammenstellen
    ================================================================== */
 
@@ -242,6 +277,10 @@ foreach ($definition['fields'] as $name => $rules) {
     }
 }
 
+foreach ($extraLines as $line) {
+    $lines[] = $line;
+}
+
 $lines[] = str_repeat('-', 46);
 $lines[] = 'Gesendet am ' . date('d.m.Y \u\m H:i') . ' Uhr';
 $lines[] = 'Antwort geht direkt an: ' . $values['email'];
@@ -270,7 +309,7 @@ if (!$ok) {
 
 tj_rate_limit_record($config);
 
-tj_respond(true, $formKey === 'catering'
+tj_respond(true, in_array($formKey, ['catering', 'catering-rechner'], true)
     ? 'Vielen Dank! Deine Cateringanfrage ist bei uns eingegangen. Wir melden uns innerhalb von 1–2 Werktagen.'
     : 'Vielen Dank! Deine Nachricht ist bei uns eingegangen. Wir antworten innerhalb von 1–2 Werktagen.');
 
