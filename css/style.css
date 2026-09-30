@@ -3690,3 +3690,35 @@ body.consent-open .whatsapp-fab {
 @media (max-width: 479px) {
   .catering-cta__aktionen .btn { width: 100%; }
 }
+
+/* Zwei gleichwertige Angebote (Catering, Kindergeburtstag): Karten mit Vorschau oben */
+.catering-angebote { display: grid; gap: var(--s-6); }
+@media (min-width: 820px) {
+  .catering-angebote { grid-template-columns: 1fr 1fr; align-items: stretch; }
+}
+.catering-cta--karte { grid-template-columns: 1fr !important; grid-template-rows: auto 1fr; align-items: stretch; }
+.catering-cta--karte .catering-cta__text { display: flex; flex-direction: column; height: 100%; }
+.catering-cta--karte .catering-cta__aktionen { margin-top: auto; padding-top: var(--s-5); }
+.catering-cta--karte .catering-cta__aktionen .btn { width: 100%; }
+
+/* Anlass-Karten „Catering“ und „Kindergeburtstag“: direkter Weg zum Planer. Die Karte ist
+   selbst kein Link – nur dieser Textlink ist bedienbar (keine verschachtelten Elemente). */
+.occasion-card__link {
+  display: inline-block;
+  min-height: 44px;
+  padding: 12px 0;
+  margin-top: var(--s-3);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--green);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+/* Pfeil bleibt beim Umbruch am letzten Wort statt an den rechten Rand zu rutschen */
+.occasion-card__link-ende { white-space: nowrap; }
+.occasion-card__link svg { display: inline-block; margin-left: 6px; vertical-align: -3px; transition: transform .2s var(--ease); }
+.occasion-card__link:hover { color: var(--green-deep); text-decoration-thickness: 2px; }
+.occasion-card__link:hover svg { transform: translateX(3px); }
+.occasion-card__link:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 3px; border-radius: 4px; }

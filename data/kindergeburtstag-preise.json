@@ -1,0 +1,437 @@
+{
+  "_hinweis": "Einzige Quelle fuer den Kindergeburtstag-Planer. Wird im Browser (js/kindergeburtstag-rechner.js) UND serverseitig (inc/kindergeburtstag-preise.php) gelesen. Menues und Texte aus der PDF 'Kindergeburtstag im Bistro Tjorven' (Canva, 26.09.2026); Speisen und Getraenke a la carte aus der aktuellen Speisekarte (Speisen.pdf / Getraenke.pdf, Canva, 27.09.2026 = speisekarte.html). Betraege in Cent.",
+  "version": "2026-09-30",
+  "quelle": "downloads/kindergeburtstag-tjorven-bistro.pdf",
+  "waehrung": "EUR",
+  "preis_hinweis": "Kindergeburtstags-Menüs laut Kindergeburtstag-Broschüre; Speisen & Getränke à la carte laut aktueller Speisekarte (inkl. MwSt.).",
+  "kinder": {
+    "min": 1,
+    "max": 60,
+    "_technische_grenzen": "Die PDF nennt keine Mindest- oder Hoechstzahl. 1 bis 60 sind nur Eingabegrenzen gegen Fehleingaben."
+  },
+  "begleitpersonen": {
+    "max": 60,
+    "_hinweis": "Nur zur Planung des Tischbereichs, ohne Preiswirkung. Die PDF nennt dazu nichts."
+  },
+  "texte": {
+    "treffpunkt": "Viele Geburtstagsgruppen nutzen das Tjorven Bistro als ihren festen Treffpunkt während des gesamten Besuchs in der KLIMA ARENA. Hier können Jacken, Geschenke und Geburtstagskuchen bleiben, während die Kinder die Ausstellung erkunden.",
+    "tischbereich": "Wichtig: Für Geburtstagsgruppen reservieren wir gerne einen Tischbereich, wenn Speisen oder Getränke im Tjorven Bistro bestellt werden.",
+    "leistungen": [
+      "Eigener Tischbereich für Eure Gruppe",
+      "Mehrfaches Kommen und Gehen möglich",
+      "Kuchen darf mitgebracht werden",
+      "Getränke, Eis und Speisen à la carte",
+      "Kindergeburtstags-Menüs auf Wunsch",
+      "Flexible Gestaltung des Tages"
+    ],
+    "quelle": "S. 2"
+  },
+  "menues": {
+    "quelle": "S. 3",
+    "max_je_menue": 99,
+    "_technische_grenzen": "99 ist nur eine Eingabegrenze. Die PDF sagt nicht, ob die Menues nur fuer Kinder gelten; die Anzahl wird deshalb nicht auf die Kinderzahl begrenzt.",
+    "auswahl": [
+      {
+        "id": "pommes",
+        "titel": "Kindergeburtstags-Menü Pommes",
+        "preis": 790,
+        "preis_text": "7,90 €",
+        "inhalt": [
+          "Pommes",
+          "Softdrink",
+          "Süßigkeit"
+        ]
+      },
+      {
+        "id": "nuggets",
+        "titel": "Kindergeburtstags-Menü Nuggets",
+        "preis": 1190,
+        "preis_text": "11,90 €",
+        "inhalt": [
+          "5 Nuggets (pflanzlich) mit Pommes",
+          "Softdrink",
+          "Süßigkeit"
+        ]
+      }
+    ]
+  },
+  "planung": {
+    "frage": "Wie möchtet ihr Speisen & Getränke planen?",
+    "optionen": [
+      {
+        "id": "vorab",
+        "titel": "Vorab auswählen / vormerken",
+        "kurz": "vorab ausgewählt / vorgemerkt",
+        "text": "Ihr wählt Speisen und Getränke aus unserer Speisekarte schon jetzt aus – mit Anzahl und Preis in der Kostenschätzung. Das hilft uns besonders bei Speisen, die nur begrenzt verfügbar sind. Die Vorauswahl ist unverbindlich und keine Garantie."
+      },
+      {
+        "id": "spontan",
+        "titel": "Spontan vor Ort entscheiden",
+        "kurz": "spontan vor Ort",
+        "text": "Ihr bestellt Speisen und Getränke direkt vor Ort nach unserer Speisekarte. In der Kostenschätzung stehen dann nur die Kindergeburtstags-Menüs, falls ihr welche auswählt."
+      }
+    ],
+    "_quelle": "Vorgabe des Auftraggebers vom 30.09.2026"
+  },
+  "a_la_carte": {
+    "quelle": "Speisekarte: Speisen.pdf und Getränke.pdf (Canva, 27.09.2026), identisch mit speisekarte.html",
+    "titel": "Speisen & Getränke à la carte",
+    "preis_hinweis": "Preise laut aktueller Speisekarte, in Euro inkl. der gesetzlichen MwSt.",
+    "vorab_hinweis": "Die Vorauswahl ist unverbindlich und keine Garantie – sie hilft uns besonders bei Speisen, die nur begrenzt verfügbar sind.",
+    "max_je_artikel": 99,
+    "_technische_grenzen": "99 ist nur eine Eingabegrenze gegen Fehleingaben, keine Regel der Speisekarte.",
+    "verfuegbarkeit": {
+      "wochenende": {
+        "iso_tage": [
+          6,
+          7
+        ],
+        "text_pruefen": "Nur Samstag & Sonntag sowie in den Schulferien Baden-Württemberg – Verfügbarkeit wird mit deiner Anfrage geprüft.",
+        "_hinweis": "Samstag und Sonntag gelten als verfuegbar. Schulferien BW sind bewusst NICHT hinterlegt (keine erfundenen Termine, keine externe Schnittstelle): an allen anderen Tagen wird die Lasagne nicht gesperrt, sondern mit Hinweis angefragt. Die Speisekarte nennt zusaetzlich feiertags – offene Frage an den Auftraggeber."
+      }
+    },
+    "schritte": [
+      {
+        "id": "herzhaft-1",
+        "kategorie": "Herzhaft",
+        "titel": "Herzhaft: Bowl & Lasagne",
+        "artikel": [
+          {
+            "id": "bowl",
+            "name": "Tjorvens saisonale Bowl",
+            "preis": 1350,
+            "beschreibung": "Knackiger Blattsalat auf Quinoa und Buchweizen aus Schwaigern mit gebackenen Kartoffeln, saisonalem Gemüse, gekeimten schwäbischen Linsen, Pickles und kleinen Leckereien an unserem hausgemachten French Dressing."
+          },
+          {
+            "id": "lasagne",
+            "name": "Hausgemachte Lasagne & Beilagensalat",
+            "preis": 1250,
+            "beschreibung": "Unsere Lasagne basiert auf Sonnenblumenprotein und wird mit einer leckeren Kräutercreme sowie einem würzigen “Sonnenblumenparmesan” serviert.",
+            "verfuegbarkeit": "wochenende"
+          }
+        ]
+      },
+      {
+        "id": "herzhaft-2",
+        "kategorie": "Herzhaft",
+        "titel": "Herzhaft: Pommes",
+        "artikel": [
+          {
+            "id": "pommes",
+            "name": "Knusprige Pommes",
+            "preis": 450,
+            "beschreibung": "Eine große Portion Pommes mit Ketchup & hausgemachter Mayonnaise."
+          },
+          {
+            "id": "loaded-veggie",
+            "name": "Loaded Pommes Veggie",
+            "preis": 900,
+            "beschreibung": "Saisonales Grillgemüse · Kräutercreme · Pesto · Sprossen"
+          },
+          {
+            "id": "loaded-bolo",
+            "name": "Loaded Pommes Bolo",
+            "preis": 900,
+            "beschreibung": "Bolognese aus Sonnenblumenprotein · Sonnenblumenparmesan · Grün"
+          }
+        ]
+      },
+      {
+        "id": "herzhaft-3",
+        "kategorie": "Herzhaft",
+        "titel": "Herzhaft: Focaccia, Wrap & Salat",
+        "artikel": [
+          {
+            "id": "focaccia",
+            "name": "Saisonales Focaccia",
+            "preis": 550,
+            "beschreibung": "Selbstgebackenes Focaccia, belegt mit Hummus, grünem Pesto, saisonalem Gemüse und Salat. Knusprig getoastet."
+          },
+          {
+            "id": "wrap",
+            "name": "Getoasteter Wrap",
+            "preis": 800,
+            "beschreibung": "Fladenbrot gefüllt mit saisonalem Gemüse, gekeimten schwäbischen Linsen, Kräutercreme und Blattsalat. Wir servieren unsere Wraps außen knusprig getoastet und innen erfrischend kühl."
+          },
+          {
+            "id": "blattsalat",
+            "name": "Bunter Blattsalat",
+            "preis": 450,
+            "beschreibung": "Knackiger Blattsalat, garniert mit kleinen Leckereien, an unserem hausgemachten French Dressing."
+          }
+        ]
+      },
+      {
+        "id": "suess-1",
+        "kategorie": "Süß",
+        "titel": "Süß: Belgische Waffel",
+        "artikel": [
+          {
+            "id": "waffel",
+            "name": "Hausgemachte belgische Waffel",
+            "preis": 450,
+            "beschreibung": "Mix & Match mit Toppings deiner Wahl: Puderzucker · Zimt & Zucker"
+          },
+          {
+            "id": "topping-schokosauce",
+            "name": "Topping Schokosauce",
+            "preis": 100,
+            "hinweis": "Aufpreis zur Waffel",
+            "zusatz_zu": "waffel"
+          },
+          {
+            "id": "topping-ruebensirup",
+            "name": "Topping Rübensirup",
+            "preis": 100,
+            "hinweis": "Aufpreis zur Waffel",
+            "zusatz_zu": "waffel"
+          },
+          {
+            "id": "topping-apfelmus",
+            "name": "Topping Apfelmus",
+            "preis": 100,
+            "hinweis": "Aufpreis zur Waffel",
+            "zusatz_zu": "waffel"
+          }
+        ]
+      },
+      {
+        "id": "suess-2",
+        "kategorie": "Süß",
+        "titel": "Süß: Cookies & Eis",
+        "intro": "Eine Auswahl an cremigem Eis findest du in unserer bunten Eistruhe.",
+        "artikel": [
+          {
+            "id": "cookies",
+            "name": "Homemade Cookies",
+            "preis": 200,
+            "beschreibung": "Cookies in unterschiedlichen Geschmacksrichtungen findest du an unserer Theke."
+          },
+          {
+            "id": "eis-stiel",
+            "name": "Eis am Stiel",
+            "preis": 220,
+            "hinweis": "pro Stück"
+          },
+          {
+            "id": "eis-becher",
+            "name": "Eis im Becher",
+            "preis": 300,
+            "hinweis": "pro Becher"
+          }
+        ],
+        "_eis_quelle": "Karte: Eiscreme 2,2 | 3,0 – laut Auftraggeber (30.09.2026): 2,20 € = Eis am Stiel pro Stück, 3,00 € = Eis im Becher pro Becher."
+      },
+      {
+        "id": "kalt-1",
+        "kategorie": "Kalt",
+        "titel": "Kalt: fritz-kola & fritz-limo",
+        "artikel": [
+          {
+            "id": "fritz-kola-original",
+            "name": "fritz kola original",
+            "menge_text": "0,33 l",
+            "preis": 350
+          },
+          {
+            "id": "fritz-kola-superzero",
+            "name": "fritz kola superzero",
+            "menge_text": "0,33 l",
+            "preis": 350
+          },
+          {
+            "id": "fritz-kola-mischmasch",
+            "name": "fritz kola mischmasch",
+            "menge_text": "0,33 l",
+            "preis": 350
+          },
+          {
+            "id": "fritz-limo-zitrone",
+            "name": "fritz limo zitrone",
+            "menge_text": "0,33 l",
+            "preis": 350
+          },
+          {
+            "id": "fritz-limo-orange",
+            "name": "fritz limo orange",
+            "menge_text": "0,33 l",
+            "preis": 350
+          }
+        ]
+      },
+      {
+        "id": "kalt-2",
+        "kategorie": "Kalt",
+        "titel": "Kalt: fritz spritz Bio-Schorlen",
+        "artikel": [
+          {
+            "id": "fritz-spritz-rhabarber",
+            "name": "fritz spritz bio rhabarberschorle",
+            "menge_text": "0,33 l",
+            "preis": 350
+          },
+          {
+            "id": "fritz-spritz-traube",
+            "name": "fritz spritz bio traubenschorle",
+            "menge_text": "0,33 l",
+            "preis": 350
+          },
+          {
+            "id": "fritz-spritz-apfel",
+            "name": "fritz spritz bio apfelschorle",
+            "menge_text": "0,33 l",
+            "preis": 350
+          }
+        ]
+      },
+      {
+        "id": "kalt-3",
+        "kategorie": "Kalt",
+        "titel": "Kalt: Hagebutten-Eistee hausgemacht",
+        "artikel": [
+          {
+            "id": "eistee-gesuesst",
+            "name": "Hagebutten-Eistee hausgemacht, gesüßt",
+            "menge_text": "0,40 l",
+            "preis": 350
+          },
+          {
+            "id": "eistee-ungesuesst",
+            "name": "Hagebutten-Eistee hausgemacht, ungesüßt",
+            "menge_text": "0,40 l",
+            "preis": 350
+          }
+        ]
+      },
+      {
+        "id": "kalt-4",
+        "kategorie": "Kalt",
+        "titel": "Kalt: Mineralwasser",
+        "artikel": [
+          {
+            "id": "blackforest-still-025",
+            "name": "Black Forest Gourmet still",
+            "menge_text": "0,25 l",
+            "preis": 250
+          },
+          {
+            "id": "blackforest-still-075",
+            "name": "Black Forest Gourmet still",
+            "menge_text": "0,75 l",
+            "preis": 450
+          },
+          {
+            "id": "peterstaler-classic-025",
+            "name": "Peterstaler Gourmet classic",
+            "menge_text": "0,25 l",
+            "preis": 250
+          },
+          {
+            "id": "peterstaler-classic-075",
+            "name": "Peterstaler Gourmet classic",
+            "menge_text": "0,75 l",
+            "preis": 450
+          }
+        ]
+      },
+      {
+        "id": "heiss-1",
+        "kategorie": "Heiß",
+        "titel": "Heiß: Espresso & Kaffee",
+        "intro": "Alle Kaffeegetränke bereiten wir dir gerne auch entkoffeiniert zu.",
+        "artikel": [
+          {
+            "id": "espresso",
+            "name": "Espresso",
+            "preis": 250
+          },
+          {
+            "id": "doppio",
+            "name": "Doppio",
+            "preis": 350
+          },
+          {
+            "id": "espresso-macchiato",
+            "name": "Espresso Macchiato",
+            "preis": 300
+          },
+          {
+            "id": "cortado",
+            "name": "Cortado",
+            "preis": 320
+          },
+          {
+            "id": "americano",
+            "name": "Americano",
+            "preis": 350
+          }
+        ]
+      },
+      {
+        "id": "heiss-2",
+        "kategorie": "Heiß",
+        "titel": "Heiß: Milchkaffee, Kakao & Tee",
+        "intro": "Milchgetränke servieren wir mit Hafermilch, wahlweise Sojamilch oder einer glutenfreien Alternative.",
+        "artikel": [
+          {
+            "id": "cappuccino",
+            "name": "Cappuccino",
+            "preis": 400
+          },
+          {
+            "id": "milchkaffee",
+            "name": "Milchkaffee",
+            "preis": 400
+          },
+          {
+            "id": "latte-macchiato",
+            "name": "Latte Macchiato",
+            "preis": 450
+          },
+          {
+            "id": "heisse-schokolade",
+            "name": "Heiße Schokolade",
+            "preis": 350
+          },
+          {
+            "id": "bio-tee",
+            "name": "Bio Tee",
+            "preis": 350,
+            "beschreibung": "Kräuter · Früchte · Grün · Schwarz"
+          }
+        ]
+      },
+      {
+        "id": "alkoholisch",
+        "kategorie": "Alkoholisch",
+        "titel": "Alkoholisch: Bio-Bier",
+        "intro": "Für erwachsene Begleitpersonen.",
+        "artikel": [
+          {
+            "id": "lammsbraeu-pils",
+            "name": "Lammsbräu Bio Pils Zzzisch",
+            "menge_text": "0,33 l",
+            "preis": 400
+          },
+          {
+            "id": "lammsbraeu-radler",
+            "name": "Lammsbräu Bio NaturRadler",
+            "menge_text": "0,33 l",
+            "preis": 400
+          },
+          {
+            "id": "lammsbraeu-alkoholfrei",
+            "name": "Lammsbräu Bio alkoholfrei",
+            "menge_text": "0,33 l",
+            "preis": 400
+          }
+        ]
+      }
+    ]
+  },
+  "kuchen": {
+    "quelle": "S. 2",
+    "text": "Kuchen darf mitgebracht werden",
+    "auswahl_text": "Wir bringen einen Geburtstagskuchen mit"
+  }
+}

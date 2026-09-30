@@ -1,18 +1,18 @@
 {
-  "_hinweis": "Einzige Quelle fuer alle Catering-Preise. Wird vom Preisrechner im Browser (js/catering-rechner.js) UND serverseitig (inc/catering-preise.php) gelesen. Alle Werte stammen ausschliesslich aus der PDF 'Cateringmoeglichkeiten Tjorven Bistro Veranstaltungen Klima Arena' (Canva, 26.09.2026). Betraege in Cent, um Rundungsfehler auszuschliessen.",
-  "version": "2026-09-26",
+  "_hinweis": "Einzige Quelle fuer alle Catering-Preise. Wird vom Preisrechner im Browser (js/catering-rechner.js) UND serverseitig (inc/catering-preise.php) gelesen. Alle Preise stammen ausschliesslich aus der PDF 'Cateringmoeglichkeiten Tjorven Bistro Veranstaltungen Klima Arena' (Canva, 26.09.2026). Betraege in Cent.",
+  "version": "2026-09-30",
   "quelle": "downloads/cateringmoeglichkeiten-tjorven-bistro.pdf",
   "waehrung": "EUR",
   "mwst_hinweis": "Alle genannten Preise verstehen sich zzgl. der gesetzlichen Mehrwertsteuer.",
   "mwst_quelle": "S. 2",
-
   "personen": {
     "min": 10,
     "max": 200,
     "text": "Unsere Caterings sind ab 10 und bis zu 200 Personen möglich.",
-    "quelle": "S. 3, S. 8"
+    "quelle": "S. 3, S. 8",
+    "intro": "In der Regel finden die Caterings in der KLIMA ARENA im 1. Stock auf der Eventfläche statt. Entsprechend deinen Wünschen können wir dort alles so vorbereiten, wie es für dich passt.",
+    "intro_quelle": "S. 3 (Umsetzung), Wortlaut vom Auftraggeber freigegeben"
   },
-
   "menues": {
     "quelle": "S. 5",
     "text_speisenwahl": "Kombiniere frei nach deinen Wünschen & deiner Menüvariante",
@@ -25,17 +25,54 @@
         "preis_ist_ab": true,
         "preis_text": "ab 15 € pro Person",
         "gangfolgen": [
-          { "id": "vh", "titel": "Vorspeise + Hauptspeise", "gaenge": ["vorspeise", "hauptspeise"] },
-          { "id": "hd", "titel": "Hauptspeise + Dessert",   "gaenge": ["hauptspeise", "dessert"] }
+          {
+            "id": "vh",
+            "titel": "Vorspeise + Hauptspeise",
+            "gaenge": [
+              "vorspeise",
+              "hauptspeise"
+            ]
+          },
+          {
+            "id": "hd",
+            "titel": "Hauptspeise + Dessert",
+            "gaenge": [
+              "hauptspeise",
+              "dessert"
+            ]
+          }
         ],
         "gangfolgen_text": "Wahlweise: Vorspeise + Hauptspeise od. Hauptspeise + Dessert",
         "mehr_auswahl": {
           "min_personen": 20,
           "titel": "Mehr Auswahl (ab 20 Personen)",
           "optionen": [
-            { "id": "zweite_vorspeise_oder_dessert", "titel": "Zweite Vorspeise oder zweites Dessert", "gaenge": ["vorspeise", "dessert"], "aufpreis_pp": 100, "text": "Zweite Vorspeise oder zweites Dessert: + 1,00 € p. P." },
-            { "id": "zweite_hauptspeise",            "titel": "Zweite Hauptspeise",                    "gaenge": ["hauptspeise"],          "aufpreis_pp": 200, "text": "Zweite Hauptspeise: + 2,00 € p. P." }
-          ]
+            {
+              "id": "zweite_vorspeise",
+              "titel": "Zweite Vorspeise zur Wahl",
+              "gaenge": [
+                "vorspeise"
+              ],
+              "aufpreis_pp": 100
+            },
+            {
+              "id": "zweite_hauptspeise",
+              "titel": "Zweite Hauptspeise zur Wahl",
+              "gaenge": [
+                "hauptspeise"
+              ],
+              "aufpreis_pp": 200
+            },
+            {
+              "id": "zweites_dessert",
+              "titel": "Zweites Dessert zur Wahl",
+              "gaenge": [
+                "dessert"
+              ],
+              "aufpreis_pp": 100
+            }
+          ],
+          "_quelle": "S. 5: „Zweite Vorspeise oder zweites Dessert: + 1 € p. P.“ und „Zweite Hauptspeise: + 2 € p. P.“ – auf Vorgabe des Auftraggebers vom 30.09.2026 als zwei unabhängige Optionen zu je + 1 € p. P.; angeboten wird nur, was zur gewählten Gangfolge passt."
         }
       },
       {
@@ -45,55 +82,151 @@
         "preis_ist_ab": true,
         "preis_text": "ab 19 € pro Person",
         "gangfolgen": [
-          { "id": "vhd", "titel": "Vorspeise + Hauptspeise + Dessert", "gaenge": ["vorspeise", "hauptspeise", "dessert"] }
+          {
+            "id": "vhd",
+            "titel": "Vorspeise + Hauptspeise + Dessert",
+            "gaenge": [
+              "vorspeise",
+              "hauptspeise",
+              "dessert"
+            ]
+          }
         ],
         "gangfolgen_text": "Enthalten: Vorspeise + Hauptspeise + Dessert",
         "mehr_auswahl": {
           "min_personen": 20,
           "titel": "Mehr Auswahl (ab 20 Personen)",
           "optionen": [
-            { "id": "zweite_vorspeise_und_oder_dessert", "titel": "Zweite Vorspeise und/oder zweites Dessert zur Wahl", "gaenge": ["vorspeise", "dessert"], "aufpreis_pp": 100, "text": "Zweite Vorspeise und/oder zweites Dessert zur Wahl: + 1 € p.P." },
-            { "id": "zweite_hauptspeise",                "titel": "Zweite Hauptspeise zur Wahl",                        "gaenge": ["hauptspeise"],          "aufpreis_pp": 200, "text": "Zweite Hauptspeise zur Wahl: + 2 € p. P." }
-          ]
+            {
+              "id": "zweite_vorspeise",
+              "titel": "Zweite Vorspeise zur Wahl",
+              "gaenge": [
+                "vorspeise"
+              ],
+              "aufpreis_pp": 100
+            },
+            {
+              "id": "zweite_hauptspeise",
+              "titel": "Zweite Hauptspeise zur Wahl",
+              "gaenge": [
+                "hauptspeise"
+              ],
+              "aufpreis_pp": 200
+            },
+            {
+              "id": "zweites_dessert",
+              "titel": "Zweites Dessert zur Wahl",
+              "gaenge": [
+                "dessert"
+              ],
+              "aufpreis_pp": 100
+            }
+          ],
+          "_quelle": "S. 5: „Zweite Vorspeise und/oder zweites Dessert: + 1 € p. P.“ und „Zweite Hauptspeise: + 2 € p. P.“ – auf Vorgabe des Auftraggebers vom 30.09.2026 als zwei unabhängige Optionen zu je + 1 € p. P.; angeboten wird nur, was zur gewählten Gangfolge passt."
         }
       }
-    ]
+    ],
+    "text_speisen_offen": "Speisenauswahl wird individuell abgestimmt."
   },
-
   "speisen": {
     "quelle": "S. 6",
     "vorspeise": {
       "titel": "Vorspeisen",
+      "label": "Vorspeise",
+      "label_zweite": "Zweite Vorspeise",
       "auswahl": [
-        { "id": "v-blattsalat",  "name": "Grüner Blattsalat an hausgemachtem French Dressing", "hinweis": "glutenfrei" },
-        { "id": "v-linsensalat", "name": "Linsensalat von der gekeimten schwäbischen Linse",   "hinweis": "glutenfrei" },
-        { "id": "v-hummus",      "name": "Hummus von der gekeimten schwäbischen Kichererbse mit hausgemachtem Focaccia oder Rohkostgemüsesticks", "hinweis": "glutenfrei" }
+        {
+          "id": "v-blattsalat",
+          "name": "Grüner Blattsalat an hausgemachtem French Dressing",
+          "hinweis": "glutenfrei"
+        },
+        {
+          "id": "v-linsensalat",
+          "name": "Linsensalat von der gekeimten schwäbischen Linse",
+          "hinweis": "glutenfrei"
+        },
+        {
+          "id": "v-hummus",
+          "name": "Hummus von der gekeimten schwäbischen Kichererbse mit hausgemachtem Focaccia oder Rohkostgemüsesticks",
+          "hinweis": "glutenfrei"
+        }
       ]
     },
     "hauptspeise": {
       "titel": "Hauptspeisen",
+      "label": "Hauptspeise",
+      "label_zweite": "Zweite Hauptspeise",
       "auswahl": [
-        { "id": "h-lasagne",     "name": "Hausgemachte Lasagne", "detail": "auf Basis von Sonnenblumenprotein" },
-        { "id": "h-linsencurry", "name": "Gelbes Linsencurry von der gekeimten schwäbischen Linse", "detail": "mit gedämpftem Basmatireis", "hinweis": "glutenfrei" },
-        { "id": "h-pilzrahm",    "name": "Pilzrahm oder Pilzrahmgeschnetzeltes auf Basis von Sojaprotein", "detail": "mit Spätzle (mit Reis glutenfrei)" },
-        { "id": "h-gratin",      "name": "Kartoffel-Spinat-Gratin", "detail": "mit Vetacheeze", "hinweis": "glutenfrei" },
-        { "id": "h-ratatouille", "name": "Ratatouille (Sommer/Herbst) | Saisonaler Gemüsesugo", "detail": "mit Kartoffelgnocchi" },
-        { "id": "h-chili",       "name": "Chili sin carne", "detail": "mit gedämpftem Basmatireis", "hinweis": "glutenfrei" }
+        {
+          "id": "h-lasagne",
+          "name": "Hausgemachte Lasagne",
+          "detail": "auf Basis von Sonnenblumenprotein"
+        },
+        {
+          "id": "h-linsencurry",
+          "name": "Gelbes Linsencurry von der gekeimten schwäbischen Linse",
+          "detail": "mit gedämpftem Basmatireis",
+          "hinweis": "glutenfrei"
+        },
+        {
+          "id": "h-pilzrahm",
+          "name": "Pilzrahm oder Pilzrahmgeschnetzeltes auf Basis von Sojaprotein",
+          "detail": "mit Spätzle (mit Reis glutenfrei)"
+        },
+        {
+          "id": "h-gratin",
+          "name": "Kartoffel-Spinat-Gratin",
+          "detail": "mit Vetacheeze",
+          "hinweis": "glutenfrei"
+        },
+        {
+          "id": "h-ratatouille",
+          "name": "Ratatouille (Sommer/Herbst) | Saisonaler Gemüsesugo",
+          "detail": "mit Kartoffelgnocchi"
+        },
+        {
+          "id": "h-chili",
+          "name": "Chili sin carne",
+          "detail": "mit gedämpftem Basmatireis",
+          "hinweis": "glutenfrei"
+        }
       ]
     },
     "dessert": {
       "titel": "Desserts",
+      "label": "Dessert",
+      "label_zweite": "Zweites Dessert",
       "auswahl": [
-        { "id": "d-mousse",      "name": "Mousse au Chocolat", "hinweis": "glutenfrei" },
-        { "id": "d-pannacotta",  "name": "Panna Cotta",        "hinweis": "glutenfrei" },
-        { "id": "d-cheesecake",  "name": "Cheesecake",         "hinweis": "glutenfrei mögl." },
-        { "id": "d-streusel",    "name": "Saisonaler Obststreuselkuchen" },
-        { "id": "d-cookie",      "name": "Chocolate Chip Cookie" },
-        { "id": "d-tiramisu",    "name": "Tiramisu" }
+        {
+          "id": "d-mousse",
+          "name": "Mousse au Chocolat",
+          "hinweis": "glutenfrei"
+        },
+        {
+          "id": "d-pannacotta",
+          "name": "Panna Cotta",
+          "hinweis": "glutenfrei"
+        },
+        {
+          "id": "d-cheesecake",
+          "name": "Cheesecake",
+          "hinweis": "glutenfrei mögl."
+        },
+        {
+          "id": "d-streusel",
+          "name": "Saisonaler Obststreuselkuchen"
+        },
+        {
+          "id": "d-cookie",
+          "name": "Chocolate Chip Cookie"
+        },
+        {
+          "id": "d-tiramisu",
+          "name": "Tiramisu"
+        }
       ]
     }
   },
-
   "stueckartikel": {
     "quelle": "S. 4",
     "text": "Ab 10 Personen",
@@ -104,33 +237,29 @@
         "preis": 200,
         "preis_text": "2 € pro Stück",
         "artikel": [
-          { "id": "fs-bircher",    "name": "Bircher Müsli", "hinweis": "glutenfrei" },
-          { "id": "fs-obstkorb",   "name": "Saisonaler Obstkorb", "hinweis": "glutenfrei p.P.", "einheit": "p. P." },
-          { "id": "fs-hummus",     "name": "Brötchenhälfte “Hummus”",     "detail": "Hummus | Antipastigemüse | Rauchpaprika" },
-          { "id": "fs-leverwurst", "name": "Brötchenhälfte “Leverwurst”", "detail": "Herzhafter Linsenaufstrich | Pickles | Linsensprossen" }
-        ]
-      },
-      {
-        "id": "fingerfood",
-        "titel": "Fingerfood",
-        "preis": 300,
-        "preis_text": "3 € pro Stück",
-        "artikel": [
-          { "id": "ff-brezel",     "name": "Butterbrezel", "hinweis": "pflanzliche Butter" },
-          { "id": "ff-quiche",     "name": "Saisonale Quiche" },
-          { "id": "ff-linsensalat","name": "Linsensalat im Glas", "hinweis": "glutenfrei" },
-          { "id": "ff-strudel",    "name": "Mini - Spinatstrudel mit Vetacheeze" }
-        ]
-      },
-      {
-        "id": "wraps",
-        "titel": "Wraphälfte",
-        "preis": 350,
-        "preis_text": "3,5 € pro Stück",
-        "artikel": [
-          { "id": "wr-bbq",        "name": "Wrap BBQ",        "detail": "Blattsalat | Räuchertofu | BBQ-Creme | Kartoffelecken | Röstzwiebeln" },
-          { "id": "wr-ofengemuese","name": "Wrap Ofengemüse", "detail": "Saisonales Grillgemüse | Blattsalat | Kräutercreme | gekeimte schwäbische Linse" }
-        ]
+          {
+            "id": "fs-bircher",
+            "name": "Bircher Müsli",
+            "hinweis": "glutenfrei"
+          },
+          {
+            "id": "fs-obstkorb",
+            "name": "Saisonaler Obstkorb",
+            "hinweis": "glutenfrei p.P.",
+            "einheit": "p. P."
+          },
+          {
+            "id": "fs-hummus",
+            "name": "Brötchenhälfte “Hummus”",
+            "detail": "Hummus | Antipastigemüse | Rauchpaprika"
+          },
+          {
+            "id": "fs-leverwurst",
+            "name": "Brötchenhälfte “Leverwurst”",
+            "detail": "Herzhafter Linsenaufstrich | Pickles | Linsensprossen"
+          }
+        ],
+        "schritt_titel": "Frühstück & Snacks"
       },
       {
         "id": "suesses",
@@ -138,48 +267,152 @@
         "preis": 200,
         "preis_text": "2 € pro Stück",
         "artikel": [
-          { "id": "sk-mousse",     "name": "Mousse au Chocolat", "hinweis": "glutenfrei" },
-          { "id": "sk-zimtschnecke","name": "Zimtschnecke" },
-          { "id": "sk-cheezecake", "name": "Cheezecake", "hinweis": "glutenfrei mgl." },
-          { "id": "sk-streusel",   "name": "Saisonaler Obststreuselkuchen" },
-          { "id": "sk-cookie",     "name": "Chocolate Chip Cookie" },
-          { "id": "sk-marmor",     "name": "Marmorkuchen" }
-        ]
+          {
+            "id": "sk-mousse",
+            "name": "Mousse au Chocolat",
+            "hinweis": "(glutenfrei)"
+          },
+          {
+            "id": "sk-zimtschnecke",
+            "name": "Zimtschnecke"
+          },
+          {
+            "id": "sk-cheezecake",
+            "name": "Cheezecake",
+            "hinweis": "(glutenfrei möglich)"
+          },
+          {
+            "id": "sk-streusel",
+            "name": "Saisonaler Obststreuselkuchen"
+          },
+          {
+            "id": "sk-cookie",
+            "name": "Chocolate Chip Cookie"
+          },
+          {
+            "id": "sk-marmor",
+            "name": "Marmorkuchen"
+          }
+        ],
+        "schritt_titel": "Süße Kleinigkeiten"
+      },
+      {
+        "id": "wraps",
+        "titel": "Wraphälfte",
+        "preis": 350,
+        "preis_text": "3,5 € pro Stück",
+        "artikel": [
+          {
+            "id": "wr-bbq",
+            "name": "Wrap BBQ",
+            "detail": "Blattsalat | Räuchertofu | BBQ-Creme | Kartoffelecken | Röstzwiebeln"
+          },
+          {
+            "id": "wr-ofengemuese",
+            "name": "Wrap Ofengemüse",
+            "detail": "Saisonales Grillgemüse | Blattsalat | Kräutercreme | gekeimte schwäbische Linse"
+          }
+        ],
+        "schritt_titel": "Wraps"
+      },
+      {
+        "id": "fingerfood",
+        "titel": "Fingerfood",
+        "preis": 300,
+        "preis_text": "3 € pro Stück",
+        "artikel": [
+          {
+            "id": "ff-brezel",
+            "name": "Butterbrezel",
+            "hinweis": "pflanzliche Butter"
+          },
+          {
+            "id": "ff-quiche",
+            "name": "Saisonale Quiche"
+          },
+          {
+            "id": "ff-linsensalat",
+            "name": "Linsensalat im Glas",
+            "hinweis": "glutenfrei"
+          },
+          {
+            "id": "ff-strudel",
+            "name": "Mini - Spinatstrudel mit Vetacheeze"
+          }
+        ],
+        "schritt_titel": "Fingerfood"
       }
-    ]
+    ],
+    "abrechnung": "pro_person",
+    "abrechnung_text": "Ausgewählte Speisen werden automatisch für die angegebene Personenzahl berechnet.",
+    "_abrechnung_quelle": "Vorgabe des Auftraggebers vom 30.09.2026: je gewaehlter Position ein Stueck pro Person; Stueckpreise aus S. 4"
   },
-
   "getraenke": {
     "quelle": "S. 7",
     "dauer": [
-      { "id": "bis2h",     "titel": "Bis 2 Stunden" },
-      { "id": "ganzertag", "titel": "Ganzer Tag" }
+      {
+        "id": "bis2h",
+        "titel": "Bis 2 Stunden"
+      },
+      {
+        "id": "ganzertag",
+        "titel": "Ganzer Tag"
+      }
     ],
     "pauschalen": [
       {
         "id": "erfrischung",
         "titel": "Erfrischungspauschale",
         "min_personen": 10,
-        "zeilen": ["Mineralwasser still & classic", "sowie Fritz-Softdrinks und Schorlen", "Kola, Kola Super Zero, Mischmasch, Limo Orange & Zitrone, bio Apfelschorle naturtrüb, bio Traubenschorle, bio Rhabarberschorle", "Alle Getränke gekühlt und in Flaschen inkl. Gläser"],
-        "preise_pp": { "bis2h": 600, "ganzertag": 1100 }
+        "zeilen": [
+          "Mineralwasser still & classic",
+          "sowie Fritz-Softdrinks und Schorlen",
+          "Kola, Kola Super Zero, Mischmasch, Limo Orange & Zitrone, bio Apfelschorle naturtrüb, bio Traubenschorle, bio Rhabarberschorle",
+          "Alle Getränke gekühlt und in Flaschen inkl. Gläser"
+        ],
+        "preise_pp": {
+          "bis2h": 600,
+          "ganzertag": 1100
+        },
+        "betont": [
+          0,
+          1,
+          3
+        ]
       },
       {
         "id": "wasser",
         "titel": "Wasserpauschale",
         "min_personen": 10,
-        "zeilen": ["Tafelwasser aus Zapfglas"],
-        "preise_pp": { "bis2h": 200, "ganzertag": 300 }
+        "zeilen": [
+          "Tafelwasser aus Zapfglas"
+        ],
+        "preise_pp": {
+          "bis2h": 200,
+          "ganzertag": 300
+        },
+        "betont": []
       },
       {
         "id": "heissgetraenke",
         "titel": "Heißgetränkepauschale",
         "min_personen": 10,
-        "zeilen": ["Frisch gebrühter bio & fairtrade Filterkaffee", "Heißes Wasser & verschiedene bio Teesorten", "Hafer & Sojamilch, Zucker, Süßstoff"],
-        "preise_pp": { "bis2h": 600, "ganzertag": 1100 }
+        "zeilen": [
+          "Frisch gebrühter bio & fairtrade Filterkaffee",
+          "Heißes Wasser & verschiedene bio Teesorten",
+          "Hafer & Sojamilch, Zucker, Süßstoff"
+        ],
+        "preise_pp": {
+          "bis2h": 600,
+          "ganzertag": 1100
+        },
+        "betont": [
+          0,
+          1
+        ]
       }
     ]
   },
-
   "service": {
     "quelle": "S. 8",
     "personal": {
@@ -197,8 +430,5 @@
       "auf_anfrage": true,
       "text": "Bei großen Veranstaltungen berechnen wir bei Bedarf auch eine Spülpauschale."
     }
-  },
-
-  "_technische_grenzen": "Obergrenze je Stueckartikel gegen Fehleingaben; keine Preisregel aus der PDF.",
-  "stueck_max": 9999
+  }
 }

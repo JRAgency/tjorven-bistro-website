@@ -96,14 +96,27 @@ $forms = [
             'name'     => ['label' => 'Name',              'required' => true,  'type' => 'text', 'max' => TJ_MAX_SHORTTEXT],
             'email'    => ['label' => 'E-Mail',            'required' => true,  'type' => 'email'],
             'phone'    => ['label' => 'Telefon',           'required' => false, 'type' => 'text', 'max' => 60],
-            'date'     => ['label' => 'Gewünschtes Datum', 'required' => false, 'type' => 'date'],
+            'date'     => ['label' => 'Gewünschtes Datum', 'required' => true,  'type' => 'date', 'not_past' => true],
             'time'     => ['label' => 'Uhrzeit',           'required' => false, 'type' => 'time'],
             'guests'   => ['label' => 'Anzahl Personen',   'required' => true,  'type' => 'int', 'min' => 1, 'max' => 2000],
-            'occasion' => ['label' => 'Anlass',            'required' => false, 'type' => 'choice',
-                           'options' => ['firma' => 'Firmenevent / Business Lunch', 'privat' => 'Private Feier',
-                                         'kindergeburtstag' => 'Kindergeburtstag', 'verein' => 'Vereinsevent',
-                                         'schule' => 'Schulausflug / Gruppe', 'sonstiges' => 'Sonstiges']],
             'message'  => ['label' => 'Nachricht', 'required' => false, 'type' => 'textarea', 'max' => TJ_MAX_MESSAGE],
+        ],
+    ],
+    // Kindergeburtstag-Planer (kindergeburtstag-broschuere.html). Die Auswahl kommt als
+    // JSON im Feld "auswahl" und wird in Abschnitt 4b mit data/kindergeburtstag-preise.json
+    // serverseitig berechnet. Die Grenzen hier sind nur technische Grenzen.
+    'kindergeburtstag-rechner' => [
+        'subject_prefix' => 'Kindergeburtstag-Anfrage (Planer)',
+        'fields' => [
+            'name'       => ['label' => 'Name',              'required' => true,  'type' => 'text', 'max' => TJ_MAX_SHORTTEXT],
+            'email'      => ['label' => 'E-Mail',            'required' => true,  'type' => 'email'],
+            'phone'      => ['label' => 'Telefon',           'required' => false, 'type' => 'text', 'max' => 60],
+            'date'       => ['label' => 'Gewünschtes Datum', 'required' => true,  'type' => 'date', 'not_past' => true],
+            'time'       => ['label' => 'Uhrzeit',           'required' => false, 'type' => 'time'],
+            'guests'     => ['label' => 'Anzahl Kinder',     'required' => true,  'type' => 'int', 'min' => 1, 'max' => 2000],
+            'begleitung' => ['label' => 'Begleitpersonen',   'required' => true,  'type' => 'int', 'min' => 0, 'max' => 2000,
+                             'required_message' => 'Bitte gib die Anzahl der Begleitpersonen an – auch 0 ist möglich.'],
+            'message'    => ['label' => 'Nachricht', 'required' => false, 'type' => 'textarea', 'max' => TJ_MAX_MESSAGE],
         ],
     ],
 ];
@@ -165,7 +178,7 @@ foreach ($definition['fields'] as $name => $rules) {
 
     if ($value === '') {
         if (!empty($rules['required'])) {
-            $errors[$name] = 'Bitte ausfüllen.';
+            $errors[$name] = $rules['required_message'] ?? ($rules['type'] === 'date' ? 'Bitte ein Datum angeben.' : 'Bitte ausfüllen.');
         }
         $values[$name] = '';
         continue;
@@ -188,6 +201,9 @@ foreach ($definition['fields'] as $name => $rules) {
             $d = DateTime::createFromFormat('Y-m-d', $value);
             if (!$d || $d->format('Y-m-d') !== $value) {
                 $errors[$name] = 'Bitte ein gültiges Datum angeben.';
+            } elseif (!empty($rules['not_past'])
+                && $value < (new DateTime('now', new DateTimeZone('Europe/Berlin')))->format('Y-m-d')) {
+                $errors[$name] = 'Bitte ein Datum ab heute angeben.';
             }
             break;
 
@@ -236,6 +252,28 @@ if ($formKey === 'catering-rechner') {
         tj_respond(false, $calc['message'], $calc['errors'], 422);
     }
     $extraLines = tj_catering_mail_lines($calc, (string) ($_POST['summe_anzeige'] ?? ''));
+}
+if ($formKey === 'kindergeburtstag-rechner') {
+    require __DIR__ . '/inc/kindergeburtstag-preise.php';
+    $begleitung = (int) $values['begleitung'];   // Pflichtfeld, oben bereits als Ganzzahl ≥ 0 geprüft
+    $calc = tj_kg_calculate((string) ($_POST['auswahl'] ?? ''), (int) $values['guests'], $begleitung, (string) $values['date']);
+    if (!$calc['ok']) {
+        tj_respond(false, $calc['message'], $calc['errors'], 422);
+    }
+    $extraLines = tj_kg_mail_lines($calc, (string) ($_POST['summe_anzeige'] ?? ''), (int) $values['guests'], $begleitung,
+        (string) $values['date']);
+}
+if ($extraLines) {
+    // Beide Planer: Die Anfrage ist noch keine Reservierung oder Buchung
+    array_push($extraLines,
+        '',
+        'Die im Planer angezeigte Kostenschätzung ist unverbindlich. Diese Nachricht ist eine',
+        'Anfrage – eine Reservierung bzw. Buchung kommt erst nach ausdrücklicher Bestätigung',
+        'durch das Tjorven Bistro zustande.',
+        '',
+        'Anfrage / Wunschtermin – noch nicht verbindlich bestätigt.',
+        ''
+    );
 }
 
 /* ==================================================================
@@ -309,9 +347,15 @@ if (!$ok) {
 
 tj_rate_limit_record($config);
 
-tj_respond(true, in_array($formKey, ['catering', 'catering-rechner'], true)
-    ? 'Vielen Dank! Deine Cateringanfrage ist bei uns eingegangen. Wir melden uns innerhalb von 1–2 Werktagen.'
-    : 'Vielen Dank! Deine Nachricht ist bei uns eingegangen. Wir antworten innerhalb von 1–2 Werktagen.');
+$danke = 'Vielen Dank! Deine Nachricht ist bei uns eingegangen. Wir antworten innerhalb von 1–2 Werktagen.';
+if ($formKey === 'catering') {
+    $danke = 'Vielen Dank! Deine Cateringanfrage ist bei uns eingegangen. Wir melden uns innerhalb von 1–2 Werktagen.';
+} elseif (in_array($formKey, ['catering-rechner', 'kindergeburtstag-rechner'], true)) {
+    // Planer: ausdrücklich keine Reservierung, erst die Bestätigung des Bistros zählt
+    $danke = 'Vielen Dank für deine Anfrage. Wir prüfen deinen Wunschtermin und melden uns bei dir. '
+        . 'Deine Anfrage ist noch keine verbindliche Reservierung.';
+}
+tj_respond(true, $danke);
 
 
 /* ==================================================================

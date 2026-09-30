@@ -41,14 +41,14 @@ function tj_catering_euro(int $cent): string
  *
  * @param string $json    JSON der Auswahl (Feld "auswahl")
  * @param int    $persons bereits validierte Personenzahl
- * @return array{ok:bool,message:string,errors:array,positionen:array,hinweise:array,speisen:array,summe:int,ab:bool}
+ * @return array{ok:bool,message:string,errors:array,positionen:array,hinweise:array,summe:int,ab:bool}
  */
 function tj_catering_calculate(string $json, int $persons): array
 {
     $cfg  = tj_catering_config();
     $fail = static fn (string $msg, string $feld = 'auswahl'): array => [
         'ok' => false, 'message' => $msg, 'errors' => [$feld => $msg],
-        'positionen' => [], 'hinweise' => [], 'speisen' => [], 'summe' => 0, 'ab' => false,
+        'positionen' => [], 'hinweise' => [], 'summe' => 0, 'ab' => false,
     ];
     if (!$cfg) {
         return $fail('Die Preisübersicht ist gerade nicht verfügbar. Bitte versuche es später noch einmal.');
@@ -69,7 +69,6 @@ function tj_catering_calculate(string $json, int $persons): array
 
     $positionen = [];
     $hinweise   = [];
-    $speisenOut = [];
     $ab         = false;
 
     /* ---------- Menü (S. 5 / S. 6) ---------- */
@@ -94,24 +93,21 @@ function tj_catering_calculate(string $json, int $persons): array
             return $fail('Bitte wähle die Gangfolge des Menüs.');
         }
 
-        $positionen[] = [
-            'gruppe' => 'Menü',
-            'titel'  => $variante['titel'] . ' (' . $folge['titel'] . ')',
-            'menge'  => $persons, 'einheit' => 'Pers.',
-            'einzel' => (int) $variante['preis_ab_pp'],
-            'summe'  => (int) $variante['preis_ab_pp'] * $persons,
-            'ab'     => !empty($variante['preis_ist_ab']),
-        ];
-        $ab = $ab || !empty($variante['preis_ist_ab']);
-
-        // Mehr Auswahl
+        // Mehr Auswahl: jede Option gilt genau für ihren Gang und nur, wenn dieser Gang zur Gangfolge gehört
         $mehr     = $variante['mehr_auswahl'];
         $gewaehlt = $menue['mehr'] ?? [];
         if (!is_array($gewaehlt)) {
             return $fail('Ungültige Menüauswahl.');
         }
-        $gewaehlt = array_values(array_unique(array_map('strval', $gewaehlt)));
-        $optIds   = array_column($mehr['optionen'], 'id');
+        foreach ($gewaehlt as $optId) {
+            if (!is_string($optId)) {
+                return $fail('Unbekannte Menüoption.');
+            }
+        }
+        if (count($gewaehlt) !== count(array_unique($gewaehlt))) {
+            return $fail('Eine Menüoption wurde doppelt gewählt.');
+        }
+        $optIds = array_column($mehr['optionen'], 'id');
         foreach ($gewaehlt as $optId) {
             if (!in_array($optId, $optIds, true)) {
                 return $fail('Unbekannte Menüoption.');
@@ -120,24 +116,19 @@ function tj_catering_calculate(string $json, int $persons): array
         if ($gewaehlt && $persons < (int) $mehr['min_personen']) {
             return $fail($mehr['titel'] . ': erst ab ' . (int) $mehr['min_personen'] . ' Personen möglich.');
         }
-        $zweiteErlaubt = []; // Gang => true, wenn eine zweite Speise gewählt werden darf
+        $optionen      = [];   // gewählte Optionen in der Reihenfolge der Preisliste
+        $zweiteErlaubt = [];   // Gang => true, wenn eine zweite Speise gewählt werden darf
         foreach ($mehr['optionen'] as $opt) {
             if (!in_array($opt['id'], $gewaehlt, true)) {
                 continue;
             }
-            $positionen[] = [
-                'gruppe' => 'Menü',
-                'titel'  => 'Mehr Auswahl: ' . $opt['titel'],
-                'menge'  => $persons, 'einheit' => 'Pers.',
-                'einzel' => (int) $opt['aufpreis_pp'],
-                'summe'  => (int) $opt['aufpreis_pp'] * $persons,
-                'ab'     => false,
-            ];
-            foreach ($opt['gaenge'] as $gang) {
-                if (in_array($gang, $folge['gaenge'], true)) {
-                    $zweiteErlaubt[$gang] = true;
-                }
+            if (!array_intersect($opt['gaenge'], $folge['gaenge'])) {
+                return $fail($opt['titel'] . ' passt nicht zur gewählten Gangfolge.');
             }
+            foreach ($opt['gaenge'] as $gang) {
+                $zweiteErlaubt[$gang] = true;
+            }
+            $optionen[] = $opt;
         }
 
         // Speisenwahl (ohne Preiswirkung, aber gegen die Regeln geprüft)
@@ -145,12 +136,18 @@ function tj_catering_calculate(string $json, int $persons): array
         if (!is_array($speisen)) {
             return $fail('Ungültige Speisenauswahl.');
         }
+        $namen = [];   // Gang => [erste Speise, zweite Speise]
         foreach (['vorspeise', 'hauptspeise', 'dessert'] as $gang) {
             $ids = $speisen[$gang] ?? [];
             if (!is_array($ids)) {
                 return $fail('Ungültige Speisenauswahl.');
             }
-            $ids = array_values(array_filter(array_map('strval', $ids), static fn ($x) => $x !== ''));
+            foreach ($ids as $id) {
+                if (!is_string($id)) {
+                    return $fail('Unbekannte Speise.');
+                }
+            }
+            $ids = array_values(array_filter($ids, static fn ($x) => $x !== ''));
             if (!in_array($gang, $folge['gaenge'], true)) {
                 if ($ids) {
                     return $fail('Die gewählte Speise passt nicht zur Gangfolge.');
@@ -161,7 +158,7 @@ function tj_catering_calculate(string $json, int $persons): array
             if (count($ids) > $max || count($ids) !== count(array_unique($ids))) {
                 return $fail('Zu viele Speisen für diesen Gang gewählt.');
             }
-            $namen = [];
+            $namen[$gang] = [];
             foreach ($ids as $id) {
                 $gefunden = null;
                 foreach ($cfg['speisen'][$gang]['auswahl'] as $s) {
@@ -172,58 +169,86 @@ function tj_catering_calculate(string $json, int $persons): array
                 if ($gefunden === null) {
                     return $fail('Unbekannte Speise.');
                 }
-                $namen[] = $gefunden['name'];
+                $namen[$gang][] = tj_catering_speise($gefunden);
             }
-            $speisenOut[] = [
-                'gang'   => $cfg['speisen'][$gang]['titel'],
-                'namen'  => $namen,
-                'max'    => $max,
+        }
+        $offen = (string) $cfg['menues']['text_speisen_offen'];
+
+        // Menü: gewählte erste Speise je Gang als Detail
+        $details = [];
+        foreach ($folge['gaenge'] as $gang) {
+            if (isset($namen[$gang][0])) {
+                $details[] = $cfg['speisen'][$gang]['label'] . ': ' . $namen[$gang][0];
+            }
+        }
+        $positionen[] = [
+            'gruppe'  => 'Menü',
+            'titel'   => $variante['titel'] . ' (' . $folge['titel'] . ')',
+            'menge'   => $persons, 'einheit' => 'Pers.',
+            'einzel'  => (int) $variante['preis_ab_pp'],
+            'summe'   => (int) $variante['preis_ab_pp'] * $persons,
+            'ab'      => !empty($variante['preis_ist_ab']),
+            'details' => $details ?: [$offen],
+        ];
+        $ab = $ab || !empty($variante['preis_ist_ab']);
+
+        // Mehr Auswahl: je Option ein eigener Posten mit der gewählten zweiten Speise
+        foreach ($optionen as $opt) {
+            $details = [];
+            foreach ($opt['gaenge'] as $gang) {
+                if (isset($namen[$gang][1])) {
+                    $details[] = $cfg['speisen'][$gang]['label_zweite'] . ': ' . $namen[$gang][1];
+                }
+            }
+            $positionen[] = [
+                'gruppe'  => 'Menü',
+                'titel'   => 'Mehr Auswahl: ' . $opt['titel'],
+                'menge'   => $persons, 'einheit' => 'Pers.',
+                'einzel'  => (int) $opt['aufpreis_pp'],
+                'summe'   => (int) $opt['aufpreis_pp'] * $persons,
+                'ab'      => false,
+                'details' => $details ?: [$offen],
             ];
         }
     }
 
-    /* ---------- Frühstück, Snacks & Fingerfood (S. 4) ---------- */
-    $stueck = $sel['stueck'] ?? [];
-    if (!is_array($stueck)) {
-        return $fail('Ungültige Mengenangabe.');
+    /* ---------- Frühstück, Snacks, Süßes, Wraps & Fingerfood (S. 4) ----------
+       Gewählt wird nur, OB eine Position gewünscht ist. Berechnet wird sie
+       automatisch für alle angegebenen Personen: Personen × Stückpreis der Gruppe. */
+    $snacks = $sel['snacks'] ?? [];
+    if (!is_array($snacks) || count($snacks) > 100) {
+        return $fail('Ungültige Speisenauswahl.');
     }
-    $stueckMax = (int) ($cfg['stueck_max'] ?? 9999);
-    $bekannt   = [];
+    $bekannt = [];
     foreach ($cfg['stueckartikel']['gruppen'] as $gr) {
         foreach ($gr['artikel'] as $a) {
-            $bekannt[$a['id']] = ['gruppe' => $gr, 'artikel' => $a];
+            $bekannt[$a['id']] = true;
         }
     }
-    $mengen = [];
-    foreach ($stueck as $id => $menge) {
-        $id = (string) $id;
-        if (!isset($bekannt[$id])) {
+    $gewaehlt = [];
+    foreach ($snacks as $id) {
+        if (!is_string($id) || !isset($bekannt[$id])) {
             return $fail('Unbekannter Artikel.');
         }
-        if (!is_int($menge) && !(is_string($menge) && ctype_digit($menge))) {
-            return $fail('Bitte nur ganze Mengen angeben.');
+        if (isset($gewaehlt[$id])) {
+            return $fail('Ein Artikel wurde doppelt gewählt.');
         }
-        $menge = (int) $menge;
-        if ($menge < 0 || $menge > $stueckMax) {
-            return $fail('Bitte eine Menge zwischen 0 und ' . $stueckMax . ' angeben.');
-        }
-        $mengen[$id] = $menge;
+        $gewaehlt[$id] = true;
     }
-    foreach ($bekannt as $id => $eintrag) {
-        $menge = $mengen[$id] ?? 0;
-        if ($menge === 0) {
-            continue;
+    foreach ($cfg['stueckartikel']['gruppen'] as $gr) {
+        foreach ($gr['artikel'] as $a) {
+            if (!isset($gewaehlt[$a['id']])) {
+                continue;
+            }
+            $positionen[] = [
+                'gruppe' => $gr['titel'],
+                'titel'  => $gr['titel'] . ': ' . $a['name'],
+                'menge'  => $persons, 'einheit' => 'Pers.',
+                'einzel' => (int) $gr['preis'],
+                'summe'  => (int) $gr['preis'] * $persons,
+                'ab'     => false,
+            ];
         }
-        $gr = $eintrag['gruppe'];
-        $a  = $eintrag['artikel'];
-        $positionen[] = [
-            'gruppe' => $gr['titel'],
-            'titel'  => $gr['titel'] . ': ' . $a['name'],
-            'menge'  => $menge, 'einheit' => $a['einheit'] ?? 'Stück',
-            'einzel' => (int) $gr['preis'],
-            'summe'  => (int) $gr['preis'] * $menge,
-            'ab'     => false,
-        ];
     }
 
     /* ---------- Getränkepauschalen (S. 7) ---------- */
@@ -310,9 +335,17 @@ function tj_catering_calculate(string $json, int $persons): array
 
     return [
         'ok' => true, 'message' => '', 'errors' => [],
-        'positionen' => $positionen, 'hinweise' => $hinweise, 'speisen' => $speisenOut,
+        'positionen' => $positionen, 'hinweise' => $hinweise,
         'summe' => $summe, 'ab' => $ab,
     ];
+}
+
+/**
+ * Speisenname wie in der Preisliste: Name und Beilage, ohne Hinweis
+ */
+function tj_catering_speise(array $s): string
+{
+    return $s['name'] . (!empty($s['detail']) ? ' ' . $s['detail'] : '');
 }
 
 /**
@@ -342,22 +375,6 @@ function tj_catering_mail_lines(array $calc, string $clientSumme): array
     $cfg   = tj_catering_config();
     $lines = [];
 
-    if ($calc['speisen']) {
-        $lines[] = '';
-        $lines[] = 'SPEISENWAHL (MENÜ)';
-        $lines[] = str_repeat('-', 46);
-        foreach ($calc['speisen'] as $s) {
-            $lines[] = $s['gang'] . ':';
-            if ($s['namen']) {
-                foreach ($s['namen'] as $n) {
-                    $lines[] = '  - ' . $n;
-                }
-            } else {
-                $lines[] = '  - noch offen';
-            }
-        }
-    }
-
     $lines[] = '';
     $lines[] = 'UNVERBINDLICHE KOSTENSCHÄTZUNG (vom Server berechnet)';
     $lines[] = str_repeat('-', 46);
@@ -366,6 +383,9 @@ function tj_catering_mail_lines(array $calc, string $clientSumme): array
         $lines[] = '  ' . tj_catering_menge($p['menge']) . ' ' . $p['einheit'] . ' × '
             . ($p['ab'] ? 'ab ' : '') . tj_catering_euro($p['einzel'])
             . ' = ' . ($p['ab'] ? 'ab ' : '') . tj_catering_euro($p['summe']);
+        foreach ($p['details'] ?? [] as $d) {
+            $lines[] = '    · ' . $d;
+        }
     }
     $lines[] = str_repeat('-', 46);
     $lines[] = 'Voraussichtliche Kostenschätzung: ' . ($calc['ab'] ? 'ab ' : '') . tj_catering_euro($calc['summe']);
@@ -386,10 +406,6 @@ function tj_catering_mail_lines(array $calc, string $clientSumme): array
         $lines[] = 'HINWEIS: Im Browser wurde ' . tj_catering_euro((int) $clientSumme)
             . ' angezeigt. Maßgeblich ist die obige, serverseitig berechnete Summe.';
     }
-
-    $lines[] = '';
-    $lines[] = 'Die berechnete Summe dient als erste Kostenschätzung. Der endgültige Preis kann';
-    $lines[] = 'abhängig von den konkreten Anforderungen und der finalen Abstimmung abweichen.';
 
     return $lines;
 }
