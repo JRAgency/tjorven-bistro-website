@@ -17,8 +17,7 @@
   var state = {
     menue: { id: '', gangfolge: '', mehr: [], speisen: { vorspeise: ['', ''], hauptspeise: ['', ''], dessert: ['', ''] } },
     snacks: {},
-    getraenke: {},
-    service: { kraefte: 0, stunden: 0 }
+    getraenke: {}
   };
 
   /* ---------- Hilfsfunktionen ---------- */
@@ -74,14 +73,14 @@
       var f = findeGangfolge(v, auswahl.menue.gangfolge);
       if (v && f) {
         // Gewählte Speisen je Gang: [erste, zweite]
-        var namen = {}, offen = cfg.menues.text_speisen_offen, det = [];
+        var namen = {}, det = [];
         GAENGE.forEach(function (g) {
           namen[g] = (auswahl.menue.speisen[g] || []).map(function (id) { return speiseName(cfg, g, id); });
         });
         f.gaenge.forEach(function (g) { if (namen[g][0]) det.push(cfg.speisen[g].label + ': ' + namen[g][0]); });
         positionen.push({ titel: v.titel + ' (' + f.titel + ')', menge: p, einheit: 'Pers.',
                           einzel: v.preis_ab_pp, summe: v.preis_ab_pp * p, ab: !!v.preis_ist_ab, schritt: 'menue',
-                          details: det.length ? det : [offen] });
+                          details: det });
         ab = ab || !!v.preis_ist_ab;
         if (p >= v.mehr_auswahl.min_personen) {
           v.mehr_auswahl.optionen.forEach(function (o) {
@@ -90,7 +89,7 @@
             o.gaenge.forEach(function (g) { if (namen[g][1]) d2.push(cfg.speisen[g].label_zweite + ': ' + namen[g][1]); });
             positionen.push({ titel: 'Mehr Auswahl: ' + o.titel, menge: p, einheit: 'Pers.',
                               einzel: o.aufpreis_pp, summe: o.aufpreis_pp * p, ab: false, schritt: 'menue-optionen',
-                              details: d2.length ? d2 : [offen] });
+                              details: d2 });
           });
         }
       }
@@ -114,18 +113,10 @@
                         einzel: pa.preise_pp[d], summe: pa.preise_pp[d] * p, ab: false, schritt: 'getraenke-' + pa.id });
     });
 
+    // Servicepersonal und Spülpauschale: nur Information, nie in der Summe
     var pers = cfg.service.personal;
-    var kr = auswahl.service.kraefte, halbe = Math.round(auswahl.service.stunden * 2);
-    if (kr > 0 && halbe > 0) {
-      var ges = kr * halbe;
-      positionen.push({ titel: pers.titel + ' (Schätzung: ' + kr + ' × ' + zahl(halbe / 2) + ' Std.)',
-                        menge: ges / 2, einheit: 'Std.', einzel: pers.preis_pro_stunde,
-                        summe: Math.floor(pers.preis_pro_stunde * ges / 2), ab: false, schritt: 'service' });
-      hinweise.push(pers.titel + ': deine eigene Schätzung ist in der Summe enthalten – abgerechnet wird nach tatsächlichem Aufwand, die Einsatzzeit wird individuell abgestimmt.');
-    } else {
-      hinweise.push(pers.titel + ': nach tatsächlichem Aufwand (' + pers.preis_text + ') – nicht in der Summe enthalten, die Einsatzzeit wird individuell abgestimmt.');
-    }
-    hinweise.push(cfg.service.spuelpauschale.titel + ': Preis auf Anfrage, nicht in der Summe enthalten – ' + cfg.service.spuelpauschale.text);
+    hinweise.push(pers.titel + ': nach tatsächlichem Aufwand (' + pers.preis_text + ') – nicht in der Kostenschätzung enthalten; die Einsatzzeit stimmen wir individuell ab.');
+    hinweise.push(cfg.service.spuelpauschale.titel + ': ' + cfg.service.spuelpauschale.text);
 
     var summe = 0;
     positionen.forEach(function (x) { summe += x.summe; });
@@ -136,7 +127,7 @@
 
   function auswahl(api, p) {
     var cfg = api.cfg();
-    var a = { menue: null, snacks: [], getraenke: {}, service: { kraefte: state.service.kraefte, stunden: state.service.stunden } };
+    var a = { menue: null, snacks: [], getraenke: {} };
     if (!p) return a;   // ohne gültige Personenzahl lassen sich Pro-Person-Preise nicht rechnen
     if (state.menue.id) {
       var v = findeVariante(cfg, state.menue.id), f = findeGangfolge(v, state.menue.gangfolge);
@@ -174,12 +165,8 @@
               '" step="1" placeholder="z. B. 30" required aria-describedby="r-guests-hinweis">' +
             '<span class="rechner__feld-hinweis" id="r-guests-hinweis">' + esc(cfg.personen.text) + '</span>' +
           '</div>' +
-          '<div class="rechner__reihe">' +
-            '<div class="rechner__feld" data-feld="date"><label for="r-date">Datum ' + pflicht() + '</label>' +
-              '<input type="date" id="r-date" name="date" required></div>' +
-            '<div class="rechner__feld" data-feld="time"><label for="r-time">Uhrzeit <span class="opt">(optional)</span></label>' +
-              '<input type="time" id="r-time" name="time"></div>' +
-          '</div>' +
+          '<div class="rechner__feld" data-feld="date"><label for="r-date">Datum ' + pflicht() + '</label>' +
+            '<input type="date" id="r-date" name="date" required></div>' +
           '<div class="rechner__feld" data-feld="message"><label for="r-message">Nachricht <span class="opt">(optional)</span></label>' +
             '<textarea id="r-message" name="message" rows="2" maxlength="5000" placeholder="z. B. besondere Wünsche, Anlass, Hinweise …"></textarea></div>';
       },
@@ -207,14 +194,17 @@
         h += '</div></fieldset>';
         var v = findeVariante(cfg, state.menue.id);
         if (v && !state.menue.gangfolge) {
-          h += '<p class="rechner__hinweis">Im nächsten Schritt wählst du die Gangfolge – dann wird der Menüpreis (' + esc(v.preis_text) + ') eingerechnet.</p>';
+          h += '<p class="rechner__feld-hinweis rechner__abstand">Die Gangfolge wählst du im nächsten Schritt – dann wird der Menüpreis eingerechnet.</p>';
         }
         return h;
       }
     },
     {
       id: 'menue-optionen', titel: 'Menü: Gangfolge & mehr Auswahl',
-      sichtbar: function () { return !!state.menue.id; },
+      sichtbar: function (api) {
+        var v = api.cfg() ? findeVariante(api.cfg(), state.menue.id) : null;
+        return !!v && (v.gangfolgen.length > 1 || v.mehr_auswahl.optionen.length > 0);
+      },
       html: function (api) {
         var cfg = api.cfg(), p = api.personen(), v = findeVariante(cfg, state.menue.id);
         if (!v) return '';
@@ -261,8 +251,7 @@
       html: function (api) {
         var cfg = api.cfg(), v = findeVariante(cfg, state.menue.id), f = findeGangfolge(v, state.menue.gangfolge);
         var erlaubt = zweiteErlaubt(v, f, mehrWirksam(cfg, api.personen())), gang = cfg.speisen[g];
-        var h = '<p class="rechner__intro">Optional: Die definitive Speisenauswahl treffen wir immer frisch und passend zur Jahreszeit für Dich.' +
-          (erlaubt[g] ? ' Mit „Mehr Auswahl“ kannst du hier eine zweite Speise wählen.' : '') + '</p>';
+        var h = '';
         for (var n = 0; n < (erlaubt[g] ? 2 : 1); n++) {
           var opt = null;
           v.mehr_auswahl.optionen.forEach(function (o) { if (n && o.gaenge.indexOf(g) !== -1) opt = o; });
@@ -274,7 +263,7 @@
               return '<option value="' + s.id + '"' + (state.menue.speisen[g][n] === s.id ? ' selected' : '') + '>' + esc(txt) + '</option>';
             }).join('') + '</select></div>';
         }
-        return h + '<p class="rechner__feld-hinweis">Ohne Auswahl: ' + esc(cfg.menues.text_speisen_offen) + '</p>';
+        return h;
       },
       pruefe: function (api) {
         var cfg = api.cfg(), v = findeVariante(cfg, state.menue.id), f = findeGangfolge(v, state.menue.gangfolge);
@@ -373,20 +362,12 @@
 
   schritte.push(
     {
-      id: 'service', titel: 'Servicepersonal', statisch: true,
+      id: 'service', titel: 'Servicepersonal & Spülpauschale', statisch: true,
       html: function (api) {
-        var cfg = api.cfg(), pers = cfg.service.personal;
-        return '<p class="rechner__intro">' + esc(pers.text) + '</p>' +
-          '<div class="rechner__hinweis rechner__hinweis--oben"><strong>' + esc(pers.preis_text) + '.</strong> Deine Schätzung ist optional.</div>' +
-          '<div class="rechner__reihe rechner__block">' +
-            '<div class="rechner__feld" data-feld="kraefte"><label for="r-kraefte">Servicekräfte <span class="opt">(Schätzung)</span></label>' +
-              '<input type="number" id="r-kraefte" inputmode="numeric" min="0" max="' + pers.kraefte_max + '" step="1" placeholder="0" data-service="kraefte"></div>' +
-            '<div class="rechner__feld" data-feld="stunden"><label for="r-stunden">Stunden je Kraft <span class="opt">(Schätzung)</span></label>' +
-              '<input type="number" id="r-stunden" inputmode="decimal" min="0" max="' + pers.stunden_max + '" step="' + pers.stunden_schritt + '" placeholder="0" data-service="stunden"></div>' +
-          '</div>' +
-          '<p class="rechner__feld-hinweis" id="r-service-zeile"></p>' +
-          '<div class="rechner__hinweis"><span class="rechner__anfrage-marke">Preis auf Anfrage</span> ' +
-            '<strong>' + esc(cfg.service.spuelpauschale.titel) + '</strong> – ' + esc(cfg.service.spuelpauschale.text) + '</div>';
+        var cfg = api.cfg(), pers = cfg.service.personal, sp = cfg.service.spuelpauschale;
+        return '<div class="rechner__info"><h4>' + esc(pers.titel) + '</h4><p>' + esc(pers.text) + '</p>' +
+            '<p class="rechner__info-preis">' + esc(pers.preis_text) + '</p></div>' +
+          '<div class="rechner__info"><h4>' + esc(sp.titel) + '</h4><p>' + esc(sp.text) + '</p></div>';
       }
     },
     {
@@ -423,20 +404,8 @@
   /* ---------- Eingaben ---------- */
 
   var ereignisse = {
-    input: function (e, api) {
-      var t = e.target, cfg = api.cfg();
-      if (t.dataset.service) {
-        var max = t.dataset.service === 'kraefte' ? cfg.service.personal.kraefte_max : cfg.service.personal.stunden_max;
-        var v = parseFloat(String(t.value).replace(',', '.'));
-        if (isNaN(v) || v < 0) v = 0;
-        if (v > max) v = max;
-        v = t.dataset.service === 'kraefte' ? Math.floor(v) : Math.round(v * 2) / 2;   // halbe Stunden
-        state.service[t.dataset.service] = v;
-      }
-    },
     change: function (e, api) {
       var t = e.target, cfg = api.cfg();
-      if (t.dataset.service) t.value = state.service[t.dataset.service] ? String(state.service[t.dataset.service]) : '';
       if (t.name === 'r-menue') {
         state.menue.id = t.value;
         var v = findeVariante(cfg, t.value);
@@ -485,13 +454,6 @@
       var z = api.el('[data-gt-zeile="' + pa.id + '"]');
       if (z) z.textContent = paketZeile(cfg, pa, p);
     });
-    var sz = api.el('#r-service-zeile');
-    if (sz) {
-      var kr = state.service.kraefte, st = state.service.stunden, pps = cfg.service.personal.preis_pro_stunde;
-      sz.textContent = kr > 0 && st > 0
-        ? kr + ' × ' + zahl(st) + ' Std. × ' + euro(pps) + ' = ' + euro(Math.floor(pps * kr * Math.round(st * 2) / 2))
-        : 'Ohne Schätzung: nicht in der Summe enthalten.';
-    }
   }
 
   TjRechner.starte({
@@ -515,13 +477,13 @@
     summeHinweisLang: function (c) {
       return 'Alle genannten Preise verstehen sich zzgl. der gesetzlichen Mehrwertsteuer.' + (c.ab ? ' Menüpreise sind Ab-Preise pro Person.' : '');
     },
-    hinweiseTitel: 'Hinweise & Preise auf Anfrage',
+    hinweiseTitel: 'Hinweise',
     leerText: 'Noch keine Leistung ausgewählt.',
     sendenText: 'Catering unverbindlich anfragen',
     pruefeAbsenden: function (api, calc) {
       return calc.positionen.length ? null : 'Bitte wähle mindestens eine Leistung aus – oder schreib uns über das Kontaktformular.';
     },
-    feldSchritt: { guests: 'personen', date: 'personen', time: 'personen', message: 'personen',
+    feldSchritt: { guests: 'personen', date: 'personen', message: 'personen',
                    name: 'kontakt', email: 'kontakt', phone: 'kontakt', auswahl: 'anfrage' }
   });
 })();

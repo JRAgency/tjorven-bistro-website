@@ -23,8 +23,8 @@
   // Beide Planer: Die Anfrage ist noch keine Reservierung oder Buchung
   var UNVERBINDLICH = 'Die angezeigte Kostenschätzung ist unverbindlich. Mit dem Absenden stellst du zunächst eine Anfrage. ' +
     'Eine Reservierung bzw. Buchung kommt erst nach ausdrücklicher Bestätigung durch das Tjorven Bistro zustande.';
-  function unverbindlichHtml() {
-    return '<div class="rechner__verbindlich" role="note"><strong>Noch keine Reservierung.</strong> ' + esc(UNVERBINDLICH) + '</div>';
+  function unverbindlichHtml(text) {
+    return '<div class="rechner__verbindlich" role="note"><strong>Noch keine Reservierung.</strong> ' + esc(text || UNVERBINDLICH) + '</div>';
   }
 
   function heute() {
@@ -56,6 +56,13 @@
     var btnSenden    = $('rechner-senden');
     var mehrBtn      = $('rechner-mehr');
     var sendeHinweis = $('rechner-sende-hinweis');
+    // Planer ohne Preisberechnung (reine Anfrage): keine Summe, keine Aufschlüsselung im Fuß
+    if (def.ohneSumme) {
+      var summeZeile = form.querySelector('.rechner__summe');
+      if (summeZeile) summeZeile.hidden = true;
+      aufschl.hidden = true;
+      form.classList.add('rechner__form--ohne-summe');
+    }
 
     var cfg = null;
     var ladeVersprechen = null;
@@ -250,31 +257,23 @@
     /* ---------- Laufende Summe und Aufschlüsselung ---------- */
 
     function berechnung() {
+      if (def.ohneSumme) return null;
       var p = def.personen(api);
       return def.berechne(cfg, def.auswahl(api, p), p, api.feldWert('date'));
     }
 
     function tabelle(calc, mitAendern) {
       if (!calc.positionen.length) return '<p class="rechner__leer">' + esc(def.leerText) + '</p>';
-      var gruppe = null;
       var rows = calc.positionen.map(function (x) {
-        var vor = x.ab ? 'ab ' : '', kopf = '';
-        // Optional: Zwischenüberschrift je Gruppe (z. B. „Kalt“, „Heiß“)
-        if (def.gruppenZeilen && x.gruppe && x.gruppe !== gruppe) {
-          gruppe = x.gruppe;
-          kopf = '<tr class="rechner__gruppe"><th colspan="2" scope="rowgroup">' + esc(x.gruppe) + '</th></tr>';
-        }
+        var vor = x.ab ? 'ab ' : '';
         var aendern = mitAendern && x.schritt && !gesendet
           ? '<button type="button" class="rechner__aendern" data-geh-zu="' + x.schritt + '">Ändern<span class="sr-only">: ' + esc(x.titel) + '</span></button>'
           : '';
         var details = x.details && x.details.length
           ? '<ul class="rechner__details">' + x.details.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul>'
           : '';
-        // Ohne eindeutigen Preis: Menge zeigen, aber nicht rechnen
-        var preis = x.einzel === null ? (x.preis_text || 'Preis auf Anfrage') : vor + euro(x.einzel);
-        var betrag = x.einzel === null ? 'auf Anfrage' : vor + euro(x.summe);
-        return kopf + '<tr><td>' + esc(x.titel) + '<small>' + esc(def.mengenText(x)) + ' × ' + esc(preis) + '</small>' + details + aendern +
-          '</td><td>' + esc(betrag) + '</td></tr>';
+        return '<tr><td>' + esc(x.titel) + '<small>' + esc(def.mengenText(x)) + ' × ' + vor + esc(euro(x.einzel)) + '</small>' + details + aendern +
+          '</td><td>' + vor + esc(euro(x.summe)) + '</td></tr>';
       }).join('');
       var hinw = calc.hinweise.length
         ? '<div class="rechner__hinweis rechner__hinweis--liste"><strong>' + esc(def.hinweiseTitel) + ':</strong><ul>' +
@@ -289,16 +288,18 @@
     function aktualisieren() {
       if (!cfg) return null;
       var calc = berechnung();
-      var text = def.summeText(calc);
-      summeEl.textContent = text;
-      summeHinweis.textContent = def.summeHinweis(calc);
-      if (!aufschl.hidden) aufschl.innerHTML = tabelle(calc, true);
-      var zus = document.getElementById('r-zusammenfassung');
-      if (zus && !gesendet) zus.innerHTML = tabelle(calc, true);
+      if (calc) {
+        var text = def.summeText(calc);
+        summeEl.textContent = text;
+        summeHinweis.textContent = def.summeHinweis(calc);
+        if (!aufschl.hidden) aufschl.innerHTML = tabelle(calc, true);
+        var zus = document.getElementById('r-zusammenfassung');
+        if (zus && !gesendet) zus.innerHTML = tabelle(calc, true);
+        clearTimeout(liveTimer);
+        liveTimer = setTimeout(function () { liveEl.textContent = 'Voraussichtliche Kostenschätzung: ' + text; }, 700);
+      }
       if (def.nachAktualisieren) def.nachAktualisieren(api, calc);
       if (position(aktuell) !== -1 && !gesendet) fortschritt();   // Menüwahl kann Schritte ein- oder ausblenden
-      clearTimeout(liveTimer);
-      liveTimer = setTimeout(function () { liveEl.textContent = 'Voraussichtliche Kostenschätzung: ' + text; }, 700);
       neuMessen();
       return calc;
     }
@@ -336,6 +337,13 @@
       return true;
     }
     inhalt.addEventListener('click', function (e) {
+      // Datumsfeld: Tippen irgendwo ins Feld öffnet den nativen Kalender (neuere Android-/Chrome-
+      // Versionen reagieren sonst teils nur auf das kleine Symbol). Ohne showPicker() oder wenn der
+      // Browser den Aufruf ablehnt, bleibt das normale Verhalten des Feldes.
+      var t = e.target;
+      if (t && t.matches && t.matches('input[type="date"]:not([disabled]):not([readonly])') && typeof t.showPicker === 'function') {
+        try { t.showPicker(); } catch (err) { /* normales Verhalten */ }
+      }
       if (springe(e)) return;
       if (def.ereignisse.click) def.ereignisse.click(e, api);
     });
@@ -454,8 +462,10 @@
       var absendeFehler = def.pruefeAbsenden ? def.pruefeAbsenden(api, calc) : null;
       if (absendeFehler) { statusSetzen(absendeFehler, 'error'); return; }
 
-      form.elements.auswahl.value = JSON.stringify(def.auswahl(api, def.personen(api)));
-      form.elements.summe_anzeige.value = String(calc.summe);
+      if (calc) {
+        form.elements.auswahl.value = JSON.stringify(def.auswahl(api, def.personen(api)));
+        form.elements.summe_anzeige.value = String(calc.summe);
+      }
 
       btnSenden.disabled = true;
       btnSenden.textContent = 'Wird gesendet …';
@@ -472,7 +482,7 @@
             gesendet = true;
             var letzter = l[l.length - 1].id;
             koerper(letzter).innerHTML = '<div class="rechner__danke"><p class="rechner__danke-titel">Anfrage gesendet</p><p>' +
-              esc(res.message) + '</p></div><h4 class="rechner__label">Deine Auswahl</h4>' + tabelle(calc, false);
+              esc(res.message) + '</p></div>' + (calc ? '<h4 class="rechner__label">Deine Auswahl</h4>' + tabelle(calc, false) : '');
             knoepfe(true);
             btnZurueck.textContent = 'Zurück zur Broschüre';
             btnZurueck.disabled = false;
@@ -502,7 +512,7 @@
 
     // Für automatisierte Tests: reine Rechenfunktion ohne Oberfläche
     window.__tjRechner = window.__tjRechner || {};
-    window.__tjRechner[def.name] = { berechne: def.berechne };
+    if (def.berechne) window.__tjRechner[def.name] = { berechne: def.berechne };
   }
 
   window.TjRechner = { starte: starte, euro: euro, zahl: zahl, esc: esc, unverbindlichHtml: unverbindlichHtml };

@@ -1,6 +1,6 @@
 {
   "_hinweis": "Einzige Quelle fuer alle Catering-Preise. Wird vom Preisrechner im Browser (js/catering-rechner.js) UND serverseitig (inc/catering-preise.php) gelesen. Alle Preise stammen ausschliesslich aus der PDF 'Cateringmoeglichkeiten Tjorven Bistro Veranstaltungen Klima Arena' (Canva, 26.09.2026). Betraege in Cent.",
-  "version": "2026-09-30",
+  "version": "2026-10-01",
   "quelle": "downloads/cateringmoeglichkeiten-tjorven-bistro.pdf",
   "waehrung": "EUR",
   "mwst_hinweis": "Alle genannten Preise verstehen sich zzgl. der gesetzlichen Mehrwertsteuer.",
@@ -19,11 +19,34 @@
     "text_aufpreise": "Die Aufpreise beziehen sich ausschließlich auf die erweiterte Auswahl.",
     "varianten": [
       {
+        "id": "mittag",
+        "titel": "Mittags-Spezial",
+        "preis_ab_pp": 1500,
+        "preis_ist_ab": false,
+        "preis_text": "15,00 € pro Person",
+        "gangfolgen": [
+          {
+            "id": "h",
+            "titel": "Hauptspeise mit Blattsalat",
+            "gaenge": [
+              "hauptspeise"
+            ]
+          }
+        ],
+        "gangfolgen_text": "Hauptspeise mit Blattsalat",
+        "mehr_auswahl": {
+          "min_personen": 20,
+          "titel": "Mehr Auswahl (ab 20 Personen)",
+          "optionen": [],
+          "_hinweis": "Beim Mittags-Spezial genau eine Hauptspeise – keine Zusatzoptionen."
+        }
+      },
+      {
         "id": "menue2",
         "titel": "2-Gänge-Menü",
-        "preis_ab_pp": 1500,
-        "preis_ist_ab": true,
-        "preis_text": "ab 15 € pro Person",
+        "preis_ab_pp": 1700,
+        "preis_ist_ab": false,
+        "preis_text": "17,00 € pro Person",
         "gangfolgen": [
           {
             "id": "vh",
@@ -79,8 +102,8 @@
         "id": "menue3",
         "titel": "3-Gänge-Menü",
         "preis_ab_pp": 1900,
-        "preis_ist_ab": true,
-        "preis_text": "ab 19 € pro Person",
+        "preis_ist_ab": false,
+        "preis_text": "19,00 € pro Person",
         "gangfolgen": [
           {
             "id": "vhd",
@@ -126,7 +149,7 @@
         }
       }
     ],
-    "text_speisen_offen": "Speisenauswahl wird individuell abgestimmt."
+    "_preise_quelle": "Vorgabe des Auftraggebers vom 01.10.2026 (gilt für den Planer, auch wenn die PDF abweicht): Mittags-Spezial 15 €, 2-Gänge-Menü 17 €, 3-Gänge-Menü 19 € pro Person – feste Preise ohne „ab“. Beim Mittags-Spezial ist der Blattsalat inklusive und wird nicht extra berechnet."
   },
   "speisen": {
     "quelle": "S. 6",
@@ -419,16 +442,13 @@
       "titel": "Servicepersonal",
       "preis_pro_stunde": 4500,
       "preis_text": "45,00 € pro Servicekraft je Stunde",
-      "text": "Für die Betreuung, sowie Vor und Nachbereitung Deiner Veranstaltung auf der Eventfläche berechnen wir Servicepersonal nach tatsächlichem Aufwand. Die benötigte Einsatzzeit stimmen wir individuell auf Deine Veranstaltung ab.",
-      "_technische_grenzen": "Nur Eingabegrenzen gegen Fehleingaben, keine Preisregel aus der PDF.",
-      "kraefte_max": 50,
-      "stunden_schritt": 0.5,
-      "stunden_max": 24
+      "text": "Für die Betreuung sowie Vor- und Nachbereitung Deiner Veranstaltung auf der Eventfläche berechnen wir Servicepersonal nach tatsächlichem Aufwand. Die benötigte Einsatzzeit stimmen wir individuell auf Deine Veranstaltung ab.",
+      "_hinweis": "Nur Information im Planer: keine Eingabe, keine Berechnung (Vorgabe des Auftraggebers vom 01.10.2026)."
     },
     "spuelpauschale": {
       "titel": "Spülpauschale",
-      "auf_anfrage": true,
-      "text": "Bei großen Veranstaltungen berechnen wir bei Bedarf auch eine Spülpauschale."
+      "text": "Bei größeren Veranstaltungen kann zusätzlich eine Spülpauschale anfallen. Ob diese erforderlich ist, stimmen wir individuell mit Dir ab.",
+      "_hinweis": "Nur Information im Planer: keine Auswahl, keine Berechnung."
     }
   }
 }

@@ -172,7 +172,6 @@ function tj_catering_calculate(string $json, int $persons): array
                 $namen[$gang][] = tj_catering_speise($gefunden);
             }
         }
-        $offen = (string) $cfg['menues']['text_speisen_offen'];
 
         // Menü: gewählte erste Speise je Gang als Detail
         $details = [];
@@ -188,7 +187,7 @@ function tj_catering_calculate(string $json, int $persons): array
             'einzel'  => (int) $variante['preis_ab_pp'],
             'summe'   => (int) $variante['preis_ab_pp'] * $persons,
             'ab'      => !empty($variante['preis_ist_ab']),
-            'details' => $details ?: [$offen],
+            'details' => $details,
         ];
         $ab = $ab || !empty($variante['preis_ist_ab']);
 
@@ -207,7 +206,7 @@ function tj_catering_calculate(string $json, int $persons): array
                 'einzel'  => (int) $opt['aufpreis_pp'],
                 'summe'   => (int) $opt['aufpreis_pp'] * $persons,
                 'ab'      => false,
-                'details' => $details ?: [$offen],
+                'details' => $details,
             ];
         }
     }
@@ -288,41 +287,14 @@ function tj_catering_calculate(string $json, int $persons): array
         ];
     }
 
-    /* ---------- Servicepersonal & Spülpauschale (S. 8) ---------- */
+    /* ---------- Servicepersonal & Spülpauschale (S. 8) ----------
+       Seit 01.10.2026 nur noch Information: keine Eingabe, keine Berechnung.
+       Ein mitgeschicktes „service“-Feld (z. B. aus einer alten Seite im Cache)
+       wird ignoriert und kann den Preis nicht beeinflussen. */
     $personal = $cfg['service']['personal'];
-    $service  = $sel['service'] ?? [];
-    $kraefte  = is_array($service) ? ($service['kraefte'] ?? 0) : 0;
-    $stunden  = is_array($service) ? ($service['stunden'] ?? 0) : 0;
-    if (!is_numeric($kraefte) || !is_numeric($stunden)) {
-        return $fail('Bitte beim Servicepersonal nur Zahlen angeben.');
-    }
-    $kraefte     = (float) $kraefte;
-    $halbStunden = (float) $stunden * 2;
-    if ($kraefte != floor($kraefte) || $kraefte < 0 || $kraefte > (int) $personal['kraefte_max']
-        || $halbStunden != floor($halbStunden) || $halbStunden < 0 || $halbStunden > (int) $personal['stunden_max'] * 2) {
-        return $fail('Bitte beim Servicepersonal eine gültige Schätzung angeben.');
-    }
-    $kraefte     = (int) $kraefte;
-    $halbStunden = (int) $halbStunden;
-    if ($kraefte > 0 && $halbStunden > 0) {
-        $stundenGesamt = $kraefte * $halbStunden; // in halben Stunden
-        $positionen[] = [
-            'gruppe' => 'Service',
-            'titel'  => $personal['titel'] . ' (Schätzung: ' . $kraefte . ' × '
-                . tj_catering_stunden($halbStunden) . ' Std.)',
-            'menge'  => $stundenGesamt / 2, 'einheit' => 'Std.',
-            'einzel' => (int) $personal['preis_pro_stunde'],
-            'summe'  => intdiv((int) $personal['preis_pro_stunde'] * $stundenGesamt, 2),
-            'ab'     => false,
-        ];
-        $hinweise[] = $personal['titel'] . ': deine eigene Schätzung ist in der Summe enthalten – '
-            . 'abgerechnet wird nach tatsächlichem Aufwand, die Einsatzzeit wird individuell abgestimmt.';
-    } else {
-        $hinweise[] = $personal['titel'] . ': nach tatsächlichem Aufwand ('
-            . $personal['preis_text'] . ') – nicht in der Summe enthalten, die Einsatzzeit wird individuell abgestimmt.';
-    }
-    $hinweise[] = $cfg['service']['spuelpauschale']['titel'] . ': Preis auf Anfrage, nicht in der Summe enthalten – '
-        . $cfg['service']['spuelpauschale']['text'];
+    $hinweise[] = $personal['titel'] . ': nach tatsächlichem Aufwand (' . $personal['preis_text']
+        . ') – nicht in der Kostenschätzung enthalten; die Einsatzzeit stimmen wir individuell ab.';
+    $hinweise[] = $cfg['service']['spuelpauschale']['titel'] . ': ' . $cfg['service']['spuelpauschale']['text'];
 
     if (!$positionen) {
         return $fail('Bitte wähle mindestens eine Leistung aus.');
@@ -346,14 +318,6 @@ function tj_catering_calculate(string $json, int $persons): array
 function tj_catering_speise(array $s): string
 {
     return $s['name'] . (!empty($s['detail']) ? ' ' . $s['detail'] : '');
-}
-
-/**
- * 7 halbe Stunden -> "3,5"
- */
-function tj_catering_stunden(int $halbeStunden): string
-{
-    return $halbeStunden % 2 === 0 ? (string) intdiv($halbeStunden, 2) : number_format($halbeStunden / 2, 1, ',', '');
 }
 
 /**
@@ -386,6 +350,9 @@ function tj_catering_mail_lines(array $calc, string $clientSumme): array
         foreach ($p['details'] ?? [] as $d) {
             $lines[] = '    · ' . $d;
         }
+        if (($p['gruppe'] ?? '') === 'Menü' && empty($p['details'])) {
+            $lines[] = '    · Speise noch nicht ausgewählt';
+        }
     }
     $lines[] = str_repeat('-', 46);
     $lines[] = 'Voraussichtliche Kostenschätzung: ' . ($calc['ab'] ? 'ab ' : '') . tj_catering_euro($calc['summe']);
@@ -395,7 +362,7 @@ function tj_catering_mail_lines(array $calc, string $clientSumme): array
     }
 
     $lines[] = '';
-    $lines[] = 'HINWEISE & PREISE AUF ANFRAGE';
+    $lines[] = 'HINWEISE';
     foreach ($calc['hinweise'] as $h) {
         $lines[] = '  - ' . $h;
     }

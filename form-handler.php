@@ -97,14 +97,14 @@ $forms = [
             'email'    => ['label' => 'E-Mail',            'required' => true,  'type' => 'email'],
             'phone'    => ['label' => 'Telefon',           'required' => false, 'type' => 'text', 'max' => 60],
             'date'     => ['label' => 'Gewünschtes Datum', 'required' => true,  'type' => 'date', 'not_past' => true],
-            'time'     => ['label' => 'Uhrzeit',           'required' => false, 'type' => 'time'],
+            // Keine Uhrzeit beim Catering (Vorgabe 01.10.2026) – ein mitgeschicktes „time“ wird ignoriert
             'guests'   => ['label' => 'Anzahl Personen',   'required' => true,  'type' => 'int', 'min' => 1, 'max' => 2000],
             'message'  => ['label' => 'Nachricht', 'required' => false, 'type' => 'textarea', 'max' => TJ_MAX_MESSAGE],
         ],
     ],
-    // Kindergeburtstag-Planer (kindergeburtstag-broschuere.html). Die Auswahl kommt als
-    // JSON im Feld "auswahl" und wird in Abschnitt 4b mit data/kindergeburtstag-preise.json
-    // serverseitig berechnet. Die Grenzen hier sind nur technische Grenzen.
+    // Kindergeburtstag-Planer (kindergeburtstag-broschuere.html): reine unverbindliche
+    // Anfrage, nichts wird ausgewählt oder berechnet (seit 01.10.2026). Abschnitt 4b
+    // prüft nur die Gruppengrößen gegen data/kindergeburtstag-preise.json.
     'kindergeburtstag-rechner' => [
         'subject_prefix' => 'Kindergeburtstag-Anfrage (Planer)',
         'fields' => [
@@ -256,15 +256,24 @@ if ($formKey === 'catering-rechner') {
 if ($formKey === 'kindergeburtstag-rechner') {
     require __DIR__ . '/inc/kindergeburtstag-preise.php';
     $begleitung = (int) $values['begleitung'];   // Pflichtfeld, oben bereits als Ganzzahl ≥ 0 geprüft
-    $calc = tj_kg_calculate((string) ($_POST['auswahl'] ?? ''), (int) $values['guests'], $begleitung, (string) $values['date']);
-    if (!$calc['ok']) {
-        tj_respond(false, $calc['message'], $calc['errors'], 422);
+    $pruefung = tj_kg_pruefen((int) $values['guests'], $begleitung);
+    if (!$pruefung['ok']) {
+        tj_respond(false, $pruefung['message'], $pruefung['errors'], 422);
     }
-    $extraLines = tj_kg_mail_lines($calc, (string) ($_POST['summe_anzeige'] ?? ''), (int) $values['guests'], $begleitung,
-        (string) $values['date']);
+    $extraLines = tj_kg_mail_lines((int) $values['guests'], $begleitung, (string) $values['date']);
+    // Anfrage ist noch keine Reservierung
+    array_push($extraLines,
+        '',
+        'Diese Nachricht ist eine unverbindliche Anfrage. Der Termin ist noch NICHT reserviert:',
+        'Das Tjorven Bistro prüft die Anfrage – verbindlich wird die Reservierung erst mit',
+        'der Bestätigung durch das Tjorven Bistro.',
+        '',
+        'Anfrage / Wunschtermin – noch nicht verbindlich bestätigt.',
+        ''
+    );
 }
-if ($extraLines) {
-    // Beide Planer: Die Anfrage ist noch keine Reservierung oder Buchung
+if ($formKey === 'catering-rechner') {
+    // Catering: Die Anfrage ist noch keine Reservierung oder Buchung
     array_push($extraLines,
         '',
         'Die im Planer angezeigte Kostenschätzung ist unverbindlich. Diese Nachricht ist eine',
@@ -350,10 +359,13 @@ tj_rate_limit_record($config);
 $danke = 'Vielen Dank! Deine Nachricht ist bei uns eingegangen. Wir antworten innerhalb von 1–2 Werktagen.';
 if ($formKey === 'catering') {
     $danke = 'Vielen Dank! Deine Cateringanfrage ist bei uns eingegangen. Wir melden uns innerhalb von 1–2 Werktagen.';
-} elseif (in_array($formKey, ['catering-rechner', 'kindergeburtstag-rechner'], true)) {
+} elseif ($formKey === 'catering-rechner') {
     // Planer: ausdrücklich keine Reservierung, erst die Bestätigung des Bistros zählt
     $danke = 'Vielen Dank für deine Anfrage. Wir prüfen deinen Wunschtermin und melden uns bei dir. '
         . 'Deine Anfrage ist noch keine verbindliche Reservierung.';
+} elseif ($formKey === 'kindergeburtstag-rechner') {
+    $danke = 'Vielen Dank für deine unverbindliche Anfrage. Wir prüfen deinen Wunschtermin und melden uns bei dir. '
+        . 'Dein Termin ist damit noch nicht reserviert – verbindlich wird die Reservierung erst mit unserer Bestätigung.';
 }
 tj_respond(true, $danke);
 
