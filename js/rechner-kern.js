@@ -337,11 +337,11 @@
       return true;
     }
     inhalt.addEventListener('click', function (e) {
-      // Datumsfeld: Tippen irgendwo ins Feld öffnet den nativen Kalender (neuere Android-/Chrome-
+      // Datum/Uhrzeit: Tippen irgendwo ins Feld öffnet den nativen Picker (neuere Android-/Chrome-
       // Versionen reagieren sonst teils nur auf das kleine Symbol). Ohne showPicker() oder wenn der
       // Browser den Aufruf ablehnt, bleibt das normale Verhalten des Feldes.
       var t = e.target;
-      if (t && t.matches && t.matches('input[type="date"]:not([disabled]):not([readonly])') && typeof t.showPicker === 'function') {
+      if (t && t.matches && t.matches('input[type="date"]:not([disabled]):not([readonly]), input[type="time"]:not([disabled]):not([readonly])') && typeof t.showPicker === 'function') {
         try { t.showPicker(); } catch (err) { /* normales Verhalten */ }
       }
       if (springe(e)) return;

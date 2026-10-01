@@ -580,8 +580,9 @@ html.rechner-offen body { overflow: hidden; }
 .rechner__infokarte p + p { margin-top: 2px; font-size: 13px; line-height: 1.4; color: #4a4643; }
 .rechner__infokarten + .rechner__info { margin-top: 12px; }
 
-/* Datum: das ganze Feld öffnet den Kalender (siehe js/rechner-kern.js) */
-.rechner__feld input[type="date"] { cursor: pointer; }
+/* Datum/Uhrzeit: das ganze Feld öffnet den nativen Picker (siehe js/rechner-kern.js) */
+.rechner__feld input[type="date"],
+.rechner__feld input[type="time"] { cursor: pointer; }
 
 /* Hinweise */
 .rechner__hinweis {

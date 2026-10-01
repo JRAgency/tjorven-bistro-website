@@ -58,8 +58,8 @@
           '<div class="rechner__reihe">' +
             '<div class="rechner__feld" data-feld="date"><label for="r-date">Datum ' + pflicht() + '</label>' +
               '<input type="date" id="r-date" name="date" required></div>' +
-            '<div class="rechner__feld" data-feld="time"><label for="r-time">Uhrzeit <span class="opt">(optional)</span></label>' +
-              '<input type="time" id="r-time" name="time"></div>' +
+            '<div class="rechner__feld" data-feld="time"><label for="r-time">Uhrzeit ' + pflicht() + '</label>' +
+              '<input type="time" id="r-time" name="time" required></div>' +
           '</div>' +
           '<div class="rechner__hinweis">' + esc(cfg.texte.tischbereich) + '</div>';
       },
@@ -75,6 +75,10 @@
         if (!d) return { feld: 'date', text: 'Bitte ein Datum angeben.' };
         if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return { feld: 'date', text: 'Bitte ein gültiges Datum angeben.' };
         if (d < api.heute()) return { feld: 'date', text: 'Bitte ein Datum ab heute angeben.' };
+        // Uhrzeit ist Pflicht – dieselben Meldungen wie auf dem Server (form-handler.php)
+        var t = api.feldWert('time');
+        if (!t) return { feld: 'time', text: 'Bitte eine Uhrzeit angeben.' };
+        if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(t)) return { feld: 'time', text: 'Bitte eine gültige Uhrzeit angeben.' };
         return null;
       }
     },
@@ -140,7 +144,7 @@
     if (!info) return;
     var d = api.feldWert('date'), t = api.feldWert('time'), b = api.feldWert('begleitung'), tag = wochentag(d);
     info.textContent = kinder(api) + ' Kinder · ' + (b === '' ? '?' : b) + ' Begleitpersonen' +
-      (tag ? ' · ' + TAGE[tag % 7] + ', ' + d.split('-').reverse().join('.') : '') + (t ? ' · ' + t + ' Uhr' : '');
+      (tag ? ' · ' + TAGE[tag % 7] + ', ' + d.split('-').reverse().join('.') : '') + ' · ' + t + ' Uhr';
   }
 
   TjRechner.starte({
