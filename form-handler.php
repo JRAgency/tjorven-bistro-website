@@ -7,13 +7,15 @@
  *   2. Nur POST zulassen
  *   3. Spam-Schutz (Honeypot, Mindestausfüllzeit, Rate-Limit)
  *   4. Serverseitige Validierung
- *   5. Mail zusammenstellen und versenden
- *   6. Antwort als JSON (bei aktivem JavaScript) oder als HTML-Seite
+ *   5. Mails zusammenstellen (Text + HTML, inc/mail-inhalt.php)
+ *   6. Anfrage an das Bistro versenden, danach Eingangsbestätigung an den Gast
+ *   7. Antwort als JSON (bei aktivem JavaScript) oder als HTML-Seite
  *
  * Datenschutz: Die Formularinhalte werden ausschließlich für den Mailversand
  * verwendet und danach verworfen. Es werden keine Anfragen gespeichert und
  * keine Formularinhalte protokolliert. Der Rate-Limit-Speicher enthält nur
- * einen anonymisierten Hash der IP-Adresse und einen Zähler.
+ * einen anonymisierten Hash der IP-Adresse und einen Zähler; der Zähler für
+ * Eingangsbestätigungen nur einen Hash der E-Mail-Adresse (max. 24 Stunden).
  */
 
 declare(strict_types=1);
@@ -21,8 +23,11 @@ declare(strict_types=1);
 // Fehler nie an Besucher ausgeben — sie könnten Pfade oder Konfiguration verraten
 ini_set('display_errors', '0');
 error_reporting(E_ALL);
+// Uhrzeiten in den Mails („Gesendet am …“) in deutscher Zeit, unabhängig von der Servereinstellung
+date_default_timezone_set('Europe/Berlin');
 
 require __DIR__ . '/inc/mailer.php';
+require __DIR__ . '/inc/mail-inhalt.php';
 
 const TJ_MAX_MESSAGE   = 5000;
 const TJ_MAX_SHORTTEXT = 150;
@@ -59,6 +64,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
 $forms = [
     'kontakt' => [
         'subject_prefix' => 'Kontaktanfrage',
+        'abschnitt'      => 'Anfrage',
         'fields' => [
             'name'    => ['label' => 'Name',         'required' => true,  'type' => 'text',  'max' => TJ_MAX_SHORTTEXT],
             'email'   => ['label' => 'E-Mail',       'required' => true,  'type' => 'email'],
@@ -72,6 +78,7 @@ $forms = [
     ],
     'catering' => [
         'subject_prefix' => 'Cateringanfrage',
+        'abschnitt'      => 'Anfrage',
         'fields' => [
             'name'     => ['label' => 'Name',              'required' => true,  'type' => 'text', 'max' => TJ_MAX_SHORTTEXT],
             'email'    => ['label' => 'E-Mail',            'required' => true,  'type' => 'email'],
@@ -92,10 +99,11 @@ $forms = [
     // hier sind nur technische Grenzen.
     'catering-rechner' => [
         'subject_prefix' => 'Cateringanfrage (Preisrechner)',
+        'abschnitt'      => 'Termin & Personen',
         'fields' => [
             'name'     => ['label' => 'Name',              'required' => true,  'type' => 'text', 'max' => TJ_MAX_SHORTTEXT],
             'email'    => ['label' => 'E-Mail',            'required' => true,  'type' => 'email'],
-            'phone'    => ['label' => 'Telefon',           'required' => false, 'type' => 'text', 'max' => 60],
+            'phone'    => ['label' => 'Telefon / WhatsApp', 'required' => false, 'type' => 'text', 'max' => 60],
             'date'     => ['label' => 'Gewünschtes Datum', 'required' => true,  'type' => 'date', 'not_past' => true],
             // Keine Uhrzeit beim Catering (Vorgabe 01.10.2026) – ein mitgeschicktes „time“ wird ignoriert
             'guests'   => ['label' => 'Anzahl Personen',   'required' => true,  'type' => 'int', 'min' => 1, 'max' => 2000],
@@ -104,19 +112,23 @@ $forms = [
     ],
     // Kindergeburtstag-Planer (kindergeburtstag-broschuere.html): reine unverbindliche
     // Anfrage, nichts wird ausgewählt oder berechnet (seit 01.10.2026). Abschnitt 4b
-    // prüft nur die Gruppengrößen gegen data/kindergeburtstag-preise.json.
+    // prüft Gruppengrößen und Ankunftszeit gegen data/kindergeburtstag-preise.json.
     'kindergeburtstag-rechner' => [
         'subject_prefix' => 'Kindergeburtstag-Anfrage (Planer)',
+        'abschnitt'      => 'Gruppe & Termin',
         'fields' => [
             'name'       => ['label' => 'Name',              'required' => true,  'type' => 'text', 'max' => TJ_MAX_SHORTTEXT],
             'email'      => ['label' => 'E-Mail',            'required' => true,  'type' => 'email'],
-            'phone'      => ['label' => 'Telefon',           'required' => false, 'type' => 'text', 'max' => 60],
-            'date'       => ['label' => 'Gewünschtes Datum', 'required' => true,  'type' => 'date', 'not_past' => true],
-            'time'       => ['label' => 'Uhrzeit',           'required' => true,  'type' => 'time',
-                             'required_message' => 'Bitte eine Uhrzeit angeben.'],
+            'phone'      => ['label' => 'Telefon / WhatsApp', 'required' => false, 'type' => 'text', 'max' => 60],
             'guests'     => ['label' => 'Anzahl Kinder',     'required' => true,  'type' => 'int', 'min' => 1, 'max' => 2000],
-            'begleitung' => ['label' => 'Begleitpersonen',   'required' => true,  'type' => 'int', 'min' => 0, 'max' => 2000,
-                             'required_message' => 'Bitte gib die Anzahl der Begleitpersonen an – auch 0 ist möglich.'],
+            // Mindestens 1 Begleitperson; 0, negative Werte und Text werden abgelehnt
+            'begleitung' => ['label' => 'Begleitpersonen',   'required' => true,  'type' => 'int', 'min' => 1, 'max' => 2000,
+                             'required_message' => 'Bitte gib die Anzahl der Begleitpersonen an (mindestens 1).',
+                             'invalid_message'  => 'Bitte gib mindestens 1 Begleitperson an (ganze Zahl).'],
+            'date'       => ['label' => 'Gewünschtes Datum', 'required' => true,  'type' => 'date', 'not_past' => true],
+            // Nur 09:00–16:00 im 15-Minuten-Takt – das genaue Zeitfenster prüft Abschnitt 4b
+            'time'       => ['label' => 'Voraussichtliche Ankunftszeit', 'required' => true, 'type' => 'time',
+                             'required_message' => 'Bitte gib eine voraussichtliche Ankunftszeit an.'],
             'message'    => ['label' => 'Nachricht', 'required' => false, 'type' => 'textarea', 'max' => TJ_MAX_MESSAGE],
         ],
     ],
@@ -216,10 +228,12 @@ foreach ($definition['fields'] as $name => $rules) {
 
         case 'int':
             if (!ctype_digit($value)) {
-                $errors[$name] = 'Bitte eine Zahl angeben.';
+                $errors[$name] = $rules['invalid_message'] ?? 'Bitte eine Zahl angeben.';
             } else {
                 $n = (int) $value;
-                if ($n < ($rules['min'] ?? 0) || $n > ($rules['max'] ?? PHP_INT_MAX)) {
+                if ($n < ($rules['min'] ?? 0) && isset($rules['invalid_message'])) {
+                    $errors[$name] = $rules['invalid_message'];
+                } elseif ($n < ($rules['min'] ?? 0) || $n > ($rules['max'] ?? PHP_INT_MAX)) {
                     $errors[$name] = 'Bitte eine Zahl zwischen '
                         . ($rules['min'] ?? 0) . ' und ' . ($rules['max'] ?? 0) . ' angeben.';
                 }
@@ -245,101 +259,37 @@ if ($errors) {
    Der im Browser angezeigte Betrag wird nie übernommen, nur verglichen.
    ================================================================== */
 
-$extraLines = [];
+$mailExtra = [];
 if ($formKey === 'catering-rechner') {
     require __DIR__ . '/inc/catering-preise.php';
     $calc = tj_catering_calculate((string) ($_POST['auswahl'] ?? ''), (int) $values['guests']);
     if (!$calc['ok']) {
         tj_respond(false, $calc['message'], $calc['errors'], 422);
     }
-    $extraLines = tj_catering_mail_lines($calc, (string) ($_POST['summe_anzeige'] ?? ''));
+    $mailExtra = ['calc' => $calc, 'client_summe' => (string) ($_POST['summe_anzeige'] ?? '')];
 }
 if ($formKey === 'kindergeburtstag-rechner') {
     require __DIR__ . '/inc/kindergeburtstag-preise.php';
-    $begleitung = (int) $values['begleitung'];   // Pflichtfeld, oben bereits als Ganzzahl ≥ 0 geprüft
-    $pruefung = tj_kg_pruefen((int) $values['guests'], $begleitung);
+    // Pflichtfelder, oben bereits als Ganzzahl ≥ 1 bzw. als Uhrzeit HH:MM geprüft
+    $pruefung = tj_kg_pruefen((int) $values['guests'], (int) $values['begleitung'], (string) $values['time']);
     if (!$pruefung['ok']) {
         tj_respond(false, $pruefung['message'], $pruefung['errors'], 422);
     }
-    $extraLines = tj_kg_mail_lines((int) $values['guests'], $begleitung, (string) $values['date']);
-    // Anfrage ist noch keine Reservierung
-    array_push($extraLines,
-        '',
-        'Diese Nachricht ist eine unverbindliche Anfrage. Der Termin ist noch NICHT reserviert:',
-        'Das Tjorven Bistro prüft die Anfrage – verbindlich wird die Reservierung erst mit',
-        'der Bestätigung durch das Tjorven Bistro.',
-        '',
-        'Anfrage / Wunschtermin – noch nicht verbindlich bestätigt.',
-        ''
-    );
-}
-if ($formKey === 'catering-rechner') {
-    // Catering: Die Anfrage ist noch keine Reservierung oder Buchung
-    array_push($extraLines,
-        '',
-        'Die im Planer angezeigte Kostenschätzung ist unverbindlich. Diese Nachricht ist eine',
-        'Anfrage – eine Reservierung bzw. Buchung kommt erst nach ausdrücklicher Bestätigung',
-        'durch das Tjorven Bistro zustande.',
-        '',
-        'Anfrage / Wunschtermin – noch nicht verbindlich bestätigt.',
-        ''
-    );
 }
 
 /* ==================================================================
-   5. Mail zusammenstellen
+   5. Mails zusammenstellen – Text und HTML aus derselben Struktur
    ================================================================== */
 
 $subject = $definition['subject_prefix'] . ' von ' . $values['name'];
-
-$lines   = [];
-$lines[] = strtoupper($definition['subject_prefix']) . ' ÜBER DIE WEBSITE';
-$lines[] = str_repeat('=', 46);
-$lines[] = '';
-
-foreach ($definition['fields'] as $name => $rules) {
-    $value = $values[$name] ?? '';
-    if ($value === '') {
-        continue;
-    }
-    if ($rules['type'] === 'choice') {
-        $value = $rules['options'][$value];
-    }
-    if ($rules['type'] === 'date') {
-        $value = date('d.m.Y', strtotime($value)) . ' (' . $value . ')';
-    }
-    if ($rules['type'] === 'time') {
-        $value .= ' Uhr';
-    }
-
-    if ($rules['type'] === 'textarea') {
-        $lines[] = $rules['label'] . ':';
-        $lines[] = '';
-        $lines[] = $value;
-        $lines[] = '';
-    } else {
-        // str_pad zählt Bytes — bei Umlauten verrutscht die Spalte sonst
-        $label = $rules['label'] . ':';
-        $pad   = max(1, 20 - mb_strlen($label, 'UTF-8'));
-        $lines[] = $label . str_repeat(' ', $pad) . $value;
-    }
-}
-
-foreach ($extraLines as $line) {
-    $lines[] = $line;
-}
-
-$lines[] = str_repeat('-', 46);
-$lines[] = 'Gesendet am ' . date('d.m.Y \u\m H:i') . ' Uhr';
-$lines[] = 'Antwort geht direkt an: ' . $values['email'];
-
-$body = implode("\n", $lines);
+$mails   = tj_mail_dokumente($formKey, $definition, $values, $mailExtra);
 
 /* ==================================================================
-   6. Versenden und antworten
+   6. Versenden: erst die Anfrage an das Bistro (Reply-To = Gast) …
    ================================================================== */
 
-$ok = tj_send_mail($config, $subject, $body, $values['email'], $values['name']);
+$ok = tj_send_mail($config, $subject, tj_mail_text($mails['intern']), $values['email'], $values['name'],
+    ['html' => tj_mail_html($mails['intern'])]);
 
 if (!$ok) {
     // Nur der technische Fehler wird vermerkt — niemals Formularinhalte.
@@ -357,6 +307,24 @@ if (!$ok) {
 
 tj_rate_limit_record($config);
 
+/* … dann die Eingangsbestätigung an den Gast (Reply-To = Bistro). Nur wenn die
+   Anfrage selbst angekommen ist, höchstens 3 je Adresse und 24 Stunden, und nie
+   ein Grund für eine Fehlermeldung: Die Anfrage ist zu diesem Zeitpunkt schon da. */
+$bestaetigt = false;
+if (($config['confirmation_mail'] ?? true) && tj_bestaetigung_erlaubt($config, $values['email'])) {
+    $bestaetigt = tj_send_mail($config, $mails['betreff_kunde'], tj_mail_text($mails['kunde']),
+        (string) $config['recipient'], (string) ($config['recipient_name'] ?? 'Tjorven Bistro'), [
+            'html'      => tj_mail_html($mails['kunde']),
+            'to'        => $values['email'],
+            'from_name' => (string) ($config['confirmation_from_name'] ?? 'Tjorven Bistro'),
+            'auto'      => true,
+        ]);
+    if (!$bestaetigt) {
+        error_log('[tjorven] Eingangsbestaetigung fehlgeschlagen | Formular: ' . $formKey
+            . ' | Versandweg: ' . ($config['transport'] ?? 'mail'));
+    }
+}
+
 $danke = 'Vielen Dank! Deine Nachricht ist bei uns eingegangen. Wir antworten innerhalb von 1–2 Werktagen.';
 if ($formKey === 'catering') {
     $danke = 'Vielen Dank! Deine Cateringanfrage ist bei uns eingegangen. Wir melden uns innerhalb von 1–2 Werktagen.';
@@ -367,6 +335,9 @@ if ($formKey === 'catering') {
 } elseif ($formKey === 'kindergeburtstag-rechner') {
     $danke = 'Vielen Dank für deine unverbindliche Anfrage. Wir prüfen deinen Wunschtermin und melden uns bei dir. '
         . 'Dein Termin ist damit noch nicht reserviert – verbindlich wird die Reservierung erst mit unserer Bestätigung.';
+}
+if ($bestaetigt) {
+    $danke .= ' Eine Bestätigung mit deinen Angaben haben wir dir per E-Mail geschickt.';
 }
 tj_respond(true, $danke);
 
@@ -445,6 +416,41 @@ function tj_rate_limit_record(array $config): void
     @file_put_contents($file, json_encode($data), LOCK_EX);
 
     tj_rate_limit_cleanup($dir, $window);
+}
+
+/**
+ * Eingangsbestätigungen je Empfängeradresse drosseln (Standard: 3 in 24 Stunden),
+ * damit das Formular nicht genutzt werden kann, fremde Postfächer zu fluten.
+ * Gespeichert wird nur ein gesalzener Hash der Adresse und ein Zähler – keine
+ * Adresse im Klartext, keine Formularinhalte. Zählt bei Erlaubnis gleich mit.
+ */
+function tj_bestaetigung_erlaubt(array $config, string $email): bool
+{
+    $max    = (int) ($config['confirmation_max_per_address'] ?? 3);
+    $window = (int) ($config['confirmation_window'] ?? 86400);
+    if ($max <= 0) {
+        return false;
+    }
+    $dir = tj_rate_limit_dir($config) . '/bestaetigungen';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0700, true);
+    }
+    $salt = (string) ($config['hash_salt'] ?? 'tjorven');
+    $file = $dir . '/' . hash('sha256', 'mail|' . mb_strtolower(trim($email), 'UTF-8') . '|' . $salt) . '.json';
+
+    $data = ['first' => time(), 'count' => 0];
+    $existing = is_file($file) ? json_decode((string) @file_get_contents($file), true) : null;
+    if (is_array($existing) && isset($existing['first'], $existing['count'])
+        && time() - (int) $existing['first'] <= $window) {
+        $data = ['first' => (int) $existing['first'], 'count' => (int) $existing['count']];
+    }
+    if ($data['count'] >= $max) {
+        return false;
+    }
+    $data['count']++;
+    @file_put_contents($file, json_encode($data), LOCK_EX);
+    tj_rate_limit_cleanup($dir, (int) ceil($window / 2));
+    return true;
 }
 
 /**

@@ -2145,6 +2145,55 @@ input, textarea, select { font-family: inherit; }
   line-height: 1.7;
 }
 .menu-note strong { font-weight: 600; }
+/* Rosa Hinweisblase wie in der Getränkekarte (entkoffeiniert) */
+.menu-note--rosa {
+  background: var(--red-100);
+  border-color: #e9c3cf;
+}
+.menu-note--rosa p { color: var(--red); }
+
+/* Verfügbarkeit der Lasagne – zweite Zeile wie in der Karte */
+.menu-item__desc.menu-item__verfuegbar { margin-top: var(--s-2); }
+.menu-item__verfuegbar strong { font-weight: 600; color: var(--ink-60); }
+
+/* Waffel-Toppings: zwei Spalten wie in der Karte, Aufpreise rechts */
+.menu-item__toppings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-1) var(--s-4);
+  margin-top: var(--s-3);
+}
+.menu-item__toppings ul { list-style: none; margin: 0; padding: 0; }
+.menu-item__toppings li {
+  font-size: var(--t-sm);
+  color: var(--stone);
+  line-height: 1.6;
+}
+.menu-item__aufpreis {
+  font-weight: 600;
+  color: var(--green);
+  font-feature-settings: 'tnum';
+  white-space: nowrap;
+}
+
+/* Hausgemacht: eigene, rosa hinterlegte Kategorie vor den übrigen Getränken */
+.menu-section--hausgemacht {
+  margin-block: var(--s-10);
+  padding: var(--s-10) var(--s-8);
+  background: var(--red-100);
+  border: 1px solid #e9c3cf;
+  border-radius: var(--r-xl);
+}
+.menu-section--hausgemacht .menu-section__header { margin-bottom: var(--s-6); }
+.menu-section--hausgemacht .eyebrow { color: var(--red); }
+.menu-item--hausgemacht { border-color: #e9c3cf; }
+.menu-item--hausgemacht .menu-item__price { color: var(--red); }
+.menu-nav__btn--hausgemacht { color: var(--red); }
+.menu-nav__btn.menu-nav__btn--hausgemacht:hover,
+.menu-nav__btn.menu-nav__btn--hausgemacht.active { color: var(--red); border-bottom-color: var(--red); }
+@media (max-width: 599px) {
+  .menu-section--hausgemacht { margin-block: var(--s-8); padding: var(--s-8) var(--s-5); border-radius: var(--r-lg); }
+}
 
 .menu-disclaimer {
   text-align: center;

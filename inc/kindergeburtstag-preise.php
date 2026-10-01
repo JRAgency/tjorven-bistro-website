@@ -5,7 +5,7 @@
  * Seit 01.10.2026 ist der Planer eine reine unverbindliche Anfrage: Die
  * Kindergeburtstags-Menüs und das Angebot à la carte werden nur als Information
  * gezeigt, nichts wird vorab ausgewählt oder berechnet. Hier werden deshalb nur
- * noch die Gruppengrößen geprüft und der Abschnitt für die Anfrage-Mail gebaut.
+ * noch Gruppengrößen und Ankunftszeit geprüft; die Mails baut inc/mail-inhalt.php.
  * Ein mitgeschicktes Feld „auswahl“ (z. B. aus einer alten Seite im Cache) wird
  * ignoriert.
  *
@@ -26,23 +26,43 @@ function tj_kg_config(): array
 }
 
 /**
- * ISO-Wochentag (1 = Montag … 7 = Sonntag) eines Datums im Format JJJJ-MM-TT, sonst 0
+ * Erlaubte Ankunftszeiten laut Konfiguration, z. B. 09:00, 09:15 … 16:00.
+ * Gleiche Regel wie ankunftszeiten() in js/kindergeburtstag-rechner.js.
+ *
+ * @return string[]
  */
-function tj_kg_wochentag(string $datum): int
+function tj_kg_ankunftszeiten(): array
 {
-    $d = DateTime::createFromFormat('!Y-m-d', $datum);
-    return ($d && $d->format('Y-m-d') === $datum) ? (int) $d->format('N') : 0;
+    $a   = tj_kg_config()['ankunftszeit'] ?? [];
+    $min = static function ($hhmm): int {
+        return (is_string($hhmm) && preg_match('/^([01]\d|2[0-3]):([0-5]\d)$/', $hhmm, $m))
+            ? (int) $m[1] * 60 + (int) $m[2] : -1;
+    };
+    $von     = $min($a['von'] ?? null);
+    $bis     = $min($a['bis'] ?? null);
+    $schritt = (int) ($a['schritt_minuten'] ?? 0);
+    $zeiten  = [];
+    if ($von < 0 || $bis < $von || $schritt <= 0) {
+        return $zeiten;
+    }
+    for ($m = $von; $m <= $bis; $m += $schritt) {
+        $zeiten[] = sprintf('%02d:%02d', intdiv($m, 60), $m % 60);
+    }
+    return $zeiten;
 }
 
 /**
- * Prüft Kinderzahl und Begleitpersonen gegen die Grenzen aus der Konfiguration.
+ * Prüft Kinderzahl, Begleitpersonen (mindestens 1) und die voraussichtliche
+ * Ankunftszeit (nur Zeiten aus tj_kg_ankunftszeiten()) gegen die Konfiguration.
  *
  * @return array{ok:bool,message:string,errors:array}
  */
-function tj_kg_pruefen(int $kinder, int $begleitung): array
+function tj_kg_pruefen(int $kinder, int $begleitung, string $zeit): array
 {
     $cfg  = tj_kg_config();
-    $fail = static fn (string $msg, string $feld): array => ['ok' => false, 'message' => $msg, 'errors' => [$feld => $msg]];
+    $fail = static function (string $msg, string $feld): array {
+        return ['ok' => false, 'message' => $msg, 'errors' => [$feld => $msg]];
+    };
     if (!$cfg) {
         return $fail('Die Anfrage ist gerade nicht möglich. Bitte versuche es später noch einmal.', 'guests');
     }
@@ -50,31 +70,15 @@ function tj_kg_pruefen(int $kinder, int $begleitung): array
         return $fail('Bitte gib eine Kinderzahl zwischen ' . (int) $cfg['kinder']['min'] . ' und '
             . (int) $cfg['kinder']['max'] . ' an.', 'guests');
     }
-    if ($begleitung < 0 || $begleitung > (int) $cfg['begleitpersonen']['max']) {
-        return $fail('Bitte gib eine gültige Zahl an Begleitpersonen an.', 'begleitung');
+    $bMin = max(1, (int) ($cfg['begleitpersonen']['min'] ?? 1));
+    $bMax = (int) $cfg['begleitpersonen']['max'];
+    if ($begleitung < $bMin || $begleitung > $bMax) {
+        return $fail('Bitte gib zwischen ' . $bMin . ' und ' . $bMax . ' Begleitpersonen an.', 'begleitung');
+    }
+    if (!in_array($zeit, tj_kg_ankunftszeiten(), true)) {
+        $a = $cfg['ankunftszeit'] ?? [];
+        return $fail('Bitte wähle eine Ankunftszeit zwischen ' . ($a['von'] ?? '') . ' und ' . ($a['bis'] ?? '')
+            . ' Uhr (im ' . (int) ($a['schritt_minuten'] ?? 0) . '-Minuten-Takt).', 'time');
     }
     return ['ok' => true, 'message' => '', 'errors' => []];
-}
-
-/**
- * Abschnitt der Anfrage-Mail mit Gruppe, Wunschtermin und Hinweis zu Speisen & Getränken.
- *
- * @return string[]
- */
-function tj_kg_mail_lines(int $kinder, int $begleitung, string $datum = ''): array
-{
-    $tage  = [1 => 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
-    $lines = [];
-    $lines[] = '';
-    $lines[] = 'GRUPPE & TERMIN';
-    $lines[] = str_repeat('-', 46);
-    $lines[] = 'Kinder: ' . $kinder . ' · Begleitpersonen: ' . $begleitung;
-    $tag = tj_kg_wochentag($datum);
-    if ($tag) {
-        $lines[] = 'Wunschtermin: ' . $tage[$tag] . ', ' . date('d.m.Y', (int) strtotime($datum));
-    }
-    $lines[] = '';
-    $lines[] = 'Speisen & Getränke: Im Planer wird nichts vorab ausgewählt. Kindergeburtstags-Menüs';
-    $lines[] = 'und à la carte werden bei der Ankunft besprochen (Wünsche ggf. in der Nachricht oben).';
-    return $lines;
 }

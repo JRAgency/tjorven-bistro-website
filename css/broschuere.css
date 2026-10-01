@@ -458,6 +458,8 @@ html.rechner-offen body { overflow: hidden; }
 .rechner__fehler::before { content: "⚠ "; }
 .rechner__reihe { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .rechner__reihe > .rechner__feld { min-width: 0; }
+/* Unterschiedlich lange Beschriftungen (z. B. „Voraussichtliche Ankunftszeit“): Felder unten bündig */
+.rechner__reihe--unten { align-items: end; }
 
 /* Auswahlkarten (Radio/Checkbox) */
 .rechner__karten { display: grid; gap: 8px; }

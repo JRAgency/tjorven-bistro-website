@@ -9,8 +9,15 @@
     "_technische_grenzen": "Die PDF nennt keine Mindest- oder Hoechstzahl. 1 bis 60 sind nur Eingabegrenzen gegen Fehleingaben."
   },
   "begleitpersonen": {
+    "min": 1,
     "max": 60,
-    "_hinweis": "Nur zur Planung des Tischbereichs, ohne Preiswirkung. Die PDF nennt dazu nichts."
+    "_hinweis": "Nur zur Planung des Tischbereichs, ohne Preiswirkung. Mindestens 1 Begleitperson (Vorgabe des Auftraggebers vom 01.10.2026); die PDF nennt dazu nichts."
+  },
+  "ankunftszeit": {
+    "von": "09:00",
+    "bis": "16:00",
+    "schritt_minuten": 15,
+    "_quelle": "Vorgabe des Auftraggebers vom 01.10.2026: nur 09:00 bis 16:00 Uhr im 15-Minuten-Takt. Browser (Auswahlliste) und Server (inc/kindergeburtstag-preise.php) lesen diese Werte."
   },
   "texte": {
     "treffpunkt": "Viele Geburtstagsgruppen nutzen das Tjorven Bistro als ihren festen Treffpunkt während des gesamten Besuchs in der KLIMA ARENA. Hier können Jacken, Geschenke und Geburtstagskuchen bleiben, während die Kinder die Ausstellung erkunden.",

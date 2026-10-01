@@ -408,10 +408,23 @@
       openBtn.focus({ preventScroll: true });
     });
 
+    // Von selbst öffnet der Rechner nur auf großen Bildschirmen (Desktop, Tablet
+    // quer): Dort liegt er ab 900px als Seitenpanel neben der Broschüre. Auf
+    // Smartphones (auch quer) und Tablets hochkant füllt er den ganzen Bildschirm –
+    // dort sieht man zuerst die Broschüre und öffnet den Planer über den Button.
+    var AUTO_MEDIA = '(min-width: 900px) and (min-height: 600px)';
+    function grosserBildschirm() {
+      return !!(window.matchMedia && window.matchMedia(AUTO_MEDIA).matches);
+    }
+
     // Beim Aufruf der Broschüre öffnet der Rechner von selbst – außer er wurde in
     // diesem Tab schon einmal geschlossen. Ist der Datenschutz-Hinweis noch offen,
     // wartet er, bis der Hinweis beantwortet ist.
     function automatisch() {
+      if (!grosserBildschirm()) {
+        if (location.hash === '#rechner') history.replaceState(null, '', location.pathname + location.search);
+        return;
+      }
       if (location.hash === '#rechner') { oeffnen(); return; }
       if (!def.autoOeffnen) return;
       var zu = false;

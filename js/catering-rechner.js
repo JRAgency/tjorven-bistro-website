@@ -377,8 +377,9 @@
             '<input type="text" id="r-name" name="name" autocomplete="name" required maxlength="150"></div>' +
           '<div class="rechner__feld" data-feld="email"><label for="r-email">E-Mail ' + pflicht() + '</label>' +
             '<input type="email" id="r-email" name="email" autocomplete="email" required maxlength="190"></div>' +
-          '<div class="rechner__feld" data-feld="phone"><label for="r-phone">Telefon <span class="opt">(optional)</span></label>' +
-            '<input type="tel" id="r-phone" name="phone" autocomplete="tel" maxlength="60"></div>';
+          '<div class="rechner__feld" data-feld="phone"><label for="r-phone">Telefon / WhatsApp <span class="opt">(optional)</span></label>' +
+            '<input type="tel" id="r-phone" name="phone" autocomplete="tel" maxlength="60" aria-describedby="r-phone-hinweis">' +
+            '<span class="rechner__feld-hinweis" id="r-phone-hinweis">Für schnelle Rückfragen empfehlen wir eine Mobil- bzw. WhatsApp-Nummer.</span></div>';
       },
       pruefe: function (api) {
         if (!api.feldWert('name')) return { feld: 'name', text: 'Bitte ausfüllen.' };

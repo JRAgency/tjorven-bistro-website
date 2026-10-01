@@ -8,6 +8,10 @@
  *            Konfiguration vollständige Zugangsdaten hinterlegt sind.
  *
  * Bewusst ohne externe Bibliothek, damit das Projekt abhängigkeitsfrei bleibt.
+ *
+ * Seit 01.10.2026 optional als multipart/alternative (Text + HTML) und mit
+ * frei wählbarem Empfänger – für die Eingangsbestätigung an den Absender.
+ * Der Textteil bleibt immer enthalten (Rückfall für reine Text-Programme).
  */
 
 declare(strict_types=1);
@@ -39,14 +43,66 @@ function tj_encode_header(string $value): string
 
 /**
  * Baut "Name <adresse@example.com>" mit kodiertem Anzeigenamen.
+ *
+ * Ein Anzeigename aus einem Formular („Max <a@b.de>, c@d.de“) darf keine
+ * weiteren Adressen in den Header schmuggeln: Enthält er Sonderzeichen wie
+ * , ; < > " oder @, wird er komplett als RFC-2047-Wort kodiert und ist damit
+ * nur noch Text.
  */
 function tj_address(string $email, string $name = ''): string
 {
     $email = tj_header_safe($email);
+    $name  = tj_header_safe($name);
     if ($name === '') {
         return $email;
     }
-    return tj_encode_header($name) . ' <' . $email . '>';
+    if (preg_match('/^[A-Za-z0-9 .\'_-]*$/', $name) === 1 && strpos($name, '..') === false) {
+        return '"' . $name . '" <' . $email . '>';
+    }
+    return '=?UTF-8?B?' . base64_encode($name) . '?= <' . $email . '>';
+}
+
+/**
+ * Zerlegt Text (und optional HTML) in Content-Header und kodierten Inhalt.
+ *
+ * @return array{0:string[],1:string} [Content-Header, Nachrichtenkörper]
+ */
+function tj_mail_payload(string $text, string $html = ''): array
+{
+    // Zeilenenden für den Mailtransport normalisieren …
+    $crlf = static function (string $s): string {
+        return str_replace("\n", "\r\n", str_replace(["\r\n", "\r"], "\n", $s));
+    };
+    // … und Quoted-Printable kodieren. Damit bleiben Umlaute auch dann
+    // unversehrt, wenn ein Server auf dem Weg kein 8BITMIME beherrscht, und
+    // die von RFC 5321 vorgeschriebene maximale Zeilenlänge wird eingehalten
+    // (eine sehr lange Nachricht ohne Umbruch würde sie sonst überschreiten).
+    $textQp = quoted_printable_encode($crlf($text));
+
+    if ($html === '') {
+        return [[
+            'MIME-Version: 1.0',
+            'Content-Type: text/plain; charset=UTF-8',
+            'Content-Transfer-Encoding: quoted-printable',
+        ], $textQp];
+    }
+
+    $boundary = '=_tjorven_' . bin2hex(random_bytes(12));
+    $body = 'This is a multi-part message in MIME format.' . "\r\n\r\n"
+        . '--' . $boundary . "\r\n"
+        . 'Content-Type: text/plain; charset=UTF-8' . "\r\n"
+        . 'Content-Transfer-Encoding: quoted-printable' . "\r\n\r\n"
+        . $textQp . "\r\n\r\n"
+        . '--' . $boundary . "\r\n"
+        . 'Content-Type: text/html; charset=UTF-8' . "\r\n"
+        . 'Content-Transfer-Encoding: quoted-printable' . "\r\n\r\n"
+        . quoted_printable_encode($crlf($html)) . "\r\n\r\n"
+        . '--' . $boundary . '--' . "\r\n";
+
+    return [[
+        'MIME-Version: 1.0',
+        'Content-Type: multipart/alternative; boundary="' . $boundary . '"',
+    ], $body];
 }
 
 /**
@@ -54,55 +110,57 @@ function tj_address(string $email, string $name = ''): string
  *
  * @param array  $config  Konfiguration aus inc/config.php
  * @param string $subject Betreff (unkodiert)
- * @param string $body    Nachrichtentext (UTF-8, plain text)
- * @param string $replyTo E-Mail-Adresse des Absenders der Anfrage
+ * @param string $body    Nachrichtentext (UTF-8, plain text) – immer enthalten
+ * @param string $replyTo Antwortadresse (Anfrage-Mail: der Gast; Bestätigung: das Bistro)
  * @param string $replyToName Anzeigename dazu
+ * @param array  $opts    optional: 'html' (HTML-Fassung), 'to' / 'to_name' (anderer
+ *                        Empfänger als $config['recipient']), 'from_name',
+ *                        'auto' (true = automatisch erzeugte Mail, RFC 3834)
  */
-function tj_send_mail(array $config, string $subject, string $body, string $replyTo, string $replyToName = ''): bool
+function tj_send_mail(array $config, string $subject, string $body, string $replyTo, string $replyToName = '', array $opts = []): bool
 {
     $transport = $config['transport'] ?? 'mail';
 
-    // Zeilenenden für den Mailtransport normalisieren …
-    $body = str_replace(["\r\n", "\r"], "\n", $body);
-    $body = str_replace("\n", "\r\n", $body);
+    [$contentHeaders, $payload] = tj_mail_payload($body, (string) ($opts['html'] ?? ''));
 
-    // … und Quoted-Printable kodieren. Damit bleiben Umlaute auch dann
-    // unversehrt, wenn ein Server auf dem Weg kein 8BITMIME beherrscht, und
-    // die von RFC 5321 vorgeschriebene maximale Zeilenlänge wird eingehalten
-    // (eine sehr lange Nachricht ohne Umbruch würde sie sonst überschreiten).
-    $body = quoted_printable_encode($body);
+    $mail = [
+        'to'       => tj_header_safe((string) ($opts['to'] ?? $config['recipient'])),
+        'to_name'  => (string) ($opts['to'] ?? '') !== '' ? (string) ($opts['to_name'] ?? '') : (string) ($config['recipient_name'] ?? ''),
+        'from'     => tj_header_safe((string) $config['from']),
+        'from_name' => (string) ($opts['from_name'] ?? ($config['from_name'] ?? '')),
+        'reply_to' => tj_address($replyTo, $replyToName),
+        'subject'  => tj_encode_header($subject),
+        'headers'  => $contentHeaders,
+        'extra'    => !empty($opts['auto']) ? ['Auto-Submitted: auto-generated', 'X-Auto-Response-Suppress: All'] : [],
+        'body'     => $payload,
+    ];
 
     if ($transport === 'smtp') {
-        return tj_send_via_smtp($config, $subject, $body, $replyTo, $replyToName);
+        return tj_send_via_smtp($config, $mail);
     }
 
-    return tj_send_via_mail($config, $subject, $body, $replyTo, $replyToName);
+    return tj_send_via_mail($mail);
 }
 
 /**
  * Standardweg: PHP mail().
  */
-function tj_send_via_mail(array $config, string $subject, string $body, string $replyTo, string $replyToName): bool
+function tj_send_via_mail(array $mail): bool
 {
-    $to      = tj_address($config['recipient'], $config['recipient_name'] ?? '');
-    $from    = tj_header_safe($config['from']);
-    $headers = [
-        'MIME-Version: 1.0',
-        'Content-Type: text/plain; charset=UTF-8',
-        'Content-Transfer-Encoding: quoted-printable',
-        'From: ' . tj_address($from, $config['from_name'] ?? ''),
-        'Reply-To: ' . tj_address($replyTo, $replyToName),
+    $to      = tj_address($mail['to'], $mail['to_name']);
+    $headers = array_merge($mail['headers'], [
+        'From: ' . tj_address($mail['from'], $mail['from_name']),
+        'Reply-To: ' . $mail['reply_to'],
         'X-Mailer: Tjorven-Website',
-    ];
+    ], $mail['extra']);
 
-    $encodedSubject = tj_encode_header($subject);
-    $headerString   = implode("\r\n", $headers);
+    $headerString = implode("\r\n", $headers);
 
     // -f setzt den Envelope-Absender auf die eigene Domain (hilft SPF).
     // Falls der Host den Parameter ablehnt, wird ohne ihn erneut versucht.
-    $sent = @mail($to, $encodedSubject, $body, $headerString, '-f' . $from);
+    $sent = @mail($to, $mail['subject'], $mail['body'], $headerString, '-f' . $mail['from']);
     if (!$sent) {
-        $sent = @mail($to, $encodedSubject, $body, $headerString);
+        $sent = @mail($to, $mail['subject'], $mail['body'], $headerString);
     }
 
     return (bool) $sent;
@@ -115,7 +173,7 @@ function tj_send_via_mail(array $config, string $subject, string $body, string $
  * 'transport' => 'smtp' gesetzt UND Host/Benutzer/Passwort hinterlegt sind.
  * Vor der Umstellung bitte einmal produktiv testen.
  */
-function tj_send_via_smtp(array $config, string $subject, string $body, string $replyTo, string $replyToName): bool
+function tj_send_via_smtp(array $config, array $mail): bool
 {
     $smtp = $config['smtp'] ?? [];
     foreach (['host', 'port', 'username', 'password'] as $key) {
@@ -182,8 +240,8 @@ function tj_send_via_smtp(array $config, string $subject, string $body, string $
     $write(base64_encode((string) $smtp['password']));
     if (!$expect($read(), '235')) return $fail();
 
-    $from = tj_header_safe($config['from']);
-    $to   = tj_header_safe($config['recipient']);
+    $from = $mail['from'];
+    $to   = $mail['to'];
 
     $write('MAIL FROM:<' . $from . '>');
     if (!$expect($read(), '250')) return $fail();
@@ -192,20 +250,16 @@ function tj_send_via_smtp(array $config, string $subject, string $body, string $
     $write('DATA');
     if (!$expect($read(), '354')) return $fail();
 
-    $headers = [
+    $headers = array_merge([
         'Date: ' . date('r'),
-        'From: ' . tj_address($from, $config['from_name'] ?? ''),
-        'To: ' . tj_address($to, $config['recipient_name'] ?? ''),
-        'Reply-To: ' . tj_address($replyTo, $replyToName),
-        'Subject: ' . tj_encode_header($subject),
-        'MIME-Version: 1.0',
-        'Content-Type: text/plain; charset=UTF-8',
-        'Content-Transfer-Encoding: quoted-printable',
-        'X-Mailer: Tjorven-Website',
-    ];
+        'From: ' . tj_address($from, $mail['from_name']),
+        'To: ' . tj_address($to, $mail['to_name']),
+        'Reply-To: ' . $mail['reply_to'],
+        'Subject: ' . $mail['subject'],
+    ], $mail['headers'], ['X-Mailer: Tjorven-Website'], $mail['extra']);
 
     // Punkt am Zeilenanfang maskieren (SMTP-Transparenz, RFC 5321)
-    $data = implode("\r\n", $headers) . "\r\n\r\n" . preg_replace('/^\./m', '..', $body);
+    $data = implode("\r\n", $headers) . "\r\n\r\n" . preg_replace('/^\./m', '..', $mail['body']);
 
     fwrite($socket, $data . "\r\n.\r\n");
     if (!$expect($read(), '250')) return $fail();

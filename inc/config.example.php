@@ -110,6 +110,20 @@ return [
     'hash_salt'          => 'BITTE-DURCH-ZUFALLSWERT-ERSETZEN',
 
     /* ------------------------------------------------------------------
+     * Eingangsbestätigung an den Absender (seit 01.10.2026)
+     *
+     * Nach erfolgreicher Anfrage-Mail bekommt der Gast eine Zusammenfassung
+     * (Reply-To = recipient). Fehlen die Schlüssel in inc/config.php, gelten
+     * die Werte unten. Je Empfängeradresse höchstens
+     * confirmation_max_per_address Mails im Zeitfenster – dafür wird nur ein
+     * gesalzener Hash der Adresse im storage_dir abgelegt.
+     * ------------------------------------------------------------------ */
+    'confirmation_mail'            => true,
+    'confirmation_from_name'       => 'Tjorven Bistro',
+    'confirmation_max_per_address' => 3,
+    'confirmation_window'          => 86400,   // Sekunden (86400 = 24 Stunden)
+
+    /* ------------------------------------------------------------------
      * Verzeichnis für den Rate-Limit-Speicher
      *
      * Dort werden ausschließlich anonymisierte Zähler abgelegt —
