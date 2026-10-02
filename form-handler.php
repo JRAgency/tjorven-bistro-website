@@ -139,6 +139,9 @@ $forms = [
             // Keine Uhrzeit beim Catering (Vorgabe 01.10.2026) – ein mitgeschicktes „time“ wird ignoriert
             'guests'   => ['label' => 'Anzahl Personen',   'required' => true,  'type' => 'int', 'min' => 1, 'max' => 2000],
             'message'  => ['label' => 'Nachricht & Hinweise', 'required' => false, 'type' => 'textarea', 'max' => TJ_MAX_MESSAGE],
+            // Freiwillige Einwilligung zu Gesundheitsangaben in der Nachricht (Art. 9 DSGVO) – nur „1“ oder leer
+            'gesundheit' => ['label' => 'Einwilligung Gesundheitsangaben (Allergien, Unverträglichkeiten u. Ä.)', 'required' => false,
+                             'type' => 'zustimmung', 'gruppe' => 'einwilligung'],
         ],
     ],
     // Kindergeburtstag-Planer (kindergeburtstag-broschuere.html, öffentlich /kindergeburtstag/planen/): reine unverbindliche
@@ -161,6 +164,9 @@ $forms = [
             'time'       => ['label' => 'Voraussichtliche Ankunftszeit', 'required' => true, 'type' => 'time',
                              'required_message' => 'Bitte gib eine voraussichtliche Ankunftszeit an.'],
             'message'    => ['label' => 'Nachricht', 'required' => false, 'type' => 'textarea', 'max' => TJ_MAX_MESSAGE],
+            // Freiwillige Einwilligung zu Gesundheitsangaben in der Nachricht (Art. 9 DSGVO) – nur „1“ oder leer
+            'gesundheit' => ['label' => 'Einwilligung Gesundheitsangaben (Allergien, Unverträglichkeiten u. Ä.)', 'required' => false,
+                             'type' => 'zustimmung', 'gruppe' => 'einwilligung'],
         ],
     ],
 ];
@@ -221,6 +227,19 @@ foreach ($definition['fields'] as $name => $rules) {
         $raw = preg_replace('/\s*\n\s*/', ' ', $raw) ?? '';
     }
     $value = trim($raw);
+
+    // Einwilligungs-Häkchen: angehakt = „1“, nicht angehakt = Feld fehlt. Alles andere ist manipuliert.
+    if (($rules['type'] ?? '') === 'zustimmung') {
+        if ($value === '1') {
+            $values[$name] = 'erteilt';
+        } elseif ($value === '') {
+            $values[$name] = 'nicht erteilt';
+        } else {
+            $errors[$name] = 'Ungültige Angabe.';
+            $values[$name] = '';
+        }
+        continue;
+    }
 
     if ($value === '') {
         if (!empty($rules['required'])) {

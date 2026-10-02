@@ -457,7 +457,8 @@
       html: function () {
         return '<div class="rechner__feld" data-feld="message"><label for="r-message">Deine Nachricht an uns <span class="opt">(optional)</span></label>' +
           '<span class="rechner__feld-hinweis" id="r-message-hinweis">Gibt es noch etwas, das wir wissen sollten? Nenne uns hier gerne besondere Wünsche, ' +
-            'Unverträglichkeiten, Allergien oder organisatorische Hinweise, die wir bei deiner Veranstaltung berücksichtigen dürfen.</span>' +
+            'Unverträglichkeiten, Allergien oder organisatorische Hinweise, die wir bei deiner Veranstaltung berücksichtigen dürfen. ' +
+            'Für Angaben zu Allergien oder Unverträglichkeiten bitten wir im letzten Schritt um deine Einwilligung.</span>' +
           '<textarea id="r-message" name="message" rows="6" maxlength="5000" aria-describedby="r-message-hinweis" ' +
             'placeholder="z. B. Allergien, Unverträglichkeiten, Ablauf oder besondere Wünsche"></textarea></div>';
       }
@@ -470,6 +471,7 @@
           TjRechner.unverbindlichHtml() +
           '<p class="rechner__rechtlich">Die berechnete Summe dient als erste Kostenschätzung. Der endgültige Preis kann abhängig von den ' +
             'konkreten Anforderungen und der finalen Abstimmung abweichen.</p>' +
+          TjRechner.gesundheitHtml() +
           '<p class="rechner__rechtlich">Mit dem Absenden werden deine Angaben zur Bearbeitung deiner Anfrage verarbeitet. ' +
             'Näheres in der <a href="/datenschutz/" target="_blank" rel="noopener">Datenschutzerklärung</a>.</p>' +
           '<p class="rechner__status" id="r-status" role="status" aria-live="polite" hidden></p>';

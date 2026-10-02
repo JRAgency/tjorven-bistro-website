@@ -27,6 +27,22 @@
     return '<div class="rechner__verbindlich" role="note"><strong>Noch keine Reservierung.</strong> ' + esc(text || UNVERBINDLICH) + '</div>';
   }
 
+  // Beide Planer fragen im Nachrichtenfeld u. a. nach Allergien/Unverträglichkeiten (Gesundheitsdaten,
+  // Art. 9 DSGVO): gesonderte, freiwillige Einwilligung vor dem Absenden. Der Inhalt der Nachricht wird
+  // nicht ausgewertet; die Einwilligung deckt freiwillige Gesundheitsangaben allgemein ab.
+  function gesundheitHtml() {
+    return '<div class="rechner__einwilligung" data-feld="gesundheit">' +
+      '<label class="rechner__einwilligung-label" for="r-gesundheit">' +
+        '<input type="checkbox" id="r-gesundheit" name="gesundheit" value="1" aria-describedby="r-gesundheit-hinweis">' +
+        '<span>Falls ich in meiner Nachricht Angaben zu Allergien, Unverträglichkeiten oder anderen Gesundheitsinformationen gemacht habe, ' +
+          'willige ich ein, dass diese Angaben zur Bearbeitung meiner Anfrage verarbeitet werden. <span class="opt">(freiwillig)</span></span>' +
+      '</label>' +
+      '<p class="rechner__einwilligung-hinweis" id="r-gesundheit-hinweis">Jederzeit für die Zukunft widerrufbar, z. B. per E-Mail. ' +
+        'Ohne Häkchen bitte keine Gesundheitsangaben in die Nachricht. ' +
+        '<a href="/datenschutz/#gesundheitsangaben" target="_blank" rel="noopener">Datenschutzerklärung</a></p>' +
+    '</div>';
+  }
+
   function heute() {
     var d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -539,5 +555,5 @@
     if (def.berechne) window.__tjRechner[def.name] = { berechne: def.berechne };
   }
 
-  window.TjRechner = { starte: starte, euro: euro, zahl: zahl, esc: esc, unverbindlichHtml: unverbindlichHtml };
+  window.TjRechner = { starte: starte, euro: euro, zahl: zahl, esc: esc, unverbindlichHtml: unverbindlichHtml, gesundheitHtml: gesundheitHtml };
 })();

@@ -80,6 +80,7 @@ function tj_mail_dokumente(string $formKey, array $definition, array $values, ar
     $kontaktZeilen = [];
     $adressZeilen  = [];
     $anfrageZeilen = [];
+    $einwilligung  = [];
     $texte         = [];
     foreach ($definition['fields'] as $name => $rules) {
         $value = (string) ($values[$name] ?? '');
@@ -93,6 +94,8 @@ function tj_mail_dokumente(string $formKey, array $definition, array $values, ar
             $kontaktZeilen[] = [$rules['label'], tj_mail_feldwert($rules, $value)];
         } elseif ($gruppe === 'adresse') {
             $adressZeilen[] = [$rules['label'], tj_mail_feldwert($rules, $value)];
+        } elseif ($gruppe === 'einwilligung') {
+            $einwilligung[] = [$rules['label'], $value];
         } else {
             $anfrageZeilen[] = [$rules['label'], tj_mail_feldwert($rules, $value)];
         }
@@ -119,6 +122,10 @@ function tj_mail_dokumente(string $formKey, array $definition, array $values, ar
     }
     foreach ($texte as $t) {
         $abschnitte[] = $t;
+    }
+    // Dokumentation der freiwilligen Einwilligung (erteilt / nicht erteilt) – in beiden Mails
+    if ($einwilligung) {
+        $abschnitte[] = ['titel' => 'Einwilligung', 'zeilen' => $einwilligung];
     }
 
     /* ---------- Catering: Auswahl, Kostenschätzung, Hinweise ---------- */

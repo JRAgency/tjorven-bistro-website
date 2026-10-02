@@ -156,6 +156,7 @@
       html: function () {
         return '<p class="rechner__eckdaten" id="r-gruppe-info"></p>' +
           TjRechner.unverbindlichHtml(UNVERBINDLICH) +
+          TjRechner.gesundheitHtml() +
           '<p class="rechner__rechtlich">Mit dem Absenden werden deine Angaben zur Bearbeitung deiner Anfrage verarbeitet. ' +
             'Näheres in der <a href="/datenschutz/" target="_blank" rel="noopener">Datenschutzerklärung</a>.</p>' +
           '<p class="rechner__status" id="r-status" role="status" aria-live="polite" hidden></p>';
