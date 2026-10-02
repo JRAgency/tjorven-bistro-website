@@ -1,10 +1,10 @@
 # ============================================================
 # Tjorven Bistro — saubere Adressen für ALL-INKL (Apache)
 #
-# Stand 02.10.2026, VORBEREITET – noch nicht hochgeladen.
-# Vor dem ersten Upload prüfen, ob auf dem Webspace schon eine
-# .htaccess im Hauptverzeichnis liegt (z. B. für HTTPS). Deren
-# Inhalt dann oben übernehmen, nicht einfach überschreiben.
+# Stand 02.10.2026, für den Upload auf ALL-INKL vorbereitet.
+# Vor dem ersten Upload eine eventuell vorhandene .htaccess im
+# Hauptverzeichnis des Webspace sichern. HTTPS-Weiterleitung und
+# www → ohne www sind hier bereits enthalten.
 #
 # Die Dateien bleiben technisch wie bisher (speisekarte.html …).
 # Nach außen gelten nur noch diese Adressen:
@@ -17,17 +17,22 @@
 
 # ALL-INKL liefert ohne diese Zeile /speisekarte auch als
 # speisekarte.html aus (MultiViews) – das wäre eine zweite Adresse.
-Options -MultiViews
+# Verzeichnislisten bleiben aus (wie bisher auf dem Webspace).
+Options -MultiViews -Indexes
 DirectoryIndex index.html index.php
 
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteBase /
 
-# --- Optional: HTTPS erzwingen (nur aktivieren, wenn ALL-INKL das
-# --- nicht schon selbst erledigt – sonst doppelt, aber unschädlich)
-# RewriteCond %{HTTPS} !=on
-# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+# 0) Eine einzige Adresse: https://tjorven-bistro.de
+#    www.tjorven-bistro.de und http:// leiten dauerhaft dorthin weiter.
+#    Lokale Testserver (localhost/127.0.0.1) sind ausgenommen.
+RewriteCond %{HTTP_HOST} ^www\.tjorven-bistro\.de$ [NC]
+RewriteRule ^ https://tjorven-bistro.de%{REQUEST_URI} [R=301,L]
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
 # 1) Alte Seitenadressen → neue Adressen
 #    Nur echte Aufrufe von außen (THE_REQUEST), nicht die internen

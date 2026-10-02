@@ -52,3 +52,6 @@ inc/abholmonitor-config.php
 # nie durch ein Deployment ueberschrieben werden.
 inc/abholmonitor-data.php
 inc/abholmonitor-login.php
+
+# Fertige Deployment-Pakete für ALL-INKL (werden aus dem Commit gebaut, nicht versioniert)
+_deploy/
