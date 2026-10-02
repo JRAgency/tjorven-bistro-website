@@ -418,27 +418,29 @@
       openBtn.focus({ preventScroll: true });
     });
 
-    // Von selbst öffnet der Rechner nur auf großen Bildschirmen (Desktop, Tablet
-    // quer): Dort liegt er ab 900px als Seitenpanel neben der Broschüre. Auf
-    // Smartphones (auch quer) und Tablets hochkant füllt er den ganzen Bildschirm –
-    // dort sieht man zuerst die Broschüre und öffnet den Planer über den Button.
-    var AUTO_MEDIA = '(min-width: 900px) and (min-height: 600px)';
+    // Von selbst öffnet der Rechner nur auf großen Bildschirmen mit Maus oder
+    // Touchpad (Desktop, Laptop): Dort liegt er ab 900px als Seitenpanel neben der
+    // Broschüre. Smartphones (auch quer oder in der „Desktop-Ansicht“ des Browsers)
+    // und Tablets haben einen groben Zeiger (pointer: coarse) bzw. einen kleinen
+    // Bildschirm – dort sieht man zuerst die Broschüre und öffnet den Planer selbst.
+    var AUTO_MEDIA = '(min-width: 900px) and (min-height: 600px) and (hover: hover) and (pointer: fine)';
     function grosserBildschirm() {
       return !!(window.matchMedia && window.matchMedia(AUTO_MEDIA).matches);
     }
 
-    // Beim Aufruf der Broschüre öffnet der Rechner von selbst – außer er wurde in
-    // diesem Tab schon einmal geschlossen. Ist der Datenschutz-Hinweis noch offen,
-    // wartet er, bis der Hinweis beantwortet ist.
-    // Die Adresse …/planen/ und der alte Link #rechner wirken wie ein Klick auf „Planen“ –
-    // auf kleinen Bildschirmen bleibt es bei der Broschüre (siehe oben).
+    // Normaler Aufruf der Broschüre: Der Rechner öffnet von selbst nur auf großen
+    // Bildschirmen (siehe oben) und nicht, wenn er in diesem Tab schon geschlossen wurde.
+    // Ausdrücklicher Planer-Link (…/planen/ oder der alte Link #rechner): öffnet auf
+    // allen Geräten, auch auf dem Smartphone.
+    // In beiden Fällen wartet er, bis ein offener Datenschutz-Hinweis beantwortet ist.
     function automatisch() {
-      if (!grosserBildschirm()) { zurBroschuere(); return; }
-      if (location.hash === '#rechner' || planenAdresse()) { oeffnen(); return; }
-      if (!def.autoOeffnen) return;
-      var zu = false;
-      try { zu = sessionStorage.getItem(ZU_KEY) === '1'; } catch (err) { zu = false; }
-      if (zu) return;
+      var ausdruecklich = location.hash === '#rechner' || planenAdresse();
+      if (!ausdruecklich) {
+        if (!def.autoOeffnen || !grosserBildschirm()) return;
+        var zu = false;
+        try { zu = sessionStorage.getItem(ZU_KEY) === '1'; } catch (err) { zu = false; }
+        if (zu) return;
+      }
       if (document.body.classList.contains('consent-open')) {
         var mo = new MutationObserver(function () {
           if (document.body.classList.contains('consent-open')) return;

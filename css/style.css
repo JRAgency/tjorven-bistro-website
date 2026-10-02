@@ -3771,3 +3771,8 @@ body.consent-open .whatsapp-fab {
 .occasion-card__link:hover { color: var(--green-deep); text-decoration-thickness: 2px; }
 .occasion-card__link:hover svg { transform: translateX(3px); }
 .occasion-card__link:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 3px; border-radius: 4px; }
+
+/* Catering-Seite: die zwei Angebotskarten direkt unter „Für jeden Anlass“,
+   bündig mit Einleitung und Anlass-Karten darunter */
+.catering-angebote--oben { margin-bottom: var(--s-14); }
+@media (max-width: 767px) { .catering-angebote--oben { margin-bottom: var(--s-10); } }
