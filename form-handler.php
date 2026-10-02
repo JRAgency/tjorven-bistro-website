@@ -343,8 +343,7 @@ if ($formKey === 'kindergeburtstag-rechner') {
    5. Mails zusammenstellen – Text und HTML aus derselben Struktur
    ================================================================== */
 
-$subject = $definition['subject_prefix'] . ' von ' . $values['name']
-    . (($values['company'] ?? '') !== '' ? ' (' . $values['company'] . ')' : '');
+$subject = tj_mail_betreff_intern($formKey, $definition, $values);
 $mails   = tj_mail_dokumente($formKey, $definition, $values, $mailExtra);
 
 /* ==================================================================

@@ -2576,6 +2576,94 @@ input[type="time"] {
   transform: translateY(-2px);
 }
 
+/* Google-Maps-Karte (Kontakt): erst Hinweis, nach Einwilligung die eingebettete Karte.
+   Der Hinweis bleibt dabei unsichtbar stehen und hält die Fläche in derselben Größe –
+   die Karte liegt darüber, nichts auf der Seite verschiebt sich. */
+.karte { margin-top: var(--s-6); }
+.karte__flaeche {
+  position: relative;
+  overflow: hidden;
+  margin-top: 0;
+  padding: var(--s-8);
+}
+.karte__hinweis {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+  max-width: 440px;
+}
+.karte__titel { font-weight: 500; color: var(--ink); }
+.karte__text { line-height: 1.6; }
+.map-placeholder .karte__text a {
+  display: inline;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  font-weight: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.map-placeholder .karte__text a:hover { box-shadow: none; transform: none; }
+.karte__laden[hidden] { display: none; }
+/* Mit Rand in der Fläche: Die große Rundung der Box würde sonst Googles
+   Pflichtangaben in den unteren Ecken (Nutzungsbedingungen usw.) abschneiden. */
+.karte__frame {
+  position: absolute;
+  top: var(--s-3);
+  left: var(--s-3);
+  width: calc(100% - 2 * var(--s-3));
+  height: calc(100% - 2 * var(--s-3));
+  border: 0;
+  border-radius: var(--r-md);
+  display: block;
+}
+.karte--geladen .karte__hinweis { visibility: hidden; }
+.karte__widerruf { visibility: hidden; }
+.karte--geladen .karte__widerruf { visibility: visible; }
+.karte__leiste {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 var(--s-4);
+  margin-top: var(--s-2);
+  padding: 0 var(--s-1);
+  font-size: var(--t-sm);
+}
+.karte__leiste a,
+.karte__widerruf {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: var(--green);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.karte__widerruf { color: var(--stone); margin-left: auto; }
+@media (max-width: 599px) {
+  .karte__flaeche { aspect-ratio: 1 / 1; padding: var(--s-5); }
+  .karte__symbol { display: none; }
+}
+/* Datenschutzerklärung: Stand der Google-Maps-Einwilligung und Widerruf */
+.karte-einwilligung {
+  margin: var(--s-4) 0 var(--s-6);
+  padding: var(--s-5);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.karte-einwilligung[hidden],
+.karte-einwilligung .btn[hidden] { display: none; }
+.karte-einwilligung p { margin: 0; }
+.karte-einwilligung p:focus { outline: none; }
+.karte-einwilligung .btn { margin-top: var(--s-3); white-space: normal; }
+
 .social-row {
   display: flex;
   gap: var(--s-3);

@@ -227,14 +227,23 @@
               </div>
             </div>
 
-            <div class="map-placeholder reveal">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              <div>
-                <p style="font-weight:500;color:var(--ink);margin-bottom:4px">Tjorven – Bistro, Sinsheim</p>
-                <p>Dietmar-Hopp-Str. 6, 74889 Sinsheim</p>
-                <a href="https://www.google.com/maps/place/Tjorven+-+Bistro/@49.2392901,8.8777729,17z/data=!4m6!3m5!1s0x479791ca0ce37729:0x7178c2c856c85df5!8m2!3d49.2391357!4d8.8792788!16s%2Fg%2F11mm5wgj1d?entry=ttu&amp;g_ep=EgoyMDI2MDUyNS4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">
-                  In Google Maps öffnen →
-                </a>
+            <!-- Google-Maps-Karte: Bis zur Einwilligung („Google Maps laden“) steht hier nur der Hinweis –
+                 die Seite stellt vorher keine Verbindung zu Google her. Laden, Speichern und Widerruf
+                 der Einwilligung: js/main.js („Einwilligung für Google Maps“) -->
+            <div class="karte reveal" data-karte
+                 data-karte-src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2500!2d8.8792788!3d49.2391357!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x479791ca0ce37729%3A0x7178c2c856c85df5!2sTjorven%20-%20Bistro!5e0!3m2!1sde!2sde!4v1759400000000!5m2!1sde!2sde">
+              <div class="map-placeholder karte__flaeche">
+                <div class="karte__hinweis">
+                  <svg class="karte__symbol" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <p class="karte__titel">Google Maps</p>
+                  <p class="karte__text">Für die Kartenansicht wird eine Verbindung zu Google Maps hergestellt. Dabei können Daten an Google übertragen werden. Deine Wahl wird in diesem Browser gespeichert und ist jederzeit widerrufbar (<a href="/datenschutz/#google-maps">Datenschutzerklärung</a>).</p>
+                  <button type="button" class="btn btn--primary karte__laden" data-karte-laden hidden>Google Maps laden</button>
+                </div>
+              </div>
+              <!-- Der externe Link gilt immer; „Karte nicht mehr laden“ erscheint erst mit der Karte (Platz ist reserviert) -->
+              <div class="karte__leiste">
+                <a href="https://www.google.com/maps/place/Tjorven+-+Bistro/@49.2392901,8.8777729,17z/data=!4m6!3m5!1s0x479791ca0ce37729:0x7178c2c856c85df5!8m2!3d49.2391357!4d8.8792788!16s%2Fg%2F11mm5wgj1d?entry=ttu&amp;g_ep=EgoyMDI2MDUyNS4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">In Google Maps öffnen →</a>
+                <button type="button" class="karte__widerruf" data-karte-widerruf>Karte nicht mehr laden</button>
               </div>
             </div>
 

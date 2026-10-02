@@ -242,7 +242,9 @@ document.querySelectorAll('.footer-year').forEach(el => {
 });
 
 /* --- Cookie / Consent Banner (DSGVO) ---
- * The site sets NO tracking cookies and embeds no third-party iframes.
+ * The site sets NO tracking cookies. The only third-party content is the
+ * Google Maps map on /kontakt/, which loads solely after its own consent
+ * (see „Einwilligung für Google Maps“ below) – never on page load by default.
  * This banner records the visitor's choice in localStorage (not a cookie)
  * and is shown once until a choice is made. No optional scripts load before consent.
  */
@@ -264,8 +266,8 @@ document.querySelectorAll('.footer-year').forEach(el => {
        Die frühere Formulierung nannte Google Fonts und wäre jetzt unzutreffend.
        Endgültige Formulierung folgt über die IT-Recht-Kanzlei-Texte. */
     '<p class="cookie-banner__text">Wir verwenden nur technisch notwendige Speicherung. ' +
-    'Es werden keine Tracking-Cookies gesetzt und beim Seitenaufruf keine Inhalte ' +
-    'von Drittanbietern geladen. ' +
+    'Es werden keine Tracking-Cookies gesetzt, und Inhalte von Drittanbietern ' +
+    '(Google Maps) laden wir nur nach deiner Zustimmung. ' +
     'Mehr dazu in unserer <a href="/datenschutz/">Datenschutzerklärung</a>.</p>' +
     '<div class="cookie-banner__actions">' +
       '<button type="button" class="cookie-banner__btn cookie-banner__btn--accept">Akzeptieren</button>' +
@@ -286,4 +288,77 @@ document.querySelectorAll('.footer-year').forEach(el => {
 
   banner.querySelector('.cookie-banner__btn--accept').addEventListener('click', function () { decide('accepted'); });
   banner.querySelector('.cookie-banner__btn--decline').addEventListener('click', function () { decide('declined'); });
+})();
+
+/* --- Einwilligung für Google Maps (Karte auf /kontakt/) ---
+ * Gehört zum Datenschutz-Hinweis oben und nutzt denselben Speicher (localStorage):
+ * gespeichert wird nur die Entscheidung („tjorven-consent-maps“ = „erteilt“).
+ * Die Auswahl im Hinweis („Akzeptieren“ / „Nur notwendige“) gilt bewusst NICHT als
+ * Einwilligung für Google Maps – der Hinweis nennt Google Maps nicht als Zweck.
+ * Ohne Einwilligung wird der iframe gar nicht erst erzeugt: keine einzige Anfrage an Google.
+ * Widerruf: „Karte nicht mehr laden“ unter der Karte oder auf /datenschutz/#google-maps.
+ */
+(function () {
+  var KEY = 'tjorven-consent-maps';
+  function erteilt() {
+    try { return localStorage.getItem(KEY) === 'erteilt'; } catch (e) { return false; }
+  }
+  function speichern(ja) {
+    try { if (ja) localStorage.setItem(KEY, 'erteilt'); else localStorage.removeItem(KEY); } catch (e) {}
+  }
+
+  // Kontaktseite: Hinweis → Karte
+  document.querySelectorAll('[data-karte]').forEach(function (karte) {
+    var flaeche = karte.querySelector('.karte__flaeche');
+    var hinweis = karte.querySelector('.karte__hinweis');
+    var laden = karte.querySelector('[data-karte-laden]');
+    var widerruf = karte.querySelector('[data-karte-widerruf]');
+
+    function zeigen(fokus) {
+      if (flaeche.querySelector('iframe')) return;
+      var frame = document.createElement('iframe');
+      frame.className = 'karte__frame';
+      frame.title = 'Google Maps: Tjorven – Bistro, Dietmar-Hopp-Str. 6, 74889 Sinsheim';
+      frame.referrerPolicy = 'strict-origin-when-cross-origin';
+      frame.setAttribute('allowfullscreen', '');
+      frame.src = karte.getAttribute('data-karte-src');
+      flaeche.appendChild(frame);
+      karte.classList.add('karte--geladen');
+      hinweis.setAttribute('aria-hidden', 'true');
+      if (fokus) frame.focus();
+    }
+    function entfernen() {
+      var frame = flaeche.querySelector('iframe');
+      if (frame) frame.remove();
+      karte.classList.remove('karte--geladen');
+      hinweis.removeAttribute('aria-hidden');
+    }
+
+    laden.hidden = false;
+    laden.addEventListener('click', function () { speichern(true); zeigen(true); });
+    widerruf.addEventListener('click', function () { speichern(false); entfernen(); laden.focus(); });
+    // Widerruf in einem anderen Tab (z. B. auf der Datenschutzseite) gilt sofort auch hier
+    window.addEventListener('storage', function (e) {
+      if (e.key !== KEY && e.key !== null) return;
+      if (erteilt()) zeigen(false); else entfernen();
+    });
+    if (erteilt()) zeigen(false);
+  });
+
+  // Datenschutzerklärung: aktuellen Stand anzeigen und widerrufen
+  document.querySelectorAll('[data-karte-einwilligung]').forEach(function (box) {
+    var status = box.querySelector('[data-karte-status]');
+    var knopf = box.querySelector('[data-karte-widerrufen]');
+    function anzeigen() {
+      var ja = erteilt();
+      status.textContent = ja
+        ? 'In diesem Browser ist deine Einwilligung gespeichert – die Karte auf der Kontaktseite wird geladen.'
+        : 'In diesem Browser ist keine Einwilligung gespeichert – die Karte wird nicht geladen.';
+      knopf.hidden = !ja;
+    }
+    box.hidden = false;
+    knopf.addEventListener('click', function () { speichern(false); anzeigen(); status.focus(); });
+    window.addEventListener('storage', function (e) { if (e.key === KEY || e.key === null) anzeigen(); });
+    anzeigen();
+  });
 })();

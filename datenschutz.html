@@ -78,10 +78,11 @@
         <p>Die Erfassung der Daten zur Bereitstellung der Website und die Speicherung der Daten in Logfiles ist für den Betrieb der Internetseite zwingend erforderlich. Solltest du mit der Verarbeitung nicht einverstanden sein, ist eine Nutzung unserer Webseite nicht möglich.</p>
 
         <h2>Cookies und Speicherung im Browser</h2>
-        <p>Die öffentlichen Seiten unserer Website setzen keine Cookies. Cookies oder ähnliche Techniken zu Analyse- oder Werbezwecken setzen wir nicht ein, und beim Aufruf der Seiten werden keine Inhalte von Drittanbietern geladen.</p>
+        <p>Die öffentlichen Seiten unserer Website setzen keine Cookies. Cookies oder ähnliche Techniken zu Analyse- oder Werbezwecken setzen wir nicht ein. Inhalte von Drittanbietern werden beim Aufruf der Seiten nur geladen, wenn du dem zugestimmt hast – das betrifft ausschließlich die Karte von Google Maps auf unserer Kontaktseite (siehe „Google Maps“).</p>
         <p>Technisch notwendig speichern wir in deinem Browser lediglich:</p>
         <ul>
           <li>im lokalen Speicher (localStorage) deine Auswahl im Datenschutz-Hinweis („Akzeptieren“ bzw. „Nur notwendige“), damit der Hinweis nicht bei jedem Seitenaufruf erneut erscheint;</li>
+          <li>im lokalen Speicher (localStorage) deine Einwilligung zum Laden der Google-Maps-Karte, wenn du sie erteilt hast – bis du sie widerrufst (siehe „Google Maps“);</li>
           <li>im Sitzungsspeicher (sessionStorage) die Information, dass du den Catering- oder Kindergeburtstag-Planer geschlossen hast, damit er sich nicht erneut von selbst öffnet. Der Sitzungsspeicher wird von deinem Browser beim Schließen des Tabs gelöscht.</li>
         </ul>
         <p>Die Inhalte, die du in die Formulare eingibst, werden dabei nicht im Browser gespeichert.</p>
@@ -139,6 +140,16 @@
         <p>Wir verarbeiten deine Kontaktdaten allein zur Bearbeitung der Kontaktanfrage.</p>
         <p>Die Daten werden gelöscht, sobald sie für die Erreichung des Zwecks, für den sie erhoben wurden, nicht mehr erforderlich sind. Für die Angaben in deiner Anfrage ist das der Fall, wenn sich aus den Umständen entnehmen lässt, dass der betroffene Sachverhalt abschließend geklärt ist.</p>
 
+        <h2 id="google-maps">Google Maps</h2>
+        <p>Auf unserer Kontaktseite können wir dir eine Karte des Kartendienstes Google Maps anzeigen, damit du unseren Standort leichter findest. Für Nutzer mit gewöhnlichem Aufenthalt im Europäischen Wirtschaftsraum ist nach den Datenschutzhinweisen von Google die Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland, für die Verarbeitung verantwortlich.</p>
+        <p>Die Karte wird nicht automatisch geladen. Solange du nicht zugestimmt hast, zeigen wir an ihrer Stelle nur einen Hinweis; dabei stellt unsere Website keine Verbindung zu Google her. Erst wenn du auf „Google Maps laden“ klickst, lädt dein Browser die Karte direkt von Servern von Google. Dabei übermittelt dein Browser – wie bei jedem Abruf einer Internetseite – insbesondere deine IP-Adresse, Angaben zu deinem Browser (zum Beispiel Browsertyp und Spracheinstellung) sowie die Adresse unserer Website, von der aus die Karte aufgerufen wird, an Google. Welche Daten Google darüber hinaus erhebt und ob dabei Cookies oder ähnliche Techniken eingesetzt werden, bestimmt Google; darauf haben wir keinen Einfluss. Nach eigenen Angaben betreibt Google Server auf der ganzen Welt, sodass Daten auch außerhalb des Landes verarbeitet werden können, in dem du lebst. Weitere Informationen findest du in der Datenschutzerklärung von Google: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a>.</p>
+        <p>Rechtsgrundlage für das Laden der Karte ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO; soweit dabei auf dein Endgerät zugegriffen wird, § 25 Abs. 1 TDDDG). Damit die Karte bei späteren Besuchen direkt angezeigt wird, speichern wir deine Einwilligung im lokalen Speicher (localStorage) deines Browsers; das ist dafür technisch erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG). Du kannst die Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen – unter der Karte mit „Karte nicht mehr laden“ oder hier. Danach wird die Karte nicht mehr geladen.</p>
+        <div class="karte-einwilligung" data-karte-einwilligung hidden>
+          <p data-karte-status tabindex="-1" aria-live="polite"></p>
+          <button type="button" class="btn btn--outline" data-karte-widerrufen hidden>Einwilligung für Google Maps widerrufen</button>
+        </div>
+        <p>Den Link „In Google Maps öffnen“ kannst du unabhängig davon nutzen. Er öffnet Google Maps in einem neuen Fenster; dort gelten die Datenschutzhinweise von Google.</p>
+
         <h2>Social Media-Präsenz</h2>
         <h3>Instagram</h3>
         <p>Wir weisen dich darauf hin, dass du unsere Instagram- und Facebook Seite und deren Funktionen in eigener Verantwortung nutzt. Dies gilt insbesondere für die Nutzung der interaktiven Funktionen (z. B. Kommentieren, Teilen, Bewerten).</p>
@@ -176,7 +187,8 @@
         <ul>
           <li>unser Hosting-Dienstleister ALL-INKL.COM – Neue Medien Münnich, Hauptstraße 68, 02742 Friedersdorf, Deutschland: Auf dessen Servern wird diese Website betrieben, dort werden die Formulare verarbeitet, und über dessen Mailserver werden die E-Mails aus unseren Formularen versendet;</li>
           <li>Google: E-Mails an unsere Adressen @tjorven-bistro.de – also auch die Anfragen aus unseren Formularen – werden über die E-Mail-Server von Google empfangen;</li>
-          <li>WhatsApp Ireland Limited, wenn du uns über WhatsApp kontaktierst (wie unter „Kontaktaufnahme per E-Mail oder WhatsApp“ beschrieben).</li>
+          <li>WhatsApp Ireland Limited, wenn du uns über WhatsApp kontaktierst (wie unter „Kontaktaufnahme per E-Mail oder WhatsApp“ beschrieben);</li>
+          <li>Google (Google Maps), wenn du die Karte auf unserer Kontaktseite lädst (wie unter „Google Maps“ beschrieben).</li>
         </ul>
 
         <h2>Rechte der betroffenen Person</h2>

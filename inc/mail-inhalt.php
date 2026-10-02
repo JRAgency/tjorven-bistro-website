@@ -10,7 +10,8 @@
  *
  * Sicherheit: Jeder Wert aus dem Formular wird im HTML mit htmlspecialchars()
  * maskiert – Eingaben können kein HTML, kein Script und keine Links einbauen.
- * Betreffzeilen der Bestätigung enthalten keine Eingaben.
+ * Betreffzeilen enthalten nur geprüfte Werte (Datum, Personenzahl) und den
+ * bereinigten Namen; Header-sicher kodiert wird in inc/mailer.php.
  */
 
 declare(strict_types=1);
@@ -44,6 +45,45 @@ function tj_mail_datum(string $ymd): string
         return $ymd;
     }
     return TJ_MAIL_TAGE[(int) $d->format('N')] . ', ' . $d->format('d.m.Y');
+}
+
+/** "2026-11-19" -> "19.11.2026" (für Betreffzeilen) */
+function tj_mail_datum_kurz(string $ymd): string
+{
+    $d = DateTime::createFromFormat('!Y-m-d', $ymd);
+    return ($d && $d->format('Y-m-d') === $ymd) ? $d->format('d.m.Y') : $ymd;
+}
+
+/**
+ * Name für eine Betreffzeile: eine Zeile, keine Steuerzeichen, Leerraum
+ * zusammengefasst, „|“ (Trennzeichen im Betreff) ersetzt, höchstens 80 Zeichen.
+ */
+function tj_mail_betreff_name(string $name): string
+{
+    $name = preg_replace('/[\p{C}\s]+/u', ' ', $name) ?? '';
+    $name = trim(str_replace('|', '/', $name));
+    return mb_strlen($name) > 80 ? rtrim(mb_substr($name, 0, 79)) . '…' : $name;
+}
+
+/**
+ * Betreff der Anfrage an das Bistro. Bei den Planern stehen Datum, gesamte
+ * Personenzahl, Art der Anfrage und Ansprechperson vorn, damit sie schon in der
+ * Postfach-Übersicht sichtbar sind:
+ *   „19.11.2026 | 14 Pers. | CateringAnfrage | Guido Zeymer“
+ *   „21.11.2026 | 10 Pers. | GeburtstagsAnfrage | Max Mustermann“ (Kinder + Begleitpersonen)
+ * Der Name ist ein einziges Formularfeld und wird vollständig übernommen –
+ * nie in Vor- und Nachname zerlegt.
+ */
+function tj_mail_betreff_intern(string $formKey, array $definition, array $values): string
+{
+    if ($formKey === 'catering-rechner' || $formKey === 'kindergeburtstag-rechner') {
+        $kg = $formKey === 'kindergeburtstag-rechner';
+        $personen = (int) $values['guests'] + ($kg ? (int) $values['begleitung'] : 0);
+        return tj_mail_datum_kurz((string) $values['date']) . ' | ' . $personen . ' Pers. | '
+            . ($kg ? 'GeburtstagsAnfrage' : 'CateringAnfrage') . ' | ' . tj_mail_betreff_name((string) $values['name']);
+    }
+    return $definition['subject_prefix'] . ' von ' . $values['name']
+        . (($values['company'] ?? '') !== '' ? ' (' . $values['company'] . ')' : '');
 }
 
 /** Anzeigewert eines geprüften Feldes */
@@ -253,9 +293,9 @@ function tj_mail_dokumente(string $formKey, array $definition, array $values, ar
     }
 
     $betreff = [
-        'catering-rechner'         => 'Deine Catering-Anfrage beim Tjorven Bistro (unverbindlich)',
+        'catering-rechner'         => 'Bestätigung deiner Catering-Anfrage für den ' . tj_mail_datum_kurz((string) ($values['date'] ?? '')),
         'catering'                 => 'Deine Catering-Anfrage beim Tjorven Bistro (unverbindlich)',
-        'kindergeburtstag-rechner' => 'Deine Kindergeburtstag-Anfrage beim Tjorven Bistro (unverbindlich)',
+        'kindergeburtstag-rechner' => 'Bestätigung deiner Kindergeburtstags-Anfrage für den ' . tj_mail_datum_kurz((string) ($values['date'] ?? '')),
     ][$formKey] ?? 'Deine Nachricht an das Tjorven Bistro';
 
     return ['intern' => $intern, 'kunde' => $kunde, 'betreff_kunde' => $betreff];
