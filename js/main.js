@@ -54,10 +54,12 @@ navDrawer?.querySelectorAll('.nav__link').forEach(l => {
 
 /* --- Active link --- */
 (function () {
-  const path = window.location.pathname.split('/').pop() || 'index.html';
+  /* Saubere URLs (/speisekarte/ …): Pfad vergleichen, alte Dateinamen tolerieren */
+  const norm = p => (p || '/').replace(/index\.html$/, '').replace(/([^/])\.html$/, '$1/').replace(/([^/])$/, '$1/');
+  const path = norm(window.location.pathname);
   document.querySelectorAll('.nav__link').forEach(link => {
     const href = link.getAttribute('href') ?? '';
-    const active = href === path || (path === '' && href === 'index.html');
+    const active = norm(href) === path;
     link.classList.toggle('active', active);
     /* Die aktive Seite war bisher nur farblich markiert. aria-current sagt sie
        auch Screenreadern an, ohne die Darstellung zu verändern. */
@@ -264,7 +266,7 @@ document.querySelectorAll('.footer-year').forEach(el => {
     '<p class="cookie-banner__text">Wir verwenden nur technisch notwendige Speicherung. ' +
     'Es werden keine Tracking-Cookies gesetzt und beim Seitenaufruf keine Inhalte ' +
     'von Drittanbietern geladen. ' +
-    'Mehr dazu in unserer <a href="datenschutz.html">Datenschutzerklärung</a>.</p>' +
+    'Mehr dazu in unserer <a href="/datenschutz/">Datenschutzerklärung</a>.</p>' +
     '<div class="cookie-banner__actions">' +
       '<button type="button" class="cookie-banner__btn cookie-banner__btn--accept">Akzeptieren</button>' +
       '<button type="button" class="cookie-banner__btn cookie-banner__btn--decline">Nur notwendige</button>' +

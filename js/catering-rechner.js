@@ -151,6 +151,61 @@
     return n >= cfg.personen.min && n <= cfg.personen.max ? n : 0;
   }
 
+  /* ---------- Kontaktdaten: Felder und Prüfung (gleiche Regeln wie form-handler.php) ---------- */
+
+  function feld(name, label, eingabe) {
+    return '<div class="rechner__feld" data-feld="' + name + '"><label for="r-' + name + '">' + label + ' ' + pflicht() + '</label>' + eingabe + '</div>';
+  }
+  // Mindestens ein Buchstabe: alles außer Ziffern, Leerraum und ASCII-Satzzeichen (auch Umlaute, andere Schriften)
+  var BUCHSTABE = /[^\s0-9\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]/;
+  var REGELN = {
+    name:    { leer: 'Bitte gib eine Ansprechperson an.', min: 2, buchstabe: true, text: 'Bitte einen gültigen Namen angeben.' },
+    company: { leer: 'Bitte gib eine Firma oder einen Verein an.', min: 2, zeichen: true, text: 'Bitte einen gültigen Namen für Firma oder Verein angeben.' },
+    street:  { leer: 'Bitte gib Straße und Hausnummer an.', min: 3, buchstabe: true, ziffer: true, text: 'Bitte Straße und Hausnummer angeben (z. B. Musterstraße 12).' },
+    zip:     { leer: 'Bitte gib die PLZ an.', muster: /^(?!00)\d{5}$/, text: 'Bitte eine gültige fünfstellige PLZ angeben.' },
+    city:    { leer: 'Bitte gib den Ort an.', min: 2, buchstabe: true, ohneZiffer: true, text: 'Bitte einen gültigen Ort angeben.',
+               zifferText: 'Bitte nur den Ort angeben – die PLZ hat ein eigenes Feld.' },
+    email:   { leer: 'Bitte gib deine E-Mail-Adresse an.', muster: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, text: 'Bitte eine gültige E-Mail-Adresse angeben.' },
+    phone:   { leer: 'Bitte gib eine Mobil- oder Telefonnummer an.', telefon: true, text: 'Bitte eine gültige Mobil- oder Telefonnummer angeben.' }
+  };
+  function feldFehler(name, v) {
+    var r = REGELN[name];
+    if (!v) return r.leer;
+    if (r.ohneZiffer && /\d/.test(v)) return r.zifferText;
+    if (r.min && v.length < r.min) return r.text;
+    if (r.buchstabe && !BUCHSTABE.test(v)) return r.text;
+    if (r.zeichen && !(BUCHSTABE.test(v) || /\d/.test(v))) return r.text;
+    if (r.ziffer && !/\d/.test(v)) return r.text;
+    if (r.muster && !r.muster.test(v)) return r.text;
+    if (r.telefon) {
+      var ziffern = v.replace(/\D/g, '').length;
+      if (!/^\+?[0-9 ()\/.\-]+$/.test(v) || ziffern < 6 || ziffern > 20) return r.text;
+    }
+    return '';
+  }
+  function pruefeFelder(api, namen) {
+    for (var i = 0; i < namen.length; i++) {
+      var t = feldFehler(namen[i], api.feldWert(namen[i]));
+      if (t) return { feld: namen[i], text: t };
+    }
+    return null;
+  }
+
+  // Zusammenfassung: Kontaktdaten kompakt, mit Sprung zum Ändern
+  function angabenZeigen(api) {
+    var box = api.el('#r-angaben');
+    if (!box) return;
+    var w = function (n) { return api.feldWert(n); };
+    var zeile = function (teile) { return teile.filter(function (x) { return x; }).map(esc).join(' · '); };
+    var n = w('message');
+    box.innerHTML = '<h4 class="rechner__label">Deine Angaben</h4>' +
+      '<p>' + zeile([w('name'), w('company')]) + '<br>' + zeile([w('street'), (w('zip') + ' ' + w('city')).trim()]) + '<br>' +
+        zeile([w('email'), w('phone')]) + '</p>' +
+      '<button type="button" class="rechner__aendern" data-geh-zu="kontakt">Ändern<span class="sr-only">: Ansprechpartner und Anschrift</span></button>' +
+      '<p class="rechner__angaben-nachricht"><strong>Nachricht:</strong> ' + (n ? esc(n.length > 180 ? n.slice(0, 180) + ' …' : n) : 'keine') + '</p>' +
+      '<button type="button" class="rechner__aendern" data-geh-zu="nachricht">Ändern<span class="sr-only">: Nachricht</span></button>';
+  }
+
   /* ---------- Schritte ---------- */
 
   var schritte = [
@@ -166,9 +221,7 @@
             '<span class="rechner__feld-hinweis" id="r-guests-hinweis">' + esc(cfg.personen.text) + '</span>' +
           '</div>' +
           '<div class="rechner__feld" data-feld="date"><label for="r-date">Datum ' + pflicht() + '</label>' +
-            '<input type="date" id="r-date" name="date" required></div>' +
-          '<div class="rechner__feld" data-feld="message"><label for="r-message">Nachricht <span class="opt">(optional)</span></label>' +
-            '<textarea id="r-message" name="message" rows="2" maxlength="5000" placeholder="z. B. besondere Wünsche, Anlass, Hinweise …"></textarea></div>';
+            '<input type="date" id="r-date" name="date" required></div>';
       },
       pruefe: function (api) {
         var cfg = api.cfg();
@@ -371,32 +424,54 @@
       }
     },
     {
-      id: 'kontakt', titel: 'Deine Kontaktdaten', statisch: true,
+      // Für Angebot und Rechnung – Reihenfolge wie vorgegeben, auf zwei Schritte verteilt,
+      // damit auch kleine Smartphones ohne Scrollen auskommen
+      id: 'kontakt', titel: 'Ansprechpartner & Anschrift', statisch: true,
       html: function () {
-        return '<div class="rechner__feld" data-feld="name"><label for="r-name">Name ' + pflicht() + '</label>' +
-            '<input type="text" id="r-name" name="name" autocomplete="name" required maxlength="150"></div>' +
-          '<div class="rechner__feld" data-feld="email"><label for="r-email">E-Mail ' + pflicht() + '</label>' +
-            '<input type="email" id="r-email" name="email" autocomplete="email" required maxlength="190"></div>' +
-          '<div class="rechner__feld" data-feld="phone"><label for="r-phone">Telefon / WhatsApp <span class="opt">(optional)</span></label>' +
-            '<input type="tel" id="r-phone" name="phone" autocomplete="tel" maxlength="60" aria-describedby="r-phone-hinweis">' +
-            '<span class="rechner__feld-hinweis" id="r-phone-hinweis">Für schnelle Rückfragen empfehlen wir eine Mobil- bzw. WhatsApp-Nummer.</span></div>';
+        return '<p class="rechner__intro rechner__intro--kompakt-aus">Diese Angaben brauchen wir für Angebot und Rechnung.</p>' +
+          feld('name', 'Ansprechpartner', '<input type="text" id="r-name" name="name" autocomplete="name" required maxlength="150">') +
+          feld('company', 'Firma / Verein', '<input type="text" id="r-company" name="company" autocomplete="organization" required maxlength="150">') +
+          feld('street', 'Straße & Hausnummer', '<input type="text" id="r-street" name="street" autocomplete="address-line1" required maxlength="150">') +
+          '<div class="rechner__reihe rechner__reihe--plz">' +
+            feld('zip', 'PLZ', '<input type="text" id="r-zip" name="zip" inputmode="numeric" autocomplete="postal-code" required maxlength="5" pattern="[0-9]{5}">') +
+            feld('city', 'Ort', '<input type="text" id="r-city" name="city" autocomplete="address-level2" required maxlength="100">') +
+          '</div>';
       },
       pruefe: function (api) {
-        if (!api.feldWert('name')) return { feld: 'name', text: 'Bitte ausfüllen.' };
-        var m = api.feldWert('email');
-        if (!m || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m)) return { feld: 'email', text: 'Bitte eine gültige E-Mail-Adresse angeben.' };
-        return null;
+        return pruefeFelder(api, ['name', 'company', 'street', 'zip', 'city']);
+      }
+    },
+    {
+      id: 'erreichbarkeit', titel: 'E-Mail & Telefon', statisch: true,
+      html: function () {
+        return feld('email', 'E-Mail-Adresse', '<input type="email" id="r-email" name="email" autocomplete="email" required maxlength="190">') +
+          feld('phone', 'Mobil / WhatsApp oder Telefon', '<input type="tel" id="r-phone" name="phone" autocomplete="tel" required maxlength="60" aria-describedby="r-phone-hinweis">' +
+            '<span class="rechner__feld-hinweis" id="r-phone-hinweis">Für schnelle Rückfragen empfehlen wir eine Mobil- bzw. WhatsApp-Nummer.</span>');
+      },
+      pruefe: function (api) {
+        return pruefeFelder(api, ['email', 'phone']);
+      }
+    },
+    {
+      id: 'nachricht', titel: 'Nachricht & Hinweise', statisch: true,
+      html: function () {
+        return '<div class="rechner__feld" data-feld="message"><label for="r-message">Deine Nachricht an uns <span class="opt">(optional)</span></label>' +
+          '<span class="rechner__feld-hinweis" id="r-message-hinweis">Gibt es noch etwas, das wir wissen sollten? Nenne uns hier gerne besondere Wünsche, ' +
+            'Unverträglichkeiten, Allergien oder organisatorische Hinweise, die wir bei deiner Veranstaltung berücksichtigen dürfen.</span>' +
+          '<textarea id="r-message" name="message" rows="6" maxlength="5000" aria-describedby="r-message-hinweis" ' +
+            'placeholder="z. B. Allergien, Unverträglichkeiten, Ablauf oder besondere Wünsche"></textarea></div>';
       }
     },
     {
       id: 'anfrage', titel: 'Zusammenfassung & Anfrage', statisch: true,
       html: function () {
         return '<div id="r-zusammenfassung"></div>' +
+          '<div class="rechner__angaben" id="r-angaben"></div>' +
           TjRechner.unverbindlichHtml() +
           '<p class="rechner__rechtlich">Die berechnete Summe dient als erste Kostenschätzung. Der endgültige Preis kann abhängig von den ' +
             'konkreten Anforderungen und der finalen Abstimmung abweichen.</p>' +
           '<p class="rechner__rechtlich">Mit dem Absenden werden deine Angaben zur Bearbeitung deiner Anfrage verarbeitet. ' +
-            'Näheres in der <a href="datenschutz.html" target="_blank" rel="noopener">Datenschutzerklärung</a>.</p>' +
+            'Näheres in der <a href="/datenschutz/" target="_blank" rel="noopener">Datenschutzerklärung</a>.</p>' +
           '<p class="rechner__status" id="r-status" role="status" aria-live="polite" hidden></p>';
       }
     }
@@ -444,6 +519,7 @@
 
   function nachAktualisieren(api) {
     var cfg = api.cfg(), p = api.personen();
+    angabenZeigen(api);
     // Rechenzeile an jeder Snack-Karte
     cfg.stueckartikel.gruppen.forEach(function (gr) {
       gr.artikel.forEach(function (a) {
@@ -459,8 +535,10 @@
 
   TjRechner.starte({
     name: 'catering',
-    configUrl: 'data/catering-preise.json',
+    configUrl: '/data/catering-preise.json',
     autoOeffnen: true,
+    planenPfad: '/catering/planen/',
+    broschuerePfad: '/catering/broschuere/',
     state: state,
     schritte: schritte,
     // Die Snack-Schritte ergeben sich aus der Preisliste; der Kern setzt sie nach dem Laden ein
@@ -484,7 +562,8 @@
     pruefeAbsenden: function (api, calc) {
       return calc.positionen.length ? null : 'Bitte wähle mindestens eine Leistung aus – oder schreib uns über das Kontaktformular.';
     },
-    feldSchritt: { guests: 'personen', date: 'personen', message: 'personen',
-                   name: 'kontakt', email: 'kontakt', phone: 'kontakt', auswahl: 'anfrage' }
+    feldSchritt: { guests: 'personen', date: 'personen',
+                   name: 'kontakt', company: 'kontakt', street: 'kontakt', zip: 'kontakt', city: 'kontakt',
+                   email: 'erreichbarkeit', phone: 'erreichbarkeit', message: 'nachricht', auswahl: 'anfrage' }
   });
 })();

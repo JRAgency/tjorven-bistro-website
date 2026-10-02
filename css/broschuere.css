@@ -460,6 +460,14 @@ html.rechner-offen body { overflow: hidden; }
 .rechner__reihe > .rechner__feld { min-width: 0; }
 /* Unterschiedlich lange Beschriftungen (z. B. „Voraussichtliche Ankunftszeit“): Felder unten bündig */
 .rechner__reihe--unten { align-items: end; }
+/* PLZ schmal, Ort breit – nebeneinander auch auf kleinen Smartphones */
+.rechner__reihe--plz { grid-template-columns: minmax(7.5em, 1fr) minmax(0, 2fr); align-items: start; }
+
+/* Zusammenfassung: Kontaktdaten kompakt, lange Namen und Straßen umbrechen */
+.rechner__angaben { margin-top: 16px; font-size: 14px; line-height: 1.5; color: #2a2724; overflow-wrap: anywhere; }
+.rechner__angaben p { margin: 4px 0 0; }
+.rechner__angaben .rechner__aendern { margin-top: 6px; }
+.rechner__angaben-nachricht { margin-top: 10px !important; color: #4a4643; }
 
 /* Auswahlkarten (Radio/Checkbox) */
 .rechner__karten { display: grid; gap: 8px; }
@@ -778,6 +786,8 @@ html.rechner-offen body { overflow: hidden; }
    auch dort jeder Schritt ohne inneres Scrollen passt. Tippflächen bleiben ≥ 44 px. */
 @media (max-width: 899px) and (max-height: 700px) {
   .rechner__eyebrow { display: none; }
+  /* Sehr niedrige Bildschirme: erklärende Einleitung entfällt, wo der Schrittitel reicht */
+  .rechner__intro--kompakt-aus { display: none; }
   .rechner__titel { font-size: 17px; }
   .rechner__kopf { padding-bottom: 4px; }
   .rechner__fortschritt { padding-bottom: 6px; }

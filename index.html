@@ -17,17 +17,17 @@
   <meta property="og:image:height" content="941">
   <meta property="og:image:alt" content="Heller Essbereich des Tjorven Bistro in der Klima Arena Sinsheim im Abendlicht">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="preload" as="image" href="images/bistro-essbereich.jpg" fetchpriority="high">
+  <link rel="preload" as="image" href="/images/bistro-essbereich.jpg" fetchpriority="high">
   <link rel="preload" as="font" type="font/woff2" crossorigin
-        href="fonts/nunito-400-normal-latin.woff2">
+        href="/fonts/nunito-400-normal-latin.woff2">
   <link rel="preload" as="font" type="font/woff2" crossorigin
-        href="fonts/nunito-500-normal-latin.woff2">
+        href="/fonts/nunito-500-normal-latin.woff2">
   <!-- Favicon — aus dem vorhandenen Logo abgeleitet, rein lokal, keine externe Quelle -->
-  <link rel="icon" href="images/favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="/images/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="stylesheet" href="/css/style.css">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -57,8 +57,8 @@
       "Pflanzlich",
       "Regional"
     ],
-    "hasMenu": "https://tjorven-bistro.de/speisekarte.html",
-    "menu": "https://tjorven-bistro.de/speisekarte.html",
+    "hasMenu": "https://tjorven-bistro.de/speisekarte/",
+    "menu": "https://tjorven-bistro.de/speisekarte/",
     "openingHoursSpecification": [
       {
         "@type": "OpeningHoursSpecification",
@@ -102,32 +102,32 @@
   ═══════════════════════════════════════ -->
   <nav class="nav" id="nav" aria-label="Hauptnavigation">
     <div class="nav__inner">
-      <a href="index.html" class="nav__logo">
-        <img decoding="async" width="500" height="364" src="images/tjorven-logo-gruen.png" alt="Tjorven Bistro"
+      <a href="/" class="nav__logo">
+        <img decoding="async" width="500" height="364" src="/images/tjorven-logo-gruen.png" alt="Tjorven Bistro"
              class="nav__logo-img"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <span class="nav__logo-fallback" style="display:none">Tjorven</span>
       </a>
       <ul class="nav__links">
-        <li><a href="index.html"       class="nav__link active">Start</a></li>
-        <li><a href="speisekarte.html" class="nav__link">Speisekarte</a></li>
-        <li><a href="catering.html"    class="nav__link">Catering</a></li>
-        <li><a href="ueber-uns.html"   class="nav__link">Über uns</a></li>
-        <li><a href="kontakt.html"     class="nav__link">Kontakt</a></li>
+        <li><a href="/"       class="nav__link active">Start</a></li>
+        <li><a href="/speisekarte/" class="nav__link">Speisekarte</a></li>
+        <li><a href="/catering/"    class="nav__link">Catering</a></li>
+        <li><a href="/ueber-uns/"   class="nav__link">Über uns</a></li>
+        <li><a href="/kontakt/"     class="nav__link">Kontakt</a></li>
       </ul>
-      <a href="kontakt.html" class="btn btn--outline btn--sm nav__cta">Kontakt</a>
+      <a href="/kontakt/" class="btn btn--outline btn--sm nav__cta">Kontakt</a>
       <button class="nav__burger" id="navBurger" aria-label="Menü öffnen" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
     </div>
     <div class="nav__drawer" id="navDrawer">
-      <a href="index.html"       class="nav__link active">Start</a>
-      <a href="speisekarte.html" class="nav__link">Speisekarte</a>
-      <a href="catering.html"    class="nav__link">Catering</a>
-      <a href="ueber-uns.html"   class="nav__link">Über uns</a>
-      <a href="kontakt.html"     class="nav__link">Kontakt</a>
+      <a href="/"       class="nav__link active">Start</a>
+      <a href="/speisekarte/" class="nav__link">Speisekarte</a>
+      <a href="/catering/"    class="nav__link">Catering</a>
+      <a href="/ueber-uns/"   class="nav__link">Über uns</a>
+      <a href="/kontakt/"     class="nav__link">Kontakt</a>
       <div class="nav__drawer-cta">
-        <a href="kontakt.html" class="btn btn--primary" style="width:100%;justify-content:center">Kontakt aufnehmen</a>
+        <a href="/kontakt/" class="btn btn--primary" style="width:100%;justify-content:center">Kontakt aufnehmen</a>
       </div>
     </div>
   </nav>
@@ -152,7 +152,7 @@
              Request. alt bleibt leer: Screenreader lesen die Marke bereits ueber das
              Header-Logo und den Seitentitel, eine Wiederholung waere nur Ballast. -->
         <div class="hero__brand reveal">
-          <img class="hero__brand-logo" src="images/tjorven-logo-gruen.png"
+          <img class="hero__brand-logo" src="/images/tjorven-logo-gruen.png"
                alt="" aria-hidden="true" width="500" height="364" decoding="async">
         </div>
 
@@ -166,11 +166,11 @@
         </p>
 
         <div class="hero__actions reveal reveal-delay-3">
-          <a href="speisekarte.html" class="btn btn--primary btn--lg">Speisekarte ansehen</a>
-          <a href="catering.html"    class="btn btn--outline btn--lg">Catering anfragen</a>
+          <a href="/speisekarte/" class="btn btn--primary btn--lg">Speisekarte ansehen</a>
+          <a href="/catering/"    class="btn btn--outline btn--lg">Catering anfragen</a>
         </div>
 
-        <a href="kontakt.html" class="hero__link-cta reveal reveal-delay-3">Kontakt &amp; Anfahrt</a>
+        <a href="/kontakt/" class="hero__link-cta reveal reveal-delay-3">Kontakt &amp; Anfahrt</a>
 
         <div class="hero__meta reveal reveal-delay-3">
           <span class="hero__meta-item">100 % vegan</span>
@@ -185,7 +185,7 @@
         <div class="hero__photo-wrap reveal reveal-delay-2">
           <!-- Arched portrait frame — food/atmosphere photo -->
           <div class="hero__photo-frame">
-            <img decoding="async" width="141" height="235" src="images/Food-Atmosphäre-Bild.jpg"
+            <img decoding="async" width="141" height="235" src="/images/Food-Atmosphäre-Bild.jpg"
                  alt="Frisch zubereitete saisonale Bowl im Tjorven Bistro – warm, regional, appetitlich"
                  loading="lazy">
           </div>
@@ -290,7 +290,7 @@
 
           <div class="split__image-pane reveal">
             <div class="split__image-frame split__image-frame--team">
-              <img decoding="async" width="1800" height="1151" src="images/tjorven-anton.jpg"
+              <img decoding="async" width="1800" height="1151" src="/images/tjorven-anton.jpg"
                    alt="Tjorven und Anton – Inhaber des Tjorven Bistro"
                    loading="lazy"
                    onerror="this.parentElement.innerHTML='<div class=\'img-placeholder\'><img src=\'images/tjorven-logo-gruen.png\' alt=\'Tjorven Bistro\'></div>'">
@@ -304,7 +304,7 @@
             <span class="divider"></span>
             <p>Wir sind Tjorven und Anton – und wir kochen mit echter Leidenschaft für frische, ehrliche Küche. Im Tjorven Bistro in der Klima Arena Sinsheim findest du saisonale Gerichte, regionale Zutaten und eine Atmosphäre, in der du gerne sitzenbleibst.</p>
             <p>Ob du kurz auf einen Kaffee reinschaust, das Mittagessen genießt oder mit der Familie einen besonderen Ausflug planst – hier bist du herzlich willkommen.</p>
-            <a href="ueber-uns.html" class="btn btn--outline">Mehr über uns</a>
+            <a href="/ueber-uns/" class="btn btn--outline">Mehr über uns</a>
           </div>
 
         </div>
@@ -353,7 +353,7 @@
           <div class="reveal reveal-delay-1" style="padding:24px 28px;background:var(--green-30);border:1px solid var(--green-100);border-radius:var(--r-lg)">
             <p style="font-size:13px;color:var(--green);line-height:1.65">
               <strong>Kindergeburtstage & Events</strong> – Das Tjorven Bistro ist ein herzlicher Ort für besondere Anlässe.
-              <a href="catering.html" style="font-weight:500;text-decoration:underline;text-underline-offset:3px;margin-left:4px">Mehr erfahren →</a>
+              <a href="/catering/" style="font-weight:500;text-decoration:underline;text-underline-offset:3px;margin-left:4px">Mehr erfahren →</a>
             </p>
           </div>
 
@@ -381,7 +381,7 @@
             <div class="highlight-card__num">02</div>
             <h3 class="highlight-card__title">Catering & Events</h3>
             <p class="highlight-card__text">Von kleinen Firmenlunches bis zu besonderen Anlässen – wir bringen unsere Küche zu dir.</p>
-            <a href="catering.html" class="highlight-card__link">Mehr erfahren</a>
+            <a href="/catering/" class="highlight-card__link">Mehr erfahren</a>
           </div>
           <div class="highlight-card reveal reveal-delay-2">
             <div class="highlight-card__num">03</div>
@@ -407,17 +407,17 @@
             <p class="eyebrow">Catering &amp; Events</p>
             <h2 class="display-md" style="margin-top:8px">Küche für <em>besondere Momente</em></h2>
           </div>
-          <a href="catering.html" class="btn btn--outline">Mehr erfahren →</a>
+          <a href="/catering/" class="btn btn--outline">Mehr erfahren →</a>
         </div>
         <div class="catering-preview-grid reveal reveal-delay-1">
           <div class="catering-photo">
-            <img decoding="async" width="1134" height="2016" src="images/Fotos Catering 9.jpeg"
+            <img decoding="async" width="1134" height="2016" src="/images/Fotos Catering 9.jpeg"
                  alt="Catering-Buffet bei einem Event – Zimtschnecken und Gebäck in der Klima Arena"
                  loading="lazy"
                  style="object-position: center 65%">
           </div>
           <div class="catering-photo">
-            <img decoding="async" width="1134" height="2016" src="images/Fotos Catering 8.jpeg"
+            <img decoding="async" width="1134" height="2016" src="/images/Fotos Catering 8.jpeg"
                  alt="Vegane Schokoladen-Cupcakes mit Blüten-Frosting vom Tjorven Bistro"
                  loading="lazy">
           </div>
@@ -573,7 +573,7 @@
             <p style="color:rgba(255,255,255,.55);font-size:15px;max-width:400px;line-height:1.72;margin-bottom:32px">
               Von der saisonalen Bowl über hausgemachte belgische Waffeln bis zur Lasagne, die es samstags, sonntags, feiertags und in den Schulferien gibt – alles aus regionalen Zutaten.
             </p>
-            <a href="speisekarte.html" class="btn btn--primary btn--lg">Zur Speisekarte</a>
+            <a href="/speisekarte/" class="btn btn--primary btn--lg">Zur Speisekarte</a>
           </div>
 
           <div class="menu-teaser-list reveal reveal-delay-1">
@@ -613,7 +613,7 @@
           <div class="ig-visual reveal">
             <a href="https://www.instagram.com/tjorvenbistro/" target="_blank" rel="noopener">
               <div class="ig-circle">
-                <img decoding="async" width="500" height="364" src="images/tjorven-logo-gruen.png" alt="Tjorven Bistro auf Instagram"
+                <img decoding="async" width="500" height="364" src="/images/tjorven-logo-gruen.png" alt="Tjorven Bistro auf Instagram"
                      onerror="this.parentElement.innerHTML='<span style=\'font-family:var(--f-display);font-size:52px;font-style:italic;font-weight:500;color:var(--green);letter-spacing:-.03em\'>t</span>'">
               </div>
             </a>
@@ -700,7 +700,7 @@
       <div class="footer__grid">
 
         <div class="footer__brand">
-          <img decoding="async" width="500" height="364" src="images/tjorven-logo-gruen.png" alt="Tjorven Bistro"
+          <img decoding="async" width="500" height="364" src="/images/tjorven-logo-gruen.png" alt="Tjorven Bistro"
                class="footer__logo"
                onerror="this.style.display='none'">
           <p class="footer__tagline">pflanzlich, herzlich &amp; lecker</p>
@@ -712,11 +712,11 @@
         <div class="footer__col">
           <h4 class="footer__col-title">Navigation</h4>
           <ul>
-            <li><a href="index.html">Start</a></li>
-            <li><a href="speisekarte.html">Speisekarte</a></li>
-            <li><a href="catering.html">Catering</a></li>
-            <li><a href="ueber-uns.html">Über uns</a></li>
-            <li><a href="kontakt.html">Kontakt</a></li>
+            <li><a href="/">Start</a></li>
+            <li><a href="/speisekarte/">Speisekarte</a></li>
+            <li><a href="/catering/">Catering</a></li>
+            <li><a href="/ueber-uns/">Über uns</a></li>
+            <li><a href="/kontakt/">Kontakt</a></li>
           </ul>
         </div>
 
@@ -743,14 +743,14 @@
         <div class="footer__bottom-right">
           <span class="footer__credit">Erstellt von <a href="https://www.jragencyservices.com/" target="_blank" rel="noopener">JR Agency Services</a></span>
           <div class="footer__legal">
-            <a href="impressum.html">Impressum</a>
-            <a href="datenschutz.html">Datenschutz</a>
+            <a href="/impressum/">Impressum</a>
+            <a href="/datenschutz/">Datenschutz</a>
           </div>
         </div>
       </div>
     </div>
   </footer>
 
-  <script src="js/main.js"></script>
+  <script src="/js/main.js"></script>
 </body>
 </html>

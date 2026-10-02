@@ -1,5 +1,32 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "trailingSlash": true,
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "statusCode": 301 },
+    { "source": "/speisekarte.html", "destination": "/speisekarte/", "statusCode": 301 },
+    { "source": "/catering.html", "destination": "/catering/", "statusCode": 301 },
+    { "source": "/catering-broschuere.html", "destination": "/catering/broschuere/", "statusCode": 301 },
+    { "source": "/kindergeburtstag-broschuere.html", "destination": "/kindergeburtstag/", "statusCode": 301 },
+    { "source": "/ueber-uns.html", "destination": "/ueber-uns/", "statusCode": 301 },
+    { "source": "/kontakt.html", "destination": "/kontakt/", "statusCode": 301 },
+    { "source": "/datenschutz.html", "destination": "/datenschutz/", "statusCode": 301 },
+    { "source": "/impressum.html", "destination": "/impressum/", "statusCode": 301 },
+    { "source": "/downloads/cateringmoeglichkeiten-tjorven-bistro.pdf", "destination": "/downloads/catering.pdf", "statusCode": 301 },
+    { "source": "/downloads/tjorven-bistro-speise-und-getraenkekarte.pdf", "destination": "/downloads/speisekarte-getraenkekarte.pdf", "statusCode": 301 },
+    { "source": "/images/Tjorven_Speisekarte_Mobile.pdf", "destination": "/downloads/speisekarte-getraenkekarte.pdf", "statusCode": 301 }
+  ],
+  "rewrites": [
+    { "source": "/speisekarte/", "destination": "/speisekarte.html" },
+    { "source": "/catering/", "destination": "/catering.html" },
+    { "source": "/catering/broschuere/", "destination": "/catering-broschuere.html" },
+    { "source": "/catering/planen/", "destination": "/catering-broschuere.html" },
+    { "source": "/kindergeburtstag/", "destination": "/kindergeburtstag-broschuere.html" },
+    { "source": "/kindergeburtstag/planen/", "destination": "/kindergeburtstag-broschuere.html" },
+    { "source": "/ueber-uns/", "destination": "/ueber-uns.html" },
+    { "source": "/kontakt/", "destination": "/kontakt.html" },
+    { "source": "/datenschutz/", "destination": "/datenschutz.html" },
+    { "source": "/impressum/", "destination": "/impressum.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

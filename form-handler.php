@@ -32,6 +32,11 @@ require __DIR__ . '/inc/mail-inhalt.php';
 const TJ_MAX_MESSAGE   = 5000;
 const TJ_MAX_SHORTTEXT = 150;
 
+// Prüfregeln der Kontaktdaten im Catering-Planer – dieselben wie in js/catering-rechner.js.
+// „Buchstabe“ = alles außer Ziffern, Leerraum und ASCII-Satzzeichen (auch Umlaute, andere Schriften).
+const TJ_RE_BUCHSTABE = '/[^\s0-9\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]/u';
+const TJ_RE_ZIFFER    = '/\d/';
+
 /* ==================================================================
    1. Konfiguration
    ================================================================== */
@@ -93,24 +98,50 @@ $forms = [
             'message'  => ['label' => 'Wünsche & Details', 'required' => false, 'type' => 'textarea', 'max' => TJ_MAX_MESSAGE],
         ],
     ],
-    // Catering-Rechner (catering-broschuere.html). Die Auswahl kommt zusätzlich
+    // Catering-Rechner (catering-broschuere.html, öffentlich /catering/planen/). Die Auswahl kommt zusätzlich
     // als JSON im Feld "auswahl" und wird in Abschnitt 4b serverseitig berechnet.
     // Die Personengrenzen 10–200 prüft dort data/catering-preise.json; die Werte
     // hier sind nur technische Grenzen.
     'catering-rechner' => [
         'subject_prefix' => 'Cateringanfrage (Preisrechner)',
         'abschnitt'      => 'Termin & Personen',
+        // Seit 02.10.2026: Ansprechpartner, Firma/Verein, Anschrift und Telefon sind Pflicht
+        // (Angebot und Rechnung). Reihenfolge = Reihenfolge in den Mails.
         'fields' => [
-            'name'     => ['label' => 'Name',              'required' => true,  'type' => 'text', 'max' => TJ_MAX_SHORTTEXT],
-            'email'    => ['label' => 'E-Mail',            'required' => true,  'type' => 'email'],
-            'phone'    => ['label' => 'Telefon / WhatsApp', 'required' => false, 'type' => 'text', 'max' => 60],
+            'name'     => ['label' => 'Ansprechpartner',   'required' => true,  'type' => 'text', 'max' => TJ_MAX_SHORTTEXT, 'gruppe' => 'kontakt',
+                           'required_message' => 'Bitte gib eine Ansprechperson an.',
+                           'regeln' => [['/^.{2,}$/us', true, 'Bitte einen gültigen Namen angeben.'],
+                                        [TJ_RE_BUCHSTABE, true, 'Bitte einen gültigen Namen angeben.']]],
+            'company'  => ['label' => 'Firma / Verein',    'required' => true,  'type' => 'text', 'max' => TJ_MAX_SHORTTEXT, 'gruppe' => 'kontakt',
+                           'required_message' => 'Bitte gib eine Firma oder einen Verein an.',
+                           'regeln' => [['/^.{2,}$/us', true, 'Bitte einen gültigen Namen für Firma oder Verein angeben.'],
+                                        ['/[^\s\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]/u', true, 'Bitte einen gültigen Namen für Firma oder Verein angeben.']]],
+            'email'    => ['label' => 'E-Mail',            'required' => true,  'type' => 'email', 'gruppe' => 'kontakt',
+                           'required_message' => 'Bitte gib deine E-Mail-Adresse an.'],
+            'phone'    => ['label' => 'Mobil / WhatsApp / Telefon', 'required' => true, 'type' => 'text', 'max' => 60, 'gruppe' => 'kontakt',
+                           'required_message' => 'Bitte gib eine Mobil- oder Telefonnummer an.',
+                           'regeln' => [['/^\+?[0-9 ()\/.\-]+$/', true, 'Bitte eine gültige Mobil- oder Telefonnummer angeben.'],
+                                        ['/^(?:\D*\d){6,20}\D*$/', true, 'Bitte eine gültige Mobil- oder Telefonnummer angeben.']]],
+            'street'   => ['label' => 'Straße & Hausnummer', 'required' => true, 'type' => 'text', 'max' => TJ_MAX_SHORTTEXT, 'gruppe' => 'adresse',
+                           'required_message' => 'Bitte gib Straße und Hausnummer an.',
+                           'regeln' => [['/^.{3,}$/us', true, 'Bitte Straße und Hausnummer angeben (z. B. Musterstraße 12).'],
+                                        [TJ_RE_BUCHSTABE, true, 'Bitte Straße und Hausnummer angeben (z. B. Musterstraße 12).'],
+                                        [TJ_RE_ZIFFER, true, 'Bitte Straße und Hausnummer angeben (z. B. Musterstraße 12).']]],
+            'zip'      => ['label' => 'PLZ',               'required' => true,  'type' => 'text', 'max' => 5, 'gruppe' => 'adresse',
+                           'required_message' => 'Bitte gib die PLZ an.',
+                           'regeln' => [['/^(?!00)\d{5}$/', true, 'Bitte eine gültige fünfstellige PLZ angeben.']]],
+            'city'     => ['label' => 'Ort',               'required' => true,  'type' => 'text', 'max' => 100, 'gruppe' => 'adresse',
+                           'required_message' => 'Bitte gib den Ort an.',
+                           'regeln' => [[TJ_RE_ZIFFER, false, 'Bitte nur den Ort angeben – die PLZ hat ein eigenes Feld.'],
+                                        ['/^.{2,}$/us', true, 'Bitte einen gültigen Ort angeben.'],
+                                        [TJ_RE_BUCHSTABE, true, 'Bitte einen gültigen Ort angeben.']]],
             'date'     => ['label' => 'Gewünschtes Datum', 'required' => true,  'type' => 'date', 'not_past' => true],
             // Keine Uhrzeit beim Catering (Vorgabe 01.10.2026) – ein mitgeschicktes „time“ wird ignoriert
             'guests'   => ['label' => 'Anzahl Personen',   'required' => true,  'type' => 'int', 'min' => 1, 'max' => 2000],
-            'message'  => ['label' => 'Nachricht', 'required' => false, 'type' => 'textarea', 'max' => TJ_MAX_MESSAGE],
+            'message'  => ['label' => 'Nachricht & Hinweise', 'required' => false, 'type' => 'textarea', 'max' => TJ_MAX_MESSAGE],
         ],
     ],
-    // Kindergeburtstag-Planer (kindergeburtstag-broschuere.html): reine unverbindliche
+    // Kindergeburtstag-Planer (kindergeburtstag-broschuere.html, öffentlich /kindergeburtstag/planen/): reine unverbindliche
     // Anfrage, nichts wird ausgewählt oder berechnet (seit 01.10.2026). Abschnitt 4b
     // prüft Gruppengrößen und Ankunftszeit gegen data/kindergeburtstag-preise.json.
     'kindergeburtstag-rechner' => [
@@ -184,6 +215,8 @@ foreach ($definition['fields'] as $name => $rules) {
     // und liessen sich nutzen, um zusätzliche Abschnitte vorzutäuschen.
     $raw = str_replace(["\r\n", "\r"], "\n", $raw);
     $raw = preg_replace('/[^\P{C}\n]+/u', '', $raw) ?? '';
+    // Geschützte und andere Unicode-Leerzeichen wie normale behandeln – „nur Leerzeichen“ zählt als leer
+    $raw = preg_replace('/\p{Zs}/u', ' ', $raw) ?? '';
     if (($rules['type'] ?? '') !== 'textarea') {
         $raw = preg_replace('/\s*\n\s*/', ' ', $raw) ?? '';
     }
@@ -247,6 +280,16 @@ foreach ($definition['fields'] as $name => $rules) {
             }
     }
 
+    // Zusätzliche Regeln je Feld: [Muster, muss passen (true) / darf nicht passen (false), Meldung]
+    if (!isset($errors[$name])) {
+        foreach ($rules['regeln'] ?? [] as $regel) {
+            if ((preg_match($regel[0], $value) === 1) !== $regel[1]) {
+                $errors[$name] = $regel[2];
+                break;
+            }
+        }
+    }
+
     $values[$name] = $value;
 }
 
@@ -281,7 +324,8 @@ if ($formKey === 'kindergeburtstag-rechner') {
    5. Mails zusammenstellen – Text und HTML aus derselben Struktur
    ================================================================== */
 
-$subject = $definition['subject_prefix'] . ' von ' . $values['name'];
+$subject = $definition['subject_prefix'] . ' von ' . $values['name']
+    . (($values['company'] ?? '') !== '' ? ' (' . $values['company'] . ')' : '');
 $mails   = tj_mail_dokumente($formKey, $definition, $values, $mailExtra);
 
 /* ==================================================================
@@ -512,7 +556,7 @@ function tj_respond(bool $success, string $message, array $fieldErrors = [], int
         . '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
         . '<meta name="robots" content="noindex">'
         . '<title>' . $esc($title) . ' – Tjorven Bistro</title>'
-        . '<link rel="stylesheet" href="css/style.css">'
+        . '<link rel="stylesheet" href="/css/style.css">'
         . '<style>.fb{min-height:100svh;min-height:100vh;display:flex;align-items:center;'
         . 'justify-content:center;padding:24px;text-align:center}.fb__inner{max-width:520px}'
         . '.fb__list{margin:16px 0;padding:0;list-style:none;color:var(--ink-60);font-size:14px}'
@@ -522,7 +566,7 @@ function tj_respond(bool $success, string $message, array $fieldErrors = [], int
         . '<p class="body-md body-sub" style="margin-top:12px">' . $esc($message) . '</p>'
         . $list
         . '<p style="margin-top:28px"><a class="btn btn--primary btn--lg" href="javascript:history.back()">Zurück zum Formular</a></p>'
-        . '<p style="margin-top:12px"><a class="btn-icon" href="index.html">Zur Startseite</a></p>'
+        . '<p style="margin-top:12px"><a class="btn-icon" href="/">Zur Startseite</a></p>'
         . '</div></main></body></html>';
     exit;
 }

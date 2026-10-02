@@ -1,7 +1,7 @@
 {
   "_hinweis": "Einzige Quelle fuer alle Catering-Preise. Wird vom Preisrechner im Browser (js/catering-rechner.js) UND serverseitig (inc/catering-preise.php) gelesen. Alle Preise stammen ausschliesslich aus der PDF 'Cateringmoeglichkeiten Tjorven Bistro Veranstaltungen Klima Arena' (Canva, 26.09.2026). Betraege in Cent.",
   "version": "2026-10-01",
-  "quelle": "downloads/cateringmoeglichkeiten-tjorven-bistro.pdf",
+  "quelle": "downloads/catering.pdf",
   "waehrung": "EUR",
   "mwst_hinweis": "Alle genannten Preise verstehen sich zzgl. der gesetzlichen Mehrwertsteuer.",
   "mwst_quelle": "S. 2",

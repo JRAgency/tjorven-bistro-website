@@ -1,0 +1,74 @@
+# ============================================================
+# Tjorven Bistro — saubere Adressen für ALL-INKL (Apache)
+#
+# Stand 02.10.2026, VORBEREITET – noch nicht hochgeladen.
+# Vor dem ersten Upload prüfen, ob auf dem Webspace schon eine
+# .htaccess im Hauptverzeichnis liegt (z. B. für HTTPS). Deren
+# Inhalt dann oben übernehmen, nicht einfach überschreiben.
+#
+# Die Dateien bleiben technisch wie bisher (speisekarte.html …).
+# Nach außen gelten nur noch diese Adressen:
+#   /speisekarte/  /catering/  /catering/broschuere/  /catering/planen/
+#   /kindergeburtstag/  /kindergeburtstag/planen/  /ueber-uns/
+#   /kontakt/  /datenschutz/  /impressum/
+# Alte Adressen leiten dauerhaft (301) auf die neuen weiter.
+# Dieselbe Zuordnung steht für Vercel in vercel.json.
+# ============================================================
+
+# ALL-INKL liefert ohne diese Zeile /speisekarte auch als
+# speisekarte.html aus (MultiViews) – das wäre eine zweite Adresse.
+Options -MultiViews
+DirectoryIndex index.html index.php
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+# --- Optional: HTTPS erzwingen (nur aktivieren, wenn ALL-INKL das
+# --- nicht schon selbst erledigt – sonst doppelt, aber unschädlich)
+# RewriteCond %{HTTPS} !=on
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# 1) Alte Seitenadressen → neue Adressen
+#    Nur echte Aufrufe von außen (THE_REQUEST), nicht die internen
+#    Umschreibungen aus Teil 3 – sonst entstünde eine Schleife.
+RewriteCond %{THE_REQUEST} \s/+index\.html[\s?#] [NC]
+RewriteRule ^index\.html$ / [R=301,L]
+RewriteCond %{THE_REQUEST} \s/+speisekarte\.html[\s?#] [NC]
+RewriteRule ^speisekarte\.html$ /speisekarte/ [R=301,L]
+RewriteCond %{THE_REQUEST} \s/+catering\.html[\s?#] [NC]
+RewriteRule ^catering\.html$ /catering/ [R=301,L]
+RewriteCond %{THE_REQUEST} \s/+catering-broschuere\.html[\s?#] [NC]
+RewriteRule ^catering-broschuere\.html$ /catering/broschuere/ [R=301,L]
+RewriteCond %{THE_REQUEST} \s/+kindergeburtstag-broschuere\.html[\s?#] [NC]
+RewriteRule ^kindergeburtstag-broschuere\.html$ /kindergeburtstag/ [R=301,L]
+RewriteCond %{THE_REQUEST} \s/+ueber-uns\.html[\s?#] [NC]
+RewriteRule ^ueber-uns\.html$ /ueber-uns/ [R=301,L]
+RewriteCond %{THE_REQUEST} \s/+kontakt\.html[\s?#] [NC]
+RewriteRule ^kontakt\.html$ /kontakt/ [R=301,L]
+RewriteCond %{THE_REQUEST} \s/+datenschutz\.html[\s?#] [NC]
+RewriteRule ^datenschutz\.html$ /datenschutz/ [R=301,L]
+RewriteCond %{THE_REQUEST} \s/+impressum\.html[\s?#] [NC]
+RewriteRule ^impressum\.html$ /impressum/ [R=301,L]
+
+# Alte PDF-Adressen → neue Dateinamen
+RewriteRule ^downloads/cateringmoeglichkeiten-tjorven-bistro\.pdf$ /downloads/catering.pdf [R=301,L]
+RewriteRule ^downloads/tjorven-bistro-speise-und-getraenkekarte\.pdf$ /downloads/speisekarte-getraenkekarte.pdf [R=301,L]
+RewriteRule ^images/Tjorven_Speisekarte_Mobile\.pdf$ /downloads/speisekarte-getraenkekarte.pdf [R=301,L]
+
+# 2) Ohne Schrägstrich am Ende → mit (eine einzige gültige Adresse)
+RewriteRule ^(speisekarte|catering|kindergeburtstag|ueber-uns|kontakt|datenschutz|impressum)$ /$1/ [R=301,L]
+RewriteRule ^catering/(broschuere|planen)$ /catering/$1/ [R=301,L]
+RewriteRule ^kindergeburtstag/planen$ /kindergeburtstag/planen/ [R=301,L]
+
+# 3) Neue Adressen intern auf die vorhandenen Dateien abbilden
+RewriteRule ^speisekarte/$ speisekarte.html [L]
+RewriteRule ^catering/$ catering.html [L]
+RewriteRule ^catering/(broschuere|planen)/$ catering-broschuere.html [L]
+RewriteRule ^kindergeburtstag/$ kindergeburtstag-broschuere.html [L]
+RewriteRule ^kindergeburtstag/planen/$ kindergeburtstag-broschuere.html [L]
+RewriteRule ^ueber-uns/$ ueber-uns.html [L]
+RewriteRule ^kontakt/$ kontakt.html [L]
+RewriteRule ^datenschutz/$ datenschutz.html [L]
+RewriteRule ^impressum/$ impressum.html [L]
+</IfModule>

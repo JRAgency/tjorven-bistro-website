@@ -118,7 +118,7 @@
               '<span>' + esc(x.preis_text) + '</span></p><p>' + x.inhalt.map(esc).join(' · ') + '</p></li>';
           }).join('') + '</ul>' +
           '<div class="rechner__info"><h4>' + esc(alc.titel) + '</h4><p>' + esc(alc.text) + '</p>' +
-            '<p><a href="speisekarte.html" target="_blank" rel="noopener">' + esc(alc.link_text) +
+            '<p><a href="/speisekarte/" target="_blank" rel="noopener">' + esc(alc.link_text) +
             '<span class="sr-only"> (öffnet in neuem Tab)</span></a></p></div>';
       }
     },
@@ -157,7 +157,7 @@
         return '<p class="rechner__eckdaten" id="r-gruppe-info"></p>' +
           TjRechner.unverbindlichHtml(UNVERBINDLICH) +
           '<p class="rechner__rechtlich">Mit dem Absenden werden deine Angaben zur Bearbeitung deiner Anfrage verarbeitet. ' +
-            'Näheres in der <a href="datenschutz.html" target="_blank" rel="noopener">Datenschutzerklärung</a>.</p>' +
+            'Näheres in der <a href="/datenschutz/" target="_blank" rel="noopener">Datenschutzerklärung</a>.</p>' +
           '<p class="rechner__status" id="r-status" role="status" aria-live="polite" hidden></p>';
       }
     }
@@ -175,8 +175,10 @@
 
   TjRechner.starte({
     name: 'kindergeburtstag',
-    configUrl: 'data/kindergeburtstag-preise.json',
+    configUrl: '/data/kindergeburtstag-preise.json',
     autoOeffnen: true,
+    planenPfad: '/kindergeburtstag/planen/',
+    broschuerePfad: '/kindergeburtstag/',
     ohneSumme: true,
     state: {},
     schritte: schritte,

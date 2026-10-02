@@ -74,8 +74,11 @@ function tj_mail_dokumente(string $formKey, array $definition, array $values, ar
     $kontakt  = !$kg && !$catering;
     $farbe    = $kg ? TJ_MAIL_FARBEN['rot'] : TJ_MAIL_FARBEN['gruen'];
 
-    /* ---------- Abschnitte aus den Formularfeldern ---------- */
+    /* ---------- Abschnitte aus den Formularfeldern ----------
+       Gruppe je Feld: 'kontakt' (Standard für Name, E-Mail, Telefon), 'adresse'
+       (Rechnungsadresse beim Catering-Planer) oder die Anfrage selbst. */
     $kontaktZeilen = [];
+    $adressZeilen  = [];
     $anfrageZeilen = [];
     $texte         = [];
     foreach ($definition['fields'] as $name => $rules) {
@@ -83,15 +86,34 @@ function tj_mail_dokumente(string $formKey, array $definition, array $values, ar
         if ($value === '') {
             continue;
         }
+        $gruppe = $rules['gruppe'] ?? (in_array($name, ['name', 'email', 'phone'], true) ? 'kontakt' : 'anfrage');
         if ($rules['type'] === 'textarea') {
             $texte[] = ['titel' => $rules['label'], 'text' => $value];
-        } elseif (in_array($name, ['name', 'email', 'phone'], true)) {
+        } elseif ($gruppe === 'kontakt') {
             $kontaktZeilen[] = [$rules['label'], tj_mail_feldwert($rules, $value)];
+        } elseif ($gruppe === 'adresse') {
+            $adressZeilen[] = [$rules['label'], tj_mail_feldwert($rules, $value)];
         } else {
             $anfrageZeilen[] = [$rules['label'], tj_mail_feldwert($rules, $value)];
         }
     }
-    $abschnitte = [['titel' => 'Kontaktdaten', 'zeilen' => $kontaktZeilen]];
+    // Anfrage an das Bistro: jede Angabe in eigener Zeile (gut zum Übernehmen ins Angebot)
+    $kontaktIntern = [['titel' => 'Kontaktdaten', 'zeilen' => $kontaktZeilen]];
+    if ($adressZeilen) {
+        $kontaktIntern[] = ['titel' => 'Rechnungsadresse', 'zeilen' => $adressZeilen];
+    }
+    // Bestätigung an den Gast: mit Anschrift kompakt in drei Zeilen statt zwei Tabellen
+    $kontaktKunde = $kontaktIntern;
+    if ($adressZeilen) {
+        $v = static function (string $n) use ($values): string { return trim((string) ($values[$n] ?? '')); };
+        $zeile = static function (array $teile): string { return implode(' · ', array_filter($teile, 'strlen')); };
+        $kontaktKunde = [['titel' => 'Deine Angaben', 'text' => implode("\n", array_filter([
+            $zeile([$v('name'), $v('company')]),
+            $zeile([$v('street'), trim($v('zip') . ' ' . $v('city'))]),
+            $zeile([$v('email'), $v('phone')]),
+        ], 'strlen'))]];
+    }
+    $abschnitte = [];
     if ($anfrageZeilen) {
         $abschnitte[] = ['titel' => $definition['abschnitt'] ?? 'Anfrage', 'zeilen' => $anfrageZeilen];
     }
@@ -159,7 +181,7 @@ function tj_mail_dokumente(string $formKey, array $definition, array $values, ar
         'titel'      => $definition['subject_prefix'] . ' über die Website',
         'vorschau'   => $definition['subject_prefix'] . ' von ' . $name,
         'einleitung' => ['Neue Anfrage über das Formular auf der Website. Mit „Antworten“ schreibst du direkt an ' . $email . '.'],
-        'abschnitte' => $abschnitte,
+        'abschnitte' => array_merge($kontaktIntern, $abschnitte),
         'fuss'       => ['Gesendet am ' . date('d.m.Y \u\m H:i') . ' Uhr', 'Antwort geht direkt an: ' . $email],
     ];
     if ($catering && $formKey === 'catering-rechner') {
@@ -190,7 +212,7 @@ function tj_mail_dokumente(string $formKey, array $definition, array $values, ar
                 ? 'vielen Dank für deine Nachricht. Wir haben sie erhalten und melden uns in der Regel innerhalb von 1–2 Werktagen bei dir. Hier ist eine Zusammenfassung deiner Angaben.'
                 : 'vielen Dank für deine Anfrage. Wir haben sie erhalten – hier ist eine Zusammenfassung deiner Angaben.',
         ],
-        'abschnitte' => $abschnitte,
+        'abschnitte' => array_merge($kontaktKunde, $abschnitte),
         'schluss'    => [
             'Fragen oder Änderungen? Antworte einfach auf diese E-Mail oder ruf uns an: ' . TJ_MAIL_BISTRO['telefon'] . '.',
             'Herzliche Grüße',
@@ -208,8 +230,9 @@ function tj_mail_dokumente(string $formKey, array $definition, array $values, ar
     if ($catering) {
         $kunde['hinweis'] = ['titel' => 'Unverbindliche Anfrage – noch keine Reservierung', 'text' => [
             'Deine Anfrage' . ($formKey === 'catering-rechner' ? ' und die angezeigte Kostenschätzung sind' : ' ist')
-            . ' unverbindlich. Dein Wunschtermin ist damit noch nicht reserviert.',
-            $verbindlich,
+            . ' unverbindlich. Durch das Absenden ist noch nichts reserviert oder gebucht.',
+            'Wir prüfen deine Anfrage und melden uns anschließend zur weiteren Abstimmung persönlich bei dir. '
+            . 'Erst mit unserer Bestätigung kommt eine verbindliche Reservierung zustande.',
         ]];
     } elseif ($kg) {
         $kunde['hinweis'] = ['titel' => 'Unverbindliche Anfrage – noch keine Reservierung', 'text' => [

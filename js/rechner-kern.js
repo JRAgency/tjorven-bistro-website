@@ -38,7 +38,7 @@
     var form    = document.getElementById('rechner-form');
     if (!dialog || !openBtn || !form || typeof dialog.showModal !== 'function') {
       // Sehr alte Browser ohne <dialog>: dann bleibt der Weg über PDF und Kontakt
-      if (openBtn) openBtn.addEventListener('click', function () { window.location.href = 'kontakt.html'; });
+      if (openBtn) openBtn.addEventListener('click', function () { window.location.href = '/kontakt/'; });
       return;
     }
 
@@ -376,7 +376,7 @@
           .catch(function () {
             ladeVersprechen = null;
             inhalt.innerHTML = '<p class="rechner__status rechner__status--error">Die Angaben konnten gerade nicht geladen werden. ' +
-              'Bitte versuche es gleich noch einmal oder schreib uns über das <a href="kontakt.html">Kontaktformular</a>.</p>';
+              'Bitte versuche es gleich noch einmal oder schreib uns über das <a href="/kontakt/">Kontaktformular</a>.</p>';
           });
       }
       return ladeVersprechen;
@@ -401,10 +401,20 @@
     dialog.querySelectorAll('[data-rechner-zu]').forEach(function (b) { b.addEventListener('click', schliessen); });
     // Klick neben das Panel schließt; alle Eingaben bleiben erhalten
     dialog.addEventListener('click', function (e) { if (e.target === dialog) schliessen(); });
+    // Eigene Adresse des Planers (z. B. /catering/planen/) – zeigt dieselbe Seite wie die Broschüre
+    function planenAdresse() {
+      return !!def.planenPfad && location.pathname.replace(/\/?$/, '/') === def.planenPfad;
+    }
+    // Nach dem Schließen bzw. ohne Planer zeigt die Adresszeile wieder die Broschüre
+    function zurBroschuere() {
+      if (planenAdresse() && def.broschuerePfad) history.replaceState(null, '', def.broschuerePfad + location.search);
+      else if (location.hash === '#rechner') history.replaceState(null, '', location.pathname + location.search);
+    }
+
     dialog.addEventListener('close', function () {
       document.documentElement.classList.remove('rechner-offen');
       try { sessionStorage.setItem(ZU_KEY, '1'); } catch (err) { /* ohne Speicher öffnet er beim Neuladen wieder */ }
-      if (location.hash === '#rechner') history.replaceState(null, '', location.pathname + location.search);
+      zurBroschuere();
       openBtn.focus({ preventScroll: true });
     });
 
@@ -420,12 +430,11 @@
     // Beim Aufruf der Broschüre öffnet der Rechner von selbst – außer er wurde in
     // diesem Tab schon einmal geschlossen. Ist der Datenschutz-Hinweis noch offen,
     // wartet er, bis der Hinweis beantwortet ist.
+    // Die Adresse …/planen/ und der alte Link #rechner wirken wie ein Klick auf „Planen“ –
+    // auf kleinen Bildschirmen bleibt es bei der Broschüre (siehe oben).
     function automatisch() {
-      if (!grosserBildschirm()) {
-        if (location.hash === '#rechner') history.replaceState(null, '', location.pathname + location.search);
-        return;
-      }
-      if (location.hash === '#rechner') { oeffnen(); return; }
+      if (!grosserBildschirm()) { zurBroschuere(); return; }
+      if (location.hash === '#rechner' || planenAdresse()) { oeffnen(); return; }
       if (!def.autoOeffnen) return;
       var zu = false;
       try { zu = sessionStorage.getItem(ZU_KEY) === '1'; } catch (err) { zu = false; }
