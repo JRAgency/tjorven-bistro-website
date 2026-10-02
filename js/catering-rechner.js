@@ -538,7 +538,8 @@
   TjRechner.starte({
     name: 'catering',
     configUrl: '/data/catering-preise.json',
-    autoOeffnen: true,
+    // Zuerst die Broschüre: Der Planer öffnet erst per Klick oder über /catering/planen/
+    autoOeffnen: false,
     planenPfad: '/catering/planen/',
     broschuerePfad: '/catering/broschuere/',
     state: state,

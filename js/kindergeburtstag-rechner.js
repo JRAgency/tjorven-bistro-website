@@ -177,7 +177,8 @@
   TjRechner.starte({
     name: 'kindergeburtstag',
     configUrl: '/data/kindergeburtstag-preise.json',
-    autoOeffnen: true,
+    // Zuerst die Broschüre: Der Planer öffnet erst per Klick oder über /kindergeburtstag/planen/
+    autoOeffnen: false,
     planenPfad: '/kindergeburtstag/planen/',
     broschuerePfad: '/kindergeburtstag/',
     ohneSumme: true,
