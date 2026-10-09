@@ -13,7 +13,8 @@
     { "source": "/impressum.html", "destination": "/impressum/", "statusCode": 301 },
     { "source": "/downloads/cateringmoeglichkeiten-tjorven-bistro.pdf", "destination": "/downloads/catering.pdf", "statusCode": 301 },
     { "source": "/downloads/tjorven-bistro-speise-und-getraenkekarte.pdf", "destination": "/downloads/speisekarte-getraenkekarte.pdf", "statusCode": 301 },
-    { "source": "/images/Tjorven_Speisekarte_Mobile.pdf", "destination": "/downloads/speisekarte-getraenkekarte.pdf", "statusCode": 301 }
+    { "source": "/images/Tjorven_Speisekarte_Mobile.pdf", "destination": "/downloads/speisekarte-getraenkekarte.pdf", "statusCode": 301 },
+    { "source": "/abholmonitor/admin/", "destination": "/abholmonitor/intern/", "statusCode": 301 }
   ],
   "rewrites": [
     { "source": "/speisekarte/", "destination": "/speisekarte.html" },

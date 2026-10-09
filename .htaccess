@@ -61,6 +61,10 @@ RewriteRule ^downloads/cateringmoeglichkeiten-tjorven-bistro\.pdf$ /downloads/ca
 RewriteRule ^downloads/tjorven-bistro-speise-und-getraenkekarte\.pdf$ /downloads/speisekarte-getraenkekarte.pdf [R=301,L]
 RewriteRule ^images/Tjorven_Speisekarte_Mobile\.pdf$ /downloads/speisekarte-getraenkekarte.pdf [R=301,L]
 
+# Abholmonitor: alte Verwaltungsadresse → interner Monitor (seit 10/2026 mit Firebase).
+# Die alten PHP-Dateien der früheren Version liegen ggf. noch auf dem Webspace.
+RewriteRule ^abholmonitor/admin(/.*)?$ /abholmonitor/intern/ [R=301,L]
+
 # 2) Ohne Schrägstrich am Ende → mit (eine einzige gültige Adresse)
 RewriteRule ^(speisekarte|catering|kindergeburtstag|ueber-uns|kontakt|datenschutz|impressum)$ /$1/ [R=301,L]
 RewriteRule ^catering/(broschuere|planen)$ /catering/$1/ [R=301,L]

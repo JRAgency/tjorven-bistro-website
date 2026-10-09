@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<!--
+  Abholmonitor – Bedienung (ohne Eingabe)
+  Wie der interne Monitor (/abholmonitor/intern/), aber OHNE Eingabe neuer Bestellungen:
+  kein Nummernfeld, kein Tierfeld, kein Tier-Popup. Bestehende Bestellungen werden
+  angezeigt und mit großen Knöpfen bedient: Abholbereit / Zurück / Löschen.
+  Gleiche Firebase-Daten („orders“), gleiche Statuswerte (prep / ready).
+-->
+<meta charset="UTF-8">
+<title>Abholmonitor – Bedienung</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+
+<link href="https://fonts.cdnfonts.com/css/fontin-sans" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<style>
+/* Schrift: Fontin Sans (Link oben). Lädt die nicht, greift wie auf der Website
+   die lokal gehostete Nunito – keine weitere externe Anfrage. */
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/nunito-400-normal-latin.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('/fonts/nunito-600-normal-latin.woff2') format('woff2');
+}
+
+header, footer, .site-header, .site-footer, #header, #footer {
+    display: none !important;
+}
+
+:root {
+    --rot: #af2f3d;
+    --gruen: #186118;
+    --gold: #e9ba5f;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    font-family: 'Fontin Sans', 'Nunito', sans-serif;
+    background: #f7f7f7;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* Container */
+#container {
+    position: fixed;
+    inset: 0;
+    padding: 60px 20px 20px 20px;
+    display: flex;
+    gap: 20px;
+    box-sizing: border-box;
+}
+
+/* Spalten */
+.column {
+    flex: 1 1 33%;
+    padding: 15px;
+    background: white;
+    border-radius: 12px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+/* Linke Spalte */
+#left {
+    border: 4px solid var(--gold);
+    text-align: center;
+}
+
+#logo {
+    width: 80%;
+    max-width: 300px;
+    margin-bottom: 15px;
+}
+
+#left h1 {
+    font-size: 2.4rem;
+    color: var(--gruen);
+    margin: 5px 0;
+}
+
+/* Listen */
+.column h2 {
+    text-align: center;
+    font-size: 1.5rem;
+    color: var(--rot);
+    margin: 0;
+}
+
+.list {
+    margin-top: 12px;
+}
+
+/* Bestellungen – größer als im internen Monitor, damit sich die Knöpfe gut
+   antippen lassen: Nummer oben, darunter die Knöpfe in einer eigenen Zeile,
+   gleich breit über die ganze Karte. */
+.order {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px 12px;
+    padding: 12px 14px;
+    margin: 10px 0;
+    border-radius: 10px;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.order > span {
+    flex: 1 1 auto;
+}
+
+.order.prep {
+    background: var(--gold);
+}
+
+.order.ready {
+    background: #c8f7c5;
+    animation: blinkReady 1.2s infinite;
+}
+
+@keyframes blinkReady {
+    0% { background-color: #c8f7c5; }
+    50% { background-color: #a6e8a3; }
+    100% { background-color: #c8f7c5; }
+}
+
+.order-buttons {
+    display: flex;
+    gap: 10px;
+    flex: 1 1 100%;
+}
+
+.order-buttons button {
+    flex: 1 1 0;
+    min-height: 64px;
+    min-width: 120px;
+    font-family: inherit;
+    font-size: 1.3rem;
+    font-weight: 600;
+    padding: 12px 8px;
+    background: var(--rot);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.order-buttons button:hover,
+.order-buttons button:active {
+    background: var(--gruen);
+}
+
+/* 📱 Handy hochkant */
+@media (max-width: 600px) {
+    /* kleineres Logo, damit die Bestellungen ohne langes Scrollen erreichbar sind */
+    #logo {
+        max-width: 140px;
+    }
+
+    #container {
+        flex-direction: column;
+        overflow-y: auto;
+        padding: 20px;
+    }
+
+    .column {
+        flex: none;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+}
+
+/* 📟 Tablet hochkant */
+@media (max-width: 900px) and (orientation: portrait) {
+    #container {
+        flex-direction: column;
+        overflow-y: auto;
+        padding: 30px;
+    }
+
+    .column {
+        flex: none;
+        width: 100%;
+        margin-bottom: 25px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div id="container">
+
+    <!-- Spalte 1 -->
+    <div id="left" class="column">
+
+        <img id="logo" src="/abholmonitor/logo-kreis.png" alt="Tjorven Logo">
+
+        <h1>Bedienung</h1>
+
+    </div>
+
+    <!-- Spalte 2 -->
+    <div class="column">
+        <h2>In Vorbereitung</h2>
+        <div id="prepList" class="list"></div>
+    </div>
+
+    <!-- Spalte 3 -->
+    <div class="column">
+        <h2>Abholbereit</h2>
+        <div id="readyList" class="list"></div>
+    </div>
+
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAobjFE0XOHUq8DLRhJf-1hfXQ7LKpKTs",
+  authDomain: "abholmonitor.firebaseapp.com",
+  databaseURL: "https://abholmonitor-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "abholmonitor",
+  storageBucket: "abholmonitor.firebasestorage.app",
+  messagingSenderId: "433360255912",
+  appId: "1:433360255912:web:99823d9bd84a97d619bb9d"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* Status ändern */
+function setStatus(id, status) {
+  db.ref("orders/" + id).update({ status });
+}
+
+/* Löschen */
+function removeOrder(id) {
+  db.ref("orders/" + id).remove();
+}
+
+/* Knopf an einer Bestellung (per Code statt onclick-Text, damit Schlüssel
+   und Werte aus der Datenbank nie als HTML/Code gelesen werden) */
+function orderButton(text, action) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = text;
+  b.addEventListener("click", action);
+  return b;
+}
+
+/* Anzeige – wie im internen Monitor, die Knöpfe sind hier immer da */
+db.ref("orders").on("value", snapshot => {
+  const data = snapshot.val() || {};
+  const prepList = document.getElementById("prepList");
+  const readyList = document.getElementById("readyList");
+
+  prepList.innerHTML = "";
+  readyList.innerHTML = "";
+
+  const entries = Object.entries(data).sort((a, b) => Number(a[1].number) - Number(b[1].number));
+
+  entries.forEach(([id, o]) => {
+    const div = document.createElement("div");
+    div.className = "order " + (o.status === "prep" ? "prep" : "ready");
+
+    const animalText = o.animal ? ` – ${o.animal}` : "";
+
+    const text = document.createElement("span");
+    text.textContent = `${o.number}${animalText}`;
+    div.appendChild(text);
+
+    const buttons = document.createElement("div");
+    buttons.className = "order-buttons";
+    buttons.appendChild(o.status === "prep"
+      ? orderButton("Abholbereit", () => setStatus(id, "ready"))
+      : orderButton("Zurück", () => setStatus(id, "prep")));
+    buttons.appendChild(orderButton("Löschen", () => removeOrder(id)));
+    div.appendChild(buttons);
+
+    if (o.status === "prep") prepList.appendChild(div);
+    else readyList.appendChild(div);
+  });
+});
+</script>
+</body>
+</html>
