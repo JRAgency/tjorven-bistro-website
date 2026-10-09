@@ -5,7 +5,8 @@
   Abholmonitor – Bedienung (ohne Eingabe)
   Wie der interne Monitor (/abholmonitor/intern/), aber OHNE Eingabe neuer Bestellungen:
   kein Nummernfeld, kein Tierfeld, kein Tier-Popup. Bestehende Bestellungen werden
-  angezeigt und mit großen Knöpfen bedient: Abholbereit / Zurück / Löschen.
+  angezeigt, je Bestellung eine Zeile mit Symbolknöpfen:
+  → Abholbereit · ← Zurück in Vorbereitung · × Löschen (Bezeichnung als aria-label).
   Gleiche Firebase-Daten („orders“), gleiche Statuswerte (prep / ready).
 -->
 <meta charset="UTF-8">
@@ -79,24 +80,6 @@ body {
     overflow-y: auto;
 }
 
-/* Linke Spalte */
-#left {
-    border: 4px solid var(--gold);
-    text-align: center;
-}
-
-#logo {
-    width: 80%;
-    max-width: 300px;
-    margin-bottom: 15px;
-}
-
-#left h1 {
-    font-size: 2.4rem;
-    color: var(--gruen);
-    margin: 5px 0;
-}
-
 /* Listen */
 .column h2 {
     text-align: center;
@@ -109,24 +92,28 @@ body {
     margin-top: 12px;
 }
 
-/* Bestellungen – größer als im internen Monitor, damit sich die Knöpfe gut
-   antippen lassen: Nummer oben, darunter die Knöpfe in einer eigenen Zeile,
-   gleich breit über die ganze Karte. */
+/* Bestellungen – je Bestellung EINE flache Zeile: Nummer (– Tier) links,
+   Symbolknöpfe rechts. Nichts bricht um; ein sehr langer Text wird gekürzt,
+   statt die Knöpfe zu verdrängen. */
 .order {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: space-between;
     align-items: center;
-    gap: 10px 12px;
-    padding: 12px 14px;
-    margin: 10px 0;
+    gap: 10px;
+    padding: 5px 6px 5px 14px;
+    margin: 6px 0;
     border-radius: 10px;
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     font-weight: 600;
 }
 
 .order > span {
     flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .order.prep {
@@ -146,24 +133,30 @@ body {
 
 .order-buttons {
     display: flex;
-    gap: 10px;
-    flex: 1 1 100%;
+    flex: none;
+    gap: 8px;
 }
 
+/* Symbolknöpfe → ← ×: kompakt, aber 48 × 48 px Tippfläche */
 .order-buttons button {
-    flex: 1 1 0;
-    min-height: 64px;
-    min-width: 120px;
-    font-family: inherit;
-    font-size: 1.3rem;
-    font-weight: 600;
-    padding: 12px 8px;
+    flex: none;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background: var(--rot);
     color: white;
     border: none;
     border-radius: 10px;
     cursor: pointer;
     touch-action: manipulation;
+}
+
+.order-buttons button svg {
+    width: 28px;
+    height: 28px;
 }
 
 .order-buttons button:hover,
@@ -173,11 +166,6 @@ body {
 
 /* 📱 Handy hochkant */
 @media (max-width: 600px) {
-    /* kleineres Logo, damit die Bestellungen ohne langes Scrollen erreichbar sind */
-    #logo {
-        max-width: 140px;
-    }
-
     #container {
         flex-direction: column;
         overflow-y: auto;
@@ -205,6 +193,24 @@ body {
         margin-bottom: 25px;
     }
 }
+
+/* 📱 Handy: schmale Ränder, damit viele Bestellungen auf den Schirm passen
+   (steht nach „Tablet hochkant“, weil diese Regel auch für Handys gilt) */
+@media (max-width: 600px) {
+    #container {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .column {
+        padding: 10px;
+        margin-bottom: 0;
+    }
+
+    .list {
+        margin-top: 6px;
+    }
+}
 </style>
 </head>
 <body>
@@ -212,21 +218,12 @@ body {
 <div id="container">
 
     <!-- Spalte 1 -->
-    <div id="left" class="column">
-
-        <img id="logo" src="/abholmonitor/logo-kreis.png" alt="Tjorven Logo">
-
-        <h1>Bedienung</h1>
-
-    </div>
-
-    <!-- Spalte 2 -->
     <div class="column">
         <h2>In Vorbereitung</h2>
         <div id="prepList" class="list"></div>
     </div>
 
-    <!-- Spalte 3 -->
+    <!-- Spalte 2 -->
     <div class="column">
         <h2>Abholbereit</h2>
         <div id="readyList" class="list"></div>
@@ -258,12 +255,22 @@ function removeOrder(id) {
   db.ref("orders/" + id).remove();
 }
 
-/* Knopf an einer Bestellung (per Code statt onclick-Text, damit Schlüssel
-   und Werte aus der Datenbank nie als HTML/Code gelesen werden) */
-function orderButton(text, action) {
+/* Symbole der Knöpfe (feste SVG-Grafiken, keine Emoji) */
+const ICONS = {
+  rechts:  '<path d="M4 12h15M13 6l6 6-6 6"/>',
+  links:   '<path d="M20 12H5M11 6l-6 6 6 6"/>',
+  loeschen: '<path d="M6 6l12 12M18 6L6 18"/>'
+};
+
+/* Knopf an einer Bestellung: sichtbar nur das Symbol, die Bedeutung steht im
+   aria-label (Screenreader) und im title (Tooltip mit Maus). Per Code statt
+   onclick-Text, damit Werte aus der Datenbank nie als HTML/Code gelesen werden. */
+function orderButton(label, icon, action) {
   const b = document.createElement("button");
   b.type = "button";
-  b.textContent = text;
+  b.setAttribute("aria-label", label);
+  b.title = label;
+  b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + ICONS[icon] + '</svg>';
   b.addEventListener("click", action);
   return b;
 }
@@ -292,9 +299,9 @@ db.ref("orders").on("value", snapshot => {
     const buttons = document.createElement("div");
     buttons.className = "order-buttons";
     buttons.appendChild(o.status === "prep"
-      ? orderButton("Abholbereit", () => setStatus(id, "ready"))
-      : orderButton("Zurück", () => setStatus(id, "prep")));
-    buttons.appendChild(orderButton("Löschen", () => removeOrder(id)));
+      ? orderButton("Abholbereit", "rechts", () => setStatus(id, "ready"))
+      : orderButton("Zurück in Vorbereitung", "links", () => setStatus(id, "prep")));
+    buttons.appendChild(orderButton("Bestellung löschen", "loeschen", () => removeOrder(id)));
     div.appendChild(buttons);
 
     if (o.status === "prep") prepList.appendChild(div);
