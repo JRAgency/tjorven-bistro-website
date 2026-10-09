@@ -90,30 +90,44 @@ body {
 
 .list {
     margin-top: 12px;
+    /* gemeinsames Spaltenraster aller Zeilen einer Liste (siehe .order) */
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(48px, 1fr);
+    column-gap: 8px;
+    row-gap: 6px;
 }
 
-/* Bestellungen – je Bestellung EINE flache Zeile: Nummer (– Tier) links,
-   Symbolknöpfe rechts. Nichts bricht um; ein sehr langer Text wird gekürzt,
-   statt die Knöpfe zu verdrängen. */
+/* Bestellungen – je Bestellung EINE flache Zeile in drei Bereichen:
+   Nummer (– Tier) links | Pfeil in der Mitte | × ganz rechts.
+   Linker und rechter Bereich sind gleich breit (1fr), dadurch sitzt der Pfeil
+   mittig in der Karte. Ist der Text länger als die linke Hälfte, wächst der
+   linke Bereich mit (max-content) und der Pfeil weicht nach rechts aus –
+   er verdeckt den Text nie. Nichts bricht um. Mit „subgrid“ teilen sich alle
+   Zeilen einer Liste dieselben Spalten: Die Pfeile stehen genau untereinander
+   (ältere Browser nutzen die Zeile davor – dann je Zeile für sich). */
 .order {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: space-between;
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(48px, 1fr);
+    grid-template-columns: subgrid;
     align-items: center;
-    gap: 10px;
+    column-gap: 8px;
     padding: 5px 6px 5px 14px;
-    margin: 6px 0;
+    margin: 0;
     border-radius: 10px;
     font-size: 1.4rem;
     font-weight: 600;
 }
 
 .order > span {
-    flex: 1 1 auto;
+    grid-column: 1;
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    /* Obergrenze nur für ungewöhnlich lange Einträge, damit × immer erreichbar
+       bleibt (zwei Spalten nebeneinander; einspaltig siehe unten) */
+    max-width: calc(50vw - 200px);
 }
 
 .order.prep {
@@ -131,10 +145,18 @@ body {
     100% { background-color: #c8f7c5; }
 }
 
+/* Die Knopfgruppe löst sich im Raster auf: Pfeil → Mitte, × → rechter Rand */
 .order-buttons {
-    display: flex;
-    flex: none;
-    gap: 8px;
+    display: contents;
+}
+
+.order-buttons button:first-child {
+    grid-column: 2;
+}
+
+.order-buttons button:last-child {
+    grid-column: 3;
+    justify-self: end;
 }
 
 /* Symbolknöpfe → ← ×: kompakt, aber 48 × 48 px Tippfläche */
@@ -194,6 +216,13 @@ body {
     }
 }
 
+/* einspaltig (Tablet hochkant): Obergrenze des Textes an der vollen Breite */
+@media (max-width: 900px) and (orientation: portrait) {
+    .order > span {
+        max-width: calc(100vw - 230px);
+    }
+}
+
 /* 📱 Handy: schmale Ränder, damit viele Bestellungen auf den Schirm passen
    (steht nach „Tablet hochkant“, weil diese Regel auch für Handys gilt) */
 @media (max-width: 600px) {
@@ -209,6 +238,10 @@ body {
 
     .list {
         margin-top: 6px;
+    }
+
+    .order > span {
+        max-width: calc(100vw - 180px);
     }
 }
 </style>
