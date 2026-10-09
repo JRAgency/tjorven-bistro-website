@@ -6,6 +6,11 @@
   Grundlage: HTML-Version von Tilman Lichdi (Stand 10/2026). Diese Seite LIEST die
   Bestellungen nur (Firebase „orders“) – keine Eingabe, keine Bedienknöpfe.
   Küche: /abholmonitor/intern/ · Bedienung ohne Eingabe: /abholmonitor/bedienung/
+
+  Zwei Modi, umgeschaltet allein durch Firebase:
+  – keine Bestellung in „orders“  → Werbung im Vollbild (Querformat-Bilder)
+  – mindestens eine Bestellung    → In Vorbereitung | Abholbereit | Werbung hochkant (rechte Spalte)
+  Beide Darstellungen zeigen dieselbe Slide-Liste (unten „slides“) im selben Takt.
 -->
 <meta charset="UTF-8">
 <title>Abholmonitor – Öffentliche Anzeige</title>
@@ -58,6 +63,26 @@ body {
     box-sizing: border-box;
 }
 
+/* ================= Umschaltung der Modi =================
+   data-modus am <body> setzt allein das Firebase-Ergebnis (siehe Skript). */
+#vollbild {
+    display: none;
+}
+body[data-modus="werbung"] #vollbild {
+    display: block;
+    animation: modusEin 0.8s ease-out;
+}
+body[data-modus="werbung"] #container {
+    display: none;
+}
+body[data-modus="bestellung"] #container {
+    animation: modusEin 0.8s ease-out;
+}
+@keyframes modusEin {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 /* Container */
 #container {
     position: fixed;
@@ -78,8 +103,8 @@ body {
     overflow-y: auto;
 }
 
-/* Linke Spalte – Diashow */
-#left {
+/* Rechte Spalte – Werbung hochkant */
+#werbung {
     border: 4px solid var(--gold);
     padding: 0;
     overflow: hidden;
@@ -92,104 +117,29 @@ body {
     container-type: size;
 }
 
-/* ---------- Slides (lokale Bilder aus /images/abholmonitor/) ----------
-   Jede Slide füllt die Fläche; die Überblendung (3 s) und die Anzeigedauer
-   (9000 ms) sind wie im Original. Schriftgrößen wachsen mit der Fläche
-   (cqw), damit sie auf dem Fernseher aus einigen Metern lesbar sind; ältere
-   Browser ohne cqw nehmen den Wert davor (bezogen auf 1920×1080). */
+/* ---------- Gemeinsam für beide Darstellungen ----------
+   Überblendung 3 s, Anzeigedauer 9000 ms wie im Original. */
 .slide {
     position: absolute;
     inset: 0;
     margin: 0;
-    display: flex;
-    flex-direction: column;
     background: var(--gruen);
     color: #fff;
     opacity: 0;
     transition: opacity 3s ease-in-out;
     overflow: hidden;
+    visibility: hidden;
 }
-
-/* Fertige Werbegrafik: vollständig sichtbar, oben bündig – darunter geht die
-   grüne Fläche der Grafik nahtlos weiter (#186118 = --gruen). */
-.slide.grafik img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: center top;
-}
-
-/* Foto-Bereich: füllt den Platz über dem Textfeld */
-.slide .foto {
-    position: relative;
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
-    background: #ece5da;
-}
-.slide .foto img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-/* Querformat-Foto in einer Produkt-Slide (z. B. Lasagne-Platzhalter):
-   ganz zeigen statt beschneiden, dahinter dasselbe Bild unscharf als Fläche.
-   Wird beim Laden automatisch erkannt – ein neues Foto braucht keine Codeänderung. */
-.slide .foto.quer img.bild { object-fit: contain; }
-.slide .foto img.unschaerfe {
-    object-fit: cover;
-    filter: blur(28px) brightness(0.8);
-    transform: scale(1.15);
-}
-/* Promo-Slides zeigen ein Querformat oben in voller Breite */
-.slide.promo .foto {
-    flex: 0 0 auto;
-    aspect-ratio: 3 / 2;
-}
-.slide.promo .foto.deckblatt { aspect-ratio: 1200 / 848; }
-
-/* Textfeld unter dem Foto */
-.slide figcaption {
-    flex: 0 0 auto;
-    padding: 4.5% 6% 5.5%;
-    display: flex;
-    flex-direction: column;
-    gap: 0.4em;
-    line-height: 1.15;
-}
-.slide .name {
-    font-size: 49px;
-    font-size: 8.1cqw;
-    font-weight: 600;
-}
-.slide .preis {
-    font-size: 70px;
-    font-size: 11.5cqw;
-    font-weight: 600;
-    color: var(--gold);
-    white-space: nowrap;
-}
+.slide.sichtbar { visibility: visible; }
 .slide .preis small,
 .karte .preis small {
     font-size: 0.6em;
     font-weight: 600;
 }
-.slide .zusatz {
-    font-size: 27px;
-    font-size: 4.4cqw;
-    opacity: 0.92;
-    line-height: 1.3;
-}
-
-/* Kaffee: mehrere Getränke mit Preis */
 .karte {
     list-style: none;
     margin: 0;
     padding: 0;
-    font-size: 44px;
-    font-size: 7.3cqw;
 }
 .karte li {
     display: flex;
@@ -201,37 +151,26 @@ body {
 }
 .karte li:last-child { border-bottom: 0; }
 .karte .preis {
-    font-size: 1em;
     font-weight: 600;
     color: var(--gold);
     white-space: nowrap;
 }
-
-/* Promo-Slides (Feiern, Catering, Kindergeburtstag) */
-.slide.promo figcaption {
-    flex: 1 1 auto;
-    justify-content: center;
-    gap: 0.55em;
-}
-.slide.promo.rot { background: var(--rot); }
-.slide .titel {
-    font-size: 54px;
-    font-size: 8.9cqw;
+.slide .name,
+.slide .titel { font-weight: 600; }
+.slide .preis {
     font-weight: 600;
-    line-height: 1.12;
+    color: var(--gold);
+    white-space: nowrap;
 }
 .slide .unter {
-    font-size: 36px;
-    font-size: 6cqw;
     color: var(--gold);
     font-weight: 600;
 }
+.slide .zusatz { opacity: 0.92; line-height: 1.3; }
 .slide .punkte {
     margin: 0;
     padding: 0;
     list-style: none;
-    font-size: 31px;
-    font-size: 5.1cqw;
     line-height: 1.3;
 }
 .slide .punkte li {
@@ -245,13 +184,153 @@ body {
     left: 0;
     color: var(--gold);
 }
-.slide .cta {
-    font-size: 27px;
-    font-size: 4.5cqw;
-    line-height: 1.35;
-    opacity: 0.95;
-    margin-top: 0.3em;
+.slide .cta { line-height: 1.35; opacity: 0.95; }
+.unschaerfe {
+    filter: blur(28px) brightness(0.8);
+    transform: scale(1.15);
 }
+
+/* ---------- Hochkant (rechte Spalte im Bestellmodus) ----------
+   Foto oben, Text darunter – wie in Tilmans fertigen Grafiken. Schriftgrößen
+   wachsen mit der Spalte (cqw); ältere Browser nehmen den Wert davor (1920×1080). */
+#slideshow .slide {
+    display: flex;
+    flex-direction: column;
+}
+#slideshow .slide.grafik img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center top;
+}
+#slideshow .foto {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    background: #ece5da;
+}
+#slideshow .foto img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+/* Nur ein Querformat vorhanden (z. B. Lasagne-Platzhalter): ganz zeigen, dahinter unscharf */
+#slideshow .foto.quer img.bild { object-fit: contain; }
+#slideshow .foto.deckblatt {
+    flex: 0 0 auto;
+    aspect-ratio: 1200 / 848;
+}
+#slideshow figcaption {
+    flex: 0 0 auto;
+    padding: 4.5% 6% 5.5%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    line-height: 1.15;
+}
+#slideshow .promo figcaption { gap: 0.5em; }
+#slideshow .promo.mit-deckblatt figcaption {
+    flex: 1 1 auto;
+    justify-content: center;
+}
+#slideshow .promo.rot { background: var(--rot); }
+#slideshow .name { font-size: 49px; font-size: 8.1cqw; }
+#slideshow .preis { font-size: 70px; font-size: 11.5cqw; }
+#slideshow .zusatz { font-size: 27px; font-size: 4.4cqw; }
+#slideshow .karte { font-size: 44px; font-size: 7.3cqw; }
+#slideshow .karte .preis { font-size: 1em; }
+#slideshow .titel { font-size: 49px; font-size: 8.1cqw; line-height: 1.12; }
+#slideshow .unter { font-size: 34px; font-size: 5.6cqw; }
+#slideshow .punkte { font-size: 31px; font-size: 5.1cqw; }
+#slideshow .cta { font-size: 27px; font-size: 4.5cqw; margin-top: 0.2em; }
+
+/* ---------- Vollbild (Querformat, keine Bestellung) ----------
+   Das Querformat-Bild füllt den ganzen Fernseher; Name, Beschreibung und Preis
+   stehen in einer grünen Karte dort, wo das Produkt nicht verdeckt wird
+   (Position je Slide, siehe „text“ in der Slide-Liste). Größen in vh = Fernsehhöhe. */
+#vollbild {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    background: var(--gruen);
+    overflow: hidden;
+}
+#vollbild .bild-voll,
+#vollbild .unschaerfe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+/* Fertige Grafik (hochkant, mit eigenem Text): ganz, mittig, ohne zusätzlichen Text */
+#vollbild .grafik-bild {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+/* Nur ein Hochkant-Foto vorhanden: Foto rechts ganz, Text links */
+#vollbild .hoch-bild {
+    position: absolute;
+    top: 4vh;
+    right: 6vw;
+    height: 92vh;
+    width: auto;
+    object-fit: contain;
+    border-radius: 24px;
+    box-shadow: 0 1.2vh 4vh rgba(0, 0, 0, 0.3);
+}
+/* Broschüren-Deckblatt (Querformat mit eigenem Titel): links ganz, Punkte rechts */
+#vollbild .deckblatt-bild {
+    position: absolute;
+    left: 3vw;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 58vw;
+    height: auto;
+    object-fit: contain;
+    border-radius: 18px;
+    box-shadow: 0 1.2vh 4vh rgba(0, 0, 0, 0.3);
+}
+#vollbild figcaption {
+    position: absolute;
+    box-sizing: border-box;
+    max-height: 92vh;
+    padding: 3.4vh 2.4vw 3.8vh;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1vh;
+    line-height: 1.15;
+    background: rgba(24, 97, 24, 0.93);
+    border-radius: 28px;
+    box-shadow: 0 1.2vh 4vh rgba(0, 0, 0, 0.28);
+}
+#vollbild .rot figcaption { background: rgba(175, 47, 61, 0.95); }
+#vollbild .pos-oben-links { top: 5vh; left: 3vw; width: 32vw; }
+#vollbild .pos-links { top: 50%; left: 2.5vw; width: 27vw; transform: translateY(-50%); }
+#vollbild .pos-rechts { top: 50%; right: 2.5vw; width: 28vw; transform: translateY(-50%); }
+#vollbild .pos-unten-rechts { bottom: 5vh; right: 2.5vw; width: 31vw; }
+#vollbild .pos-split { top: 50%; left: 5vw; width: 42vw; transform: translateY(-50%); }
+#vollbild .pos-deckblatt { top: 50%; right: 3vw; width: 33vw; transform: translateY(-50%); }
+#vollbild .name { font-size: 7vh; }
+#vollbild .pos-links .name,
+#vollbild .pos-rechts .name,
+#vollbild .pos-unten-rechts .name { font-size: 6vh; }   /* schmale Seitenkarten: lange Wörter wie „Hausgemachte“ passen */
+#vollbild .preis { font-size: 9.5vh; }
+#vollbild .zusatz { font-size: 3.1vh; }
+#vollbild .karte { font-size: 5vh; }
+#vollbild .karte .preis { font-size: 1em; }
+#vollbild .titel { font-size: 6.2vh; line-height: 1.1; }
+#vollbild .pos-links .titel,
+#vollbild .pos-oben-links .titel { font-size: 5.4vh; }
+#vollbild .unter { font-size: 4vh; }
+#vollbild .punkte { font-size: 3.6vh; }
+#vollbild .cta { font-size: 2.9vh; margin-top: 0.6vh; }
 
 /* Mittlere & rechte Spalte */
 .column h2 {
@@ -344,222 +423,262 @@ body {
     }
 }
 
-/* Untereinander (Handy/Tablet hochkant): Die Diashow-Spalte bekommt das
+/* Untereinander (Handy/Tablet hochkant): Die Werbespalte bekommt das
    Seitenverhältnis wie auf dem Fernseher, sonst hätte sie keine Höhe. */
 @media (max-width: 600px), (max-width: 900px) and (orientation: portrait) {
-    #left {
+    #werbung {
         aspect-ratio: 605 / 992;
         flex: none;
     }
 }
+
+/* Hochkant-Bildschirm ohne Bestellung: statt Querformat die Hochkant-Werbung
+   bildschirmfüllend (gleiche Slides). */
+@media (orientation: portrait) {
+    body[data-modus="werbung"] #vollbild { display: none; }
+    body[data-modus="werbung"] #container {
+        display: flex;
+        padding: 20px;
+        overflow: hidden;
+    }
+    body[data-modus="werbung"] #container > .column:not(#werbung) { display: none; }
+    body[data-modus="werbung"] #werbung {
+        flex: 1 1 auto;
+        aspect-ratio: auto;
+        height: 100%;
+        margin: 0;
+    }
+}
 </style>
 </head>
-<body>
+<body data-modus="werbung">
 
+<!-- Modus „keine Bestellung“: Werbung im Vollbild (Querformat) -->
+<div id="vollbild" aria-hidden="true"></div>
+
+<!-- Modus „Bestellung vorhanden“ -->
 <div id="container">
 
-    <!-- Spalte 1 – Diashow
-         Reihenfolge = Reihenfolge der Anzeige. Preise 1:1 aus der Speisekarte
-         (speisekarte.html = Canva-Karte), Texte der Catering-/Kindergeburtstag-
-         Slides aus den Broschüren (downloads/catering.pdf, downloads/kindergeburtstag-tjorven-bistro.pdf).
-         Eine Slide mit hidden wird übersprungen. -->
-    <div id="left" class="column">
-        <div id="slideshow">
-
-            <figure class="slide grafik">
-                <img src="/images/abholmonitor/29-herzlich-willkommen-tjorven-bistro.jpeg" alt="Herzlich Willkommen im Tjorven Bistro">
-            </figure>
-
-            <figure class="slide produkt">
-                <div class="foto"><img class="bild" src="/images/abholmonitor/10-wrap-gemuese-hochkant.jpeg" alt="" style="object-position: 50% 72%"></div>
-                <figcaption>
-                    <span class="name">Getoasteter Wrap</span>
-                    <span class="preis">8.0 <small>€</small></span>
-                </figcaption>
-            </figure>
-
-            <!-- Kaffee 1: Cappuccino-Foto mit den Milchkaffee-Getränken der Karte -->
-            <figure class="slide produkt kaffee">
-                <div class="foto"><img class="bild" src="/images/abholmonitor/08-kaffee-cappuccino-hochkant.jpeg" alt="" style="object-position: 50% 82%"></div>
-                <figcaption>
-                    <ul class="karte">
-                        <li><span>Cappuccino</span><span class="preis">4.0 <small>€</small></span></li>
-                        <li><span>Milchkaffee</span><span class="preis">4.0 <small>€</small></span></li>
-                        <li><span>Latte Macchiato</span><span class="preis">4.5 <small>€</small></span></li>
-                        <li><span>Cortado</span><span class="preis">3.2 <small>€</small></span></li>
-                    </ul>
-                    <span class="zusatz">Milchgetränke servieren wir mit Hafermilch, wahlweise Sojamilch oder einer glutenfreien Alternative.</span>
-                </figcaption>
-            </figure>
-
-            <figure class="slide promo">
-                <div class="foto"><img class="bild" src="/images/abholmonitor/06-zimtschnecken-quer.jpeg" alt=""></div>
-                <figcaption>
-                    <span class="titel">Geburtstags- &amp; Familienfeiern</span>
-                    <span class="unter">als Brunch auf der Klima-Arena-Eventfläche</span>
-                    <span class="cta">Website: tjorven-bistro.de<br>oder direkt im Bistro ansprechen</span>
-                </figcaption>
-            </figure>
-
-            <figure class="slide produkt">
-                <div class="foto"><img class="bild" src="/images/abholmonitor/14-saisonale-bowl-hochkant.jpeg" alt="" style="object-position: 50% 70%"></div>
-                <figcaption>
-                    <span class="name">Tjorvens saisonale Bowl</span>
-                    <span class="preis">13.5 <small>€</small></span>
-                </figcaption>
-            </figure>
-
-            <figure class="slide produkt">
-                <div class="foto"><img class="bild" src="/images/abholmonitor/23-pommes-service-hochkant.jpeg" alt="" style="object-position: 50% 45%"></div>
-                <figcaption>
-                    <span class="name">Knusprige Pommes</span>
-                    <span class="preis">4.5 <small>€</small></span>
-                    <span class="zusatz">Eine große Portion Pommes mit Ketchup &amp; hausgemachter Mayonnaise</span>
-                </figcaption>
-            </figure>
-
-            <figure class="slide grafik">
-                <img src="/images/abholmonitor/22-events-klima-arena-eventflaeche.jpeg" alt="Events auf der Klima-Arena-Eventfläche">
-            </figure>
-
-            <figure class="slide produkt">
-                <div class="foto"><img class="bild" src="/images/abholmonitor/11-focaccia-hochkant.jpeg" alt="" style="object-position: 50% 62%"></div>
-                <figcaption>
-                    <span class="name">Saisonales Focaccia</span>
-                    <span class="preis">5.5 <small>€</small></span>
-                </figcaption>
-            </figure>
-
-            <!-- Kaffee 2: Americano-Foto mit Americano, Espresso, Doppio, Espresso Macchiato
-                 (Karte: „Espresso | Doppio 2.5 | 3.5“ – hier in zwei Zeilen, damit nichts umbricht) -->
-            <figure class="slide produkt kaffee">
-                <div class="foto"><img class="bild" src="/images/abholmonitor/24-kaffee-cappuccino-barista-hochkant.jpeg" alt="" style="object-position: 50% 62%"></div>
-                <figcaption>
-                    <ul class="karte">
-                        <li><span>Americano</span><span class="preis">3.5 <small>€</small></span></li>
-                        <li><span>Espresso</span><span class="preis">2.5 <small>€</small></span></li>
-                        <li><span>Doppio</span><span class="preis">3.5 <small>€</small></span></li>
-                        <li><span>Espresso Macchiato</span><span class="preis">3.0 <small>€</small></span></li>
-                    </ul>
-                    <span class="zusatz">Fair gehandelte sowie bio zertifizierte Kaffeebohnen von Schramms Kaffeerösterei aus Speyer.</span>
-                </figcaption>
-            </figure>
-
-            <!-- Kindergeburtstag: Deckblatt und Punkte aus downloads/kindergeburtstag-tjorven-bistro.pdf (Seite 1–2) -->
-            <figure class="slide promo rot">
-                <div class="foto deckblatt"><img class="bild" src="/images/kindergeburtstag-broschuere/seite-1-1200.webp" alt=""></div>
-                <figcaption>
-                    <ul class="punkte">
-                        <li>Eigener Tischbereich für Eure Gruppe</li>
-                        <li>Mehrfaches Kommen und Gehen möglich</li>
-                        <li>Kuchen darf mitgebracht werden</li>
-                        <li>Kindergeburtstags-Menüs auf Wunsch</li>
-                    </ul>
-                    <span class="cta">Website: tjorven-bistro.de<br>oder direkt im Bistro ansprechen</span>
-                </figcaption>
-            </figure>
-
-            <!-- LASAGNE – PLATZHALTER-FOTO: bald durch ein Foto von Anton ersetzen.
-                 Dafür nur die Bilddatei austauschen (gleicher Dateiname) oder unten
-                 den Pfad ändern. Hoch- und Querformat werden automatisch passend gezeigt. -->
-            <figure class="slide produkt">
-                <div class="foto"><img class="bild" src="/images/abholmonitor/28-lasagne-beilagensalat-platzhalter.jpeg" alt=""></div>
-                <figcaption>
-                    <span class="name">Hausgemachte Lasagne &amp; Beilagensalat</span>
-                    <span class="preis">12.5 <small>€</small></span>
-                    <span class="zusatz">Es gibt unsere Lasagne samstags, sonntags, feiertags und in den Schulferien.</span>
-                </figcaption>
-            </figure>
-
-            <figure class="slide produkt">
-                <div class="foto"><img class="bild" src="/images/abholmonitor/17-waffel-puderzucker-hochkant.jpeg" alt="" style="object-position: 35% 72%"></div>
-                <figcaption>
-                    <span class="name">Hausgemachte belgische Waffel</span>
-                    <span class="preis">4.5 <small>€</small></span>
-                    <span class="zusatz">Mix &amp; Match mit Toppings deiner Wahl.</span>
-                </figcaption>
-            </figure>
-
-            <!-- Catering: Deckblatt und Angaben aus downloads/catering.pdf (Seite 1–3) -->
-            <figure class="slide promo">
-                <div class="foto deckblatt"><img class="bild" src="/images/catering-broschuere/seite-1-1200.webp" alt=""></div>
-                <figcaption>
-                    <ul class="punkte">
-                        <li>Ab 10 und bis zu 200 Personen</li>
-                        <li>In Buffetform auf der Eventfläche im 1. Stock</li>
-                        <li>Frühstück, Snacks &amp; Fingerfood · Menüvarianten · Getränkepauschalen</li>
-                        <li>Ausschließlich aus pflanzlichen Zutaten</li>
-                    </ul>
-                    <span class="cta">Website: tjorven-bistro.de<br>oder direkt im Bistro ansprechen</span>
-                </figcaption>
-            </figure>
-
-            <figure class="slide promo">
-                <div class="foto"><img class="bild" src="/images/abholmonitor/21-team-tjorven-quer-lachend.jpeg" alt="" style="object-position: 50% 30%"></div>
-                <figcaption>
-                    <span class="titel">Abendfeiern im Tjorven Bistro</span>
-                    <span class="unter">ab 17 Uhr</span>
-                    <span class="cta">Website: tjorven-bistro.de<br>oder direkt im Bistro ansprechen</span>
-                </figcaption>
-            </figure>
-
-            <!-- Zimtschnecke: steht NICHT auf der Speisekarte, daher kein bestätigter Preis.
-                 Erst einblenden (hidden entfernen), wenn der Preis feststeht. -->
-            <figure class="slide produkt" hidden>
-                <div class="foto"><img class="bild" src="/images/abholmonitor/07-zimtschnecken-hochkant.jpeg" alt="" style="object-position: 50% 55%"></div>
-                <figcaption>
-                    <span class="name">Zimtschnecke</span>
-                    <span class="preis">PREIS FEHLT</span>
-                </figcaption>
-            </figure>
-
-        </div>
-    </div>
-
-    <!-- Spalte 2 -->
+    <!-- Spalte 1 -->
     <div class="column">
         <h2>In Vorbereitung</h2>
         <div id="prepList" class="list"></div>
     </div>
 
-    <!-- Spalte 3 -->
+    <!-- Spalte 2 -->
     <div class="column">
         <h2>Abholbereit</h2>
         <div id="readyList" class="list"></div>
     </div>
 
+    <!-- Spalte 3 – Werbung hochkant -->
+    <div id="werbung" class="column">
+        <div id="slideshow"></div>
+    </div>
+
 </div>
 
 <script>
-/* Diashow – eigener Block, damit sie auch läuft, wenn Firebase einmal nicht lädt */
-const slides = document.querySelectorAll("#slideshow .slide:not([hidden])");
+/* ============ Slide-Liste – EINE Liste für Vollbild (quer) und Spalte (hoch) ============
+   Reihenfolge = Anzeigereihenfolge. Preise 1:1 aus der Speisekarte (speisekarte.html =
+   Canva-Karte), Texte der Catering-/Kindergeburtstag-Slides aus den Broschüren.
+   quer / hoch: zusammengehörige Bilder aus /images/abholmonitor/ (Paare laut Dateiname,
+   z. B. 09-wrap-gemuese-quer ↔ 10-wrap-gemuese-hochkant). Fehlt ein Format, wird das
+   vorhandene Bild ganz gezeigt (nichts erfunden, nichts verzerrt).
+   text: Lage der Textkarte im Vollbild, damit das Produkt frei bleibt.
+   posHoch / posQuer: Bildausschnitt (object-position). aktiv: false = wird übersprungen. */
+const BILD = "/images/abholmonitor/";
+const slides = [
+  { typ: "grafik", hoch: BILD + "29-herzlich-willkommen-tjorven-bistro.jpeg", alt: "Herzlich Willkommen im Tjorven Bistro" },
+
+  { typ: "produkt", quer: BILD + "09-wrap-gemuese-quer.jpeg", hoch: BILD + "10-wrap-gemuese-hochkant.jpeg",
+    text: "oben-links", posHoch: "50% 72%",
+    name: "Getoasteter Wrap", preis: "8.0" },
+
+  /* Kaffee 1: Cappuccino-Foto mit den Milchkaffee-Getränken der Karte (nur hochkant vorhanden) */
+  { typ: "kaffee", hoch: BILD + "08-kaffee-cappuccino-hochkant.jpeg", posHoch: "50% 82%",
+    liste: [["Cappuccino", "4.0"], ["Milchkaffee", "4.0"], ["Latte Macchiato", "4.5"], ["Cortado", "3.2"]],
+    zusatz: "Milchgetränke servieren wir mit Hafermilch, wahlweise Sojamilch oder einer glutenfreien Alternative." },
+
+  { typ: "promo", quer: BILD + "06-zimtschnecken-quer.jpeg", hoch: BILD + "07-zimtschnecken-hochkant.jpeg",
+    text: "links", posHoch: "50% 55%",
+    titel: "Geburtstags- & Familienfeiern", unter: "als Brunch auf der Klima-Arena-Eventfläche", kontakt: true },
+
+  { typ: "produkt", quer: BILD + "13-saisonale-bowl-quer.jpeg", hoch: BILD + "14-saisonale-bowl-hochkant.jpeg",
+    text: "rechts", posHoch: "50% 70%",
+    name: "Tjorvens saisonale Bowl", preis: "13.5" },
+
+  { typ: "produkt", hoch: BILD + "23-pommes-service-hochkant.jpeg", posHoch: "50% 45%",
+    name: "Knusprige Pommes", preis: "4.5", zusatz: "Eine große Portion Pommes mit Ketchup & hausgemachter Mayonnaise" },
+
+  { typ: "grafik", hoch: BILD + "22-events-klima-arena-eventflaeche.jpeg", alt: "Events auf der Klima-Arena-Eventfläche" },
+
+  { typ: "produkt", quer: BILD + "12-focaccia-quer.jpeg", hoch: BILD + "11-focaccia-hochkant.jpeg",
+    text: "oben-links", posHoch: "50% 62%",
+    name: "Saisonales Focaccia", preis: "5.5" },
+
+  /* Kaffee 2: Americano-Foto mit Americano, Espresso, Doppio, Espresso Macchiato
+     (Karte: „Espresso | Doppio 2.5 | 3.5“ – hier in zwei Zeilen; nur hochkant vorhanden) */
+  { typ: "kaffee", hoch: BILD + "24-kaffee-cappuccino-barista-hochkant.jpeg", posHoch: "50% 62%",
+    liste: [["Americano", "3.5"], ["Espresso", "2.5"], ["Doppio", "3.5"], ["Espresso Macchiato", "3.0"]],
+    zusatz: "Fair gehandelte sowie bio zertifizierte Kaffeebohnen von Schramms Kaffeerösterei aus Speyer." },
+
+  /* Kindergeburtstag: Deckblatt und Punkte aus downloads/kindergeburtstag-tjorven-bistro.pdf (Seite 1–2) */
+  { typ: "promo", deckblatt: "/images/kindergeburtstag-broschuere/seite-1-1200.webp", rot: true,
+    punkte: ["Eigener Tischbereich für Eure Gruppe", "Mehrfaches Kommen und Gehen möglich",
+             "Kuchen darf mitgebracht werden", "Kindergeburtstags-Menüs auf Wunsch"], kontakt: true },
+
+  /* LASAGNE – PLATZHALTER-FOTO: bald durch ein Foto von Anton ersetzen. Dafür nur die
+     Bilddatei austauschen (gleicher Dateiname) oder den Pfad ändern; für die Spalte
+     kann zusätzlich ein Hochkant-Foto als „hoch“ eingetragen werden. */
+  { typ: "produkt", quer: BILD + "28-lasagne-beilagensalat-platzhalter.jpeg", text: "unten-rechts",
+    name: "Hausgemachte Lasagne & Beilagensalat", preis: "12.5",
+    zusatz: "Es gibt unsere Lasagne samstags, sonntags, feiertags und in den Schulferien." },
+
+  { typ: "produkt", quer: BILD + "18-waffel-puderzucker-quer.jpeg", hoch: BILD + "17-waffel-puderzucker-hochkant.jpeg",
+    text: "rechts", posHoch: "35% 72%",
+    name: "Hausgemachte belgische Waffel", preis: "4.5", zusatz: "Mix & Match mit Toppings deiner Wahl." },
+
+  /* Catering: Deckblatt und Angaben aus downloads/catering.pdf (Seite 1–3) */
+  { typ: "promo", deckblatt: "/images/catering-broschuere/seite-1-1200.webp",
+    punkte: ["Ab 10 und bis zu 200 Personen", "In Buffetform auf der Eventfläche im 1. Stock",
+             "Frühstück, Snacks & Fingerfood · Menüvarianten · Getränkepauschalen", "Ausschließlich aus pflanzlichen Zutaten"], kontakt: true },
+
+  { typ: "promo", quer: BILD + "20-team-tjorven-quer.jpeg", hoch: BILD + "19-team-tjorven-hochkant.jpeg",
+    text: "oben-links", posHoch: "50% 30%",
+    titel: "Abendfeiern im Tjorven Bistro", unter: "ab 17 Uhr", kontakt: true },
+
+  /* Zimtschnecke: steht NICHT auf der Speisekarte, daher kein bestätigter Preis.
+     Erst mit bestätigtem Preis aktivieren (aktiv: true, preis eintragen). */
+  { typ: "produkt", aktiv: false, quer: BILD + "06-zimtschnecken-quer.jpeg", hoch: BILD + "07-zimtschnecken-hochkant.jpeg",
+    text: "rechts", name: "Zimtschnecke", preis: null }
+];
+const KONTAKT = ["Website: tjorven-bistro.de", "oder direkt im Bistro ansprechen"];
+
+/* ---------- Aufbau der Slides (Text immer als Text, nie als HTML) ---------- */
+function el(tag, klasse, text) {
+  const e = document.createElement(tag);
+  if (klasse) e.className = klasse;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function bild(src, klasse, pos) {
+  const i = el("img", klasse);
+  i.src = src;
+  i.alt = "";
+  if (pos) i.style.objectPosition = pos;
+  return i;
+}
+function preisEl(tag, klasse, wert) {
+  const p = el(tag, klasse, wert + " ");
+  p.appendChild(el("small", "", "€"));
+  return p;
+}
+/* Gleicher Inhalt für beide Formate: Name, Liste, Preis, Beschreibung bzw. Titel, Punkte, Kontakt */
+function inhalt(s) {
+  const fc = el("figcaption");
+  if (s.name) fc.appendChild(el("span", "name", s.name));
+  if (s.liste) {
+    const ul = el("ul", "karte");
+    s.liste.forEach(([n, p]) => { const li = el("li"); li.appendChild(el("span", "", n)); li.appendChild(preisEl("span", "preis", p)); ul.appendChild(li); });
+    fc.appendChild(ul);
+  }
+  if (s.preis) fc.appendChild(preisEl("span", "preis", s.preis));
+  if (s.zusatz) fc.appendChild(el("span", "zusatz", s.zusatz));
+  if (s.titel) fc.appendChild(el("span", "titel", s.titel));
+  if (s.unter) fc.appendChild(el("span", "unter", s.unter));
+  if (s.punkte) {
+    const ul = el("ul", "punkte");
+    s.punkte.forEach(t => ul.appendChild(el("li", "", t)));
+    fc.appendChild(ul);
+  }
+  if (s.kontakt) {
+    const c = el("span", "cta", KONTAKT[0]);
+    c.appendChild(el("br"));
+    c.appendChild(document.createTextNode(KONTAKT[1]));
+    fc.appendChild(c);
+  }
+  return fc;
+}
+function slideRahmen(s) {
+  const f = el("figure", "slide " + s.typ + (s.rot ? " rot" : "") + (s.deckblatt ? " mit-deckblatt" : ""));
+  return f;
+}
+
+/* Vollbild (quer) */
+function querSlide(s) {
+  const f = slideRahmen(s);
+  if (s.typ === "grafik") {
+    f.appendChild(bild(s.hoch, "unschaerfe"));
+    const g = bild(s.hoch, "grafik-bild"); g.alt = s.alt; f.appendChild(g);
+    return f;
+  }
+  const fc = inhalt(s);
+  if (s.quer) {
+    f.appendChild(bild(s.quer, "bild-voll", s.posQuer));
+    fc.classList.add("pos-" + (s.text || "links"));
+  } else if (s.deckblatt) {
+    f.appendChild(bild(s.deckblatt, "unschaerfe"));
+    f.appendChild(bild(s.deckblatt, "deckblatt-bild"));
+    fc.classList.add("pos-deckblatt");
+  } else {
+    f.appendChild(bild(s.hoch, "unschaerfe"));
+    f.appendChild(bild(s.hoch, "hoch-bild"));
+    fc.classList.add("pos-split");
+  }
+  f.appendChild(fc);
+  return f;
+}
+
+/* Spalte (hoch) */
+function hochSlide(s) {
+  const f = slideRahmen(s);
+  if (s.typ === "grafik") {
+    const g = bild(s.hoch, ""); g.alt = s.alt; f.appendChild(g);
+    return f;
+  }
+  const foto = el("div", "foto" + (s.deckblatt ? " deckblatt" : ""));
+  const quelle = s.hoch || s.deckblatt || s.quer;
+  const b = bild(quelle, "bild", s.hoch ? s.posHoch : undefined);
+  foto.appendChild(b);
+  if (!s.hoch && !s.deckblatt) {
+    /* nur Querformat vorhanden: ganz zeigen, dasselbe Bild unscharf dahinter */
+    foto.insertBefore(bild(quelle, "unschaerfe"), b);
+    foto.classList.add("quer");
+  }
+  f.appendChild(foto);
+  f.appendChild(inhalt(s));
+  return f;
+}
+
+const aktiv = slides.filter(s => s.aktiv !== false);
+const vollbild = document.getElementById("vollbild");
+const spalte = document.getElementById("slideshow");
+aktiv.forEach(s => {
+  vollbild.appendChild(querSlide(s));
+  spalte.appendChild(hochSlide(s));
+});
+
+/* ---------- Diashow: ein Takt für beide Darstellungen ---------- */
+const querSlides = vollbild.querySelectorAll(".slide");
+const hochSlides = spalte.querySelectorAll(".slide");
 let index = 0;
 const duration = 9000;
 
-/* Querformat-Fotos in Produkt-Slides ganz zeigen (siehe CSS „.foto.quer“) */
-document.querySelectorAll("#slideshow .produkt .foto img.bild").forEach(img => {
-    const pruefen = () => {
-        if (img.naturalWidth > img.naturalHeight && !img.parentNode.classList.contains("quer")) {
-            const hinten = document.createElement("img");
-            hinten.className = "unschaerfe";
-            hinten.src = img.getAttribute("src");
-            hinten.alt = "";
-            img.parentNode.insertBefore(hinten, img);
-            img.parentNode.classList.add("quer");
-        }
-    };
-    if (img.complete && img.naturalWidth) pruefen();
-    else img.addEventListener("load", pruefen);
-});
-
 function showSlide() {
-    slides.forEach(s => s.style.opacity = "0");
-    slides[index].style.opacity = "1";
+  const vorher = (index - 1 + aktiv.length) % aktiv.length;
+  [querSlides, hochSlides].forEach(liste => {
+    liste.forEach((s, i) => {
+      s.style.opacity = i === index ? "1" : "0";
+      /* nur aktuelle und vorige Slide (Überblendung) zeichnen – schont den Fernseher */
+      s.classList.toggle("sichtbar", i === index || i === vorher);
+    });
+  });
 
-    setTimeout(() => {
-        index = (index + 1) % slides.length;
-        showSlide();
-    }, duration);
+  setTimeout(() => {
+    index = (index + 1) % aktiv.length;
+    showSlide();
+  }, duration);
 }
 
 showSlide();
@@ -578,6 +697,12 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
+/* Modus: mindestens eine Bestellung mit Nummer → Bestellansicht, sonst Werbung im Vollbild */
+function setzeModus(anzahl) {
+  const modus = anzahl > 0 ? "bestellung" : "werbung";
+  if (document.body.dataset.modus !== modus) document.body.dataset.modus = modus;
+}
 
 /* Nur LESEN
    Nummer und Tier werden als Text eingesetzt (textContent), nie als HTML –
@@ -612,6 +737,9 @@ db.ref("orders").on("value", snapshot => {
     if (o.status === "prep") prepList.appendChild(div);
     else readyList.appendChild(div);
   });
+
+  const gueltig = Object.values(data).filter(o => o && o.number !== undefined && o.number !== null && String(o.number).trim() !== "");
+  setzeModus(gueltig.length);
 });
 </script>
 </body>
