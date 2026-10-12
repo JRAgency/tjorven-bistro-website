@@ -138,24 +138,29 @@ body[data-modus="bestellung"] #container {
     visibility: hidden;
 }
 .slide.sichtbar { visibility: visible; }
+/* Getränkeliste wie auf der Speisekarte („Espresso | Doppio  2.5 | 3.5“):
+   Name und Preis direkt nebeneinander, Preise rechtsbündig untereinander,
+   die ganze Liste kompakt und mittig in der Karte – keine langen Zeilen. */
 .karte {
     list-style: none;
     margin: 0;
     padding: 0;
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: center;
+    text-align: left;
 }
-.karte li {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 0.5em;
+.karte li { display: contents; }
+.karte li > span {
     padding: 0.16em 0;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.25);
+    white-space: nowrap;
 }
-.karte li:last-child { border-bottom: 0; }
+.karte li + li > span:not(.sub) { border-top: 2px solid rgba(255, 255, 255, 0.25); }
+.karte li > span:first-child { padding-right: 1.1em; }
 .karte .preis {
     font-weight: 600;
     color: var(--gold);
-    white-space: nowrap;
+    text-align: right;
 }
 .slide .name,
 .slide .titel { font-weight: 600; }
@@ -171,12 +176,27 @@ body[data-modus="bestellung"] #container {
 .slide .zusatz { opacity: 0.92; line-height: 1.3; }
 .slide .texte { display: flex; flex-direction: column; gap: 0.35em; line-height: 1.3; }
 .karte .sub {
-    display: block;
+    grid-column: 1 / -1;
     font-size: 0.62em;
     font-weight: 400;
     opacity: 0.9;
-    margin-top: 0.1em;
+    padding-top: 0;
 }
+/* Produktfolien: Name, Preis und Beschreibung mittig (Wunsch Tilman, ruhigeres
+   Schriftbild); bei Kaffee mittig die Überschrift, die Liste bleibt tabellarisch.
+   Ausnahme Waffel: ab „Mix & Match …“ mit den Toppings linksbündig (Liste). */
+.slide.willkommen figcaption,
+.slide.produkt figcaption,
+.slide.kaffee figcaption {
+    align-items: center;
+    text-align: center;
+}
+.slide.produkt .toppings,
+.slide.produkt.mit-toppings .texte {
+    align-self: stretch;
+    text-align: left;
+}
+.slide.willkommen .titel .zeile { display: block; white-space: nowrap; }
 .toppings {
     list-style: none;
     margin: 0;
@@ -205,6 +225,7 @@ body[data-modus="bestellung"] #container {
     flex-direction: column;
     align-items: center;
     gap: 0.3em;
+    width: min-content;   /* so breit wie der Code; die Adresse bricht darunter um */
 }
 .qr img {
     display: block;
@@ -212,7 +233,8 @@ body[data-modus="bestellung"] #container {
     border-radius: 10px;
     image-rendering: pixelated;   /* QR-Module scharf, auch bei krummer Skalierung */
 }
-.qr span { font-size: 0.7em; opacity: 0.95; white-space: nowrap; }
+.qr span { font-size: 0.7em; opacity: 0.95; overflow-wrap: anywhere; }   /* Adresse darf an „/“ umbrechen */
+#slideshow .qr span { text-align: center; }
 .slide .punkte {
     margin: 0;
     padding: 0;
@@ -296,10 +318,10 @@ body[data-modus="bestellung"] #container {
 #slideshow .zusatz { font-size: 27px; font-size: 4.4cqw; }
 #slideshow .texte { font-size: 25px; font-size: 4.2cqw; }
 #slideshow .toppings { font-size: 26px; font-size: 4.3cqw; }
-#slideshow .karte { font-size: 38px; font-size: 6.3cqw; }
+#slideshow .karte { font-size: 34px; font-size: 5.6cqw; }
 #slideshow .karte .preis { font-size: 1em; }
 #slideshow .titel { font-size: 44px; font-size: 7.2cqw; line-height: 1.12; }
-#slideshow .willkommen .titel { font-size: 58px; font-size: 9.6cqw; text-align: center; }
+#slideshow .willkommen .titel { font-size: 58px; font-size: 9.6cqw; }
 #slideshow .unter { font-size: 28px; font-size: 4.6cqw; }
 #slideshow .punkte { font-size: 25px; font-size: 4.2cqw; }
 #slideshow .cta { font-size: 25px; font-size: 4.2cqw; margin-top: 0.2em; }
@@ -332,6 +354,19 @@ body[data-modus="bestellung"] #container {
     width: 100%;
     height: 100%;
     object-fit: contain;
+}
+/* Produkt mittig im Querformat-Foto (Wrap, Focaccia): Das Foto steht in voller
+   Höhe links, die Textfläche rechts daneben – zur Textfläche hin läuft das Foto
+   weich in dieselbe, unscharfe Aufnahme aus. So wird nichts vom Produkt verdeckt. */
+#vollbild .bild-seite {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: auto;
+    max-width: none;
+    -webkit-mask-image: linear-gradient(to right, #000 78%, transparent);
+    mask-image: linear-gradient(to right, #000 78%, transparent);
 }
 /* Nur ein Hochkant-Foto vorhanden: Foto rechts ganz, Text links */
 #vollbild .hoch-bild {
@@ -370,71 +405,81 @@ body[data-modus="bestellung"] #container {
     box-shadow: 0 1.2vh 4vh rgba(0, 0, 0, 0.28);
 }
 #vollbild .rot figcaption { background: rgba(175, 47, 61, 0.95); }
-#vollbild .pos-oben-links { top: 5vh; left: 3vw; width: 32vw; }
-/* breiter Streifen oben: Name + Preis links, Beschreibung rechts (Produkt bleibt unten frei) */
-#vollbild .pos-oben-breit {
-    top: 4vh;
-    left: 3vw;
-    width: 62vw;
-    display: grid;
-    grid-template-columns: minmax(0, 21vw) 1fr;
-    column-gap: 2.6vw;
-    row-gap: 0.6vh;
-    align-items: start;
-}
-#vollbild .pos-oben-breit .name { grid-column: 1; grid-row: 1; font-size: 6vh; }
-#vollbild .pos-oben-breit .preis { grid-column: 1; grid-row: 2; }
-#vollbild .pos-oben-breit .texte { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+/* Willkommen: Textfeld links oben über Tjorvens Schulter, so breit wie der Text */
+#vollbild .pos-oben-links { top: 6vh; left: 3.5vw; width: auto; padding-left: 2.8vw; padding-right: 2.8vw; }
+/* Produkte: grüne Textfläche HOCHKANT seitlich neben dem Produkt, nie als Querbalken */
 #vollbild .pos-links { top: 50%; left: 2.5vw; width: 27vw; transform: translateY(-50%); }
-#vollbild .pos-rechts { top: 50%; right: 2.5vw; width: 28vw; transform: translateY(-50%); }
+#vollbild .pos-rechts { top: 50%; right: 2.5vw; width: 27vw; transform: translateY(-50%); }
+#vollbild .produkt .pos-links,
+#vollbild .produkt .pos-rechts,
+#vollbild .produkt .pos-seite,
+#vollbild .kaffee .pos-seite { min-height: 58vh; justify-content: center; }
 #vollbild .pos-rechts-breit { top: 50%; right: 2.5vw; width: 29vw; transform: translateY(-50%); }
-#vollbild .pos-unten-rechts { bottom: 5vh; right: 2.5vw; width: 31vw; }
 #vollbild .pos-split { top: 50%; left: 5vw; width: 42vw; transform: translateY(-50%); }
+/* nur Hochkant-Foto (rechts): Textfläche mittig im freien Bereich links davon */
+#vollbild .pos-seite { top: 50%; left: 29.5vw; width: 29vw; transform: translate(-50%, -50%); }
+#vollbild .kaffee .pos-seite { width: 38vw; min-height: 66vh; }
 #vollbild .pos-deckblatt { top: 50%; right: 3vw; width: 33vw; transform: translateY(-50%); }
 #vollbild .name { font-size: 7vh; }
 #vollbild .pos-links .name,
 #vollbild .pos-rechts .name,
-#vollbild .pos-unten-rechts .name { font-size: 6vh; }   /* schmale Seitenkarten: lange Wörter wie „Hausgemachte“ passen */
+#vollbild .pos-seite .name { font-size: 6vh; }   /* schmale Seitenkarten: lange Wörter wie „Hausgemachte“ passen */
 #vollbild .preis { font-size: 9.5vh; }
 #vollbild .zusatz { font-size: 3.1vh; }
 #vollbild .texte { font-size: 3.1vh; }
 #vollbild .toppings { font-size: 3.2vh; }
-#vollbild .karte { font-size: 4.8vh; }
+#vollbild .karte { font-size: 4.2vh; }
 #vollbild .karte .preis { font-size: 1em; }
 #vollbild .titel { font-size: 6.2vh; line-height: 1.1; }
 #vollbild .pos-links .titel,
-#vollbild .pos-oben-links .titel,
 #vollbild .pos-rechts-breit .titel { font-size: 5.2vh; }
-#vollbild .willkommen .titel { font-size: 7vh; line-height: 1.12; }
+#vollbild .kaffee .titel { font-size: 5.2vh; margin-bottom: 1vh; }
+#vollbild .willkommen .titel { font-size: 6.4vh; line-height: 1.14; }
 #vollbild .unter { font-size: 3.6vh; }
 #vollbild .pos-rechts-breit .unter { font-size: 3.2vh; }
 #vollbild .punkte { font-size: 3.3vh; }
 #vollbild .cta { font-size: 2.9vh; margin-top: 0.6vh; }
 #vollbild .qr img { width: 19vh; height: auto; }
-#vollbild .qr span { font-size: 2.2vh; }
+#vollbild .qr span { font-size: 2vh; }
 #vollbild .pos-rechts-breit .qr img { width: 17vh; }
 /* schmale Karten: QR-Code unter dem Text, Adresse daneben */
 #vollbild .pos-deckblatt .qr-zeile,
 #vollbild .pos-rechts-breit .qr-zeile { flex-direction: column; align-items: flex-start; gap: 1.6vh; }
 #vollbild .pos-deckblatt .qr,
-#vollbild .pos-rechts-breit .qr { flex-direction: row; align-items: flex-end; gap: 1vw; }
+#vollbild .pos-rechts-breit .qr { flex-direction: row; align-items: flex-end; gap: 1vw; width: auto; }
 
 /* ---------- Zusatzinfo-Folie: drei Textflächen wie auf der Speisekarte ----------
-   Hintergrund: echtes Tjorven-Logo (abholmonitor/logo-kreis.png) sehr blass, wie
-   auf der Speisekarte; organische Flächen in Rosa/Grün, dunkle Schrift. */
+   Hintergrund wie bei den übrigen Folien: das Küchenfoto (Anton, Bild 34) unscharf
+   und hell, darüber das echte Tjorven-Logo (abholmonitor/logo-kreis.png) groß und
+   blass. Im Vollbild steht das Foto zusätzlich scharf in der Mitte. Organische
+   Flächen in Rosa/Grün, dunkle Schrift – der Text bleibt immer INNERHALB der Fläche. */
 .slide.info {
     background: #fdfbf8;
     color: #2a2724;
 }
+.slide.info .unschaerfe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(26px) saturate(0.9);
+}
+.slide.info .schleier {
+    position: absolute;
+    inset: 0;
+    background: rgba(253, 251, 248, 0.6);
+}
 .slide.info .info-logo {
     position: absolute;
-    opacity: 0.13;
+    opacity: 0.14;
     pointer-events: none;
 }
 .slide.info .blob {
     position: absolute;
     box-sizing: border-box;
     line-height: 1.35;
+    box-shadow: 0 0.8vh 3vh rgba(0, 0, 0, 0.12);
 }
 .slide.info .blob h3 {
     margin: 0 0 0.35em;
@@ -455,21 +500,34 @@ body[data-modus="bestellung"] #container {
     font-style: italic;
     text-align: center;
 }
-/* Vollbild */
-#vollbild .info .info-logo { height: 118vh; right: -6vw; top: -9vh; }
-#vollbild .info .linsen { left: 5vw; top: 7vh; width: 45vw; padding: 6vh 5vw 6.5vh; font-size: 3.2vh; }
-#vollbild .info .bohne { right: 4vw; top: 31vh; width: 44vw; padding: 6vh 5vw 6.5vh; font-size: 3.2vh; }
-#vollbild .info .koffein { left: 10vw; bottom: 6vh; width: 34vw; padding: 6vh 4.5vw; font-size: 4.2vh; transform: rotate(-5deg); }
-#vollbild .info h3 { font-size: 4.4vh; }
+/* Vollbild: Foto scharf in der Mitte, zwei Flächen links, eine rechts (Anton bleibt frei) */
+#vollbild .info .info-foto {
+    position: absolute;
+    top: 7vh;
+    left: 50%;
+    height: 86vh;
+    width: auto;
+    transform: translateX(-50%);
+    border-radius: 24px;
+    box-shadow: 0 1.2vh 4vh rgba(0, 0, 0, 0.25);
+}
+#vollbild .info .info-logo { height: 112vh; right: -16vh; top: -6vh; }
+#vollbild .info .linsen { left: 2.2vw; top: 4.5vh; width: 34vw; padding: 9vh 5.4vw 9.5vh; font-size: 2.75vh; }
+#vollbild .info .bohne { right: 2.2vw; top: 50%; transform: translateY(-50%); width: 30.5vw; padding: 9.5vh 4.6vw 10vh; font-size: 2.75vh; }
+#vollbild .info .koffein { left: 4.5vw; bottom: 4vh; width: 28vw; padding: 7vh 4.6vw; font-size: 3.3vh; transform: rotate(-5deg); text-wrap: balance; }
+#vollbild .info h3 { font-size: 3.7vh; }
 /* Hochkant-Spalte: untereinander */
 #slideshow .slide.info {
     justify-content: space-evenly;
     align-items: center;
 }
 #slideshow .info .info-logo { width: 125%; left: -12%; top: 18%; }
-#slideshow .info .blob { position: relative; width: 94%; padding: 5% 9% 5.5%; font-size: 24px; font-size: 3.9cqw; }
-#slideshow .info .koffein { width: 78%; font-size: 30px; font-size: 4.9cqw; transform: rotate(-4deg); padding: 6.5% 9%; }
-#slideshow .info h3 { font-size: 30px; font-size: 4.9cqw; }
+#slideshow .info .blob { position: relative; width: 96%; padding: 8.5% 13% 9%; font-size: 21px; font-size: 3.45cqw; }
+/* schmale Spalte: flachere Rundungen oben/unten, damit auch die erste und letzte Zeile in der Fläche bleiben */
+#slideshow .info .linsen { border-radius: 42% 46% 44% 48% / 30% 28% 32% 30%; }
+#slideshow .info .bohne { border-radius: 46% 42% 48% 44% / 28% 32% 28% 32%; }
+#slideshow .info .koffein { text-wrap: balance; width: 80%; font-size: 26px; font-size: 4.3cqw; transform: rotate(-4deg); padding: 8% 12%; }
+#slideshow .info h3 { font-size: 27px; font-size: 4.4cqw; }
 
 /* Mittlere & rechte Spalte */
 .column h2 {
@@ -484,33 +542,33 @@ body[data-modus="bestellung"] #container {
     margin-top: 12px;
 }
 
-/* Bestellkarten */
+/* Bestellkarten – Grundlage wie auf dem bewährten Live-Monitor
+   (tilmanlichdi.com/abholmonitor/, gemessen 11.10.2026: Nummer 96 px auf einer
+   80 px hohen Karte). Wunsch Oktober 2026: Nummer weiter groß und fett, aber
+   kleiner (80 px) und nicht mehr fast kartenhoch – Ziffern füllen gut 60 % der
+   Karte (88 px) und stehen mittig; Tiername im selben Verhältnis kleiner. */
 .order {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 28px;
+    padding: 6px 28px 2px;   /* Ziffern optisch mittig */
     margin: 12px 0;
     border-radius: 10px;
 }
 
-/* Bewährte Darstellung wie auf dem Live-Monitor (tilmanlichdi.com/abholmonitor/,
-   gemessen 11.10.2026): dort setzt das WordPress-Theme die Zeilenhöhe auf 24 px –
-   die Karte ist so nur knapp höher als die Zahl (1920×1080: 80 px). Schrift dort
-   Rubik 400; Nunito 600 hat bei 96 px dieselbe Breite, Höhe und Strichstärke. */
 .order span {
-    font-size: 6rem;
+    font-size: 5rem;
     font-weight: 600;
-    line-height: 24px;
+    line-height: 1;
     color: #000000;
     white-space: nowrap;
 }
 
 .order .animal {
-    font-size: 2.5rem;
+    font-size: 2.1rem;
     margin-left: 20px;
     font-weight: 600;
-    line-height: 24px;
+    line-height: 1;
     color: #000000;
     white-space: nowrap;
 }
@@ -545,11 +603,11 @@ body[data-modus="bestellung"] #container {
     }
 
     .order span {
-        font-size: 4rem;
+        font-size: 3.4rem;
     }
 
     .order .animal {
-        font-size: 2rem;
+        font-size: 1.7rem;
     }
 }
 
@@ -626,73 +684,83 @@ body[data-modus="bestellung"] #container {
 <script>
 /* ============ Slide-Liste – EINE Liste für Vollbild (quer) und Spalte (hoch) ============
    Reihenfolge = Anzeigereihenfolge (Vorgaben Tilman, Oktober 2026). Texte und Preise wie
-   vorgegeben; Preise wie auf der Speisekarte ohne €-Zeichen und ohne unnötige Null.
+   vorgegeben; Preise wie auf der Speisekarte: Dezimalpunkt, ohne €-Zeichen, glatte
+   Beträge immer mit „.0“ (8.0, 4.0).
    quer / hoch: zusammengehörige Bilder aus /images/abholmonitor/. Fehlt ein Format, wird
    das vorhandene Bild ganz gezeigt (nichts verzerrt, nichts unvorteilhaft beschnitten).
-   text: Lage der Textkarte im Vollbild, damit das Produkt bzw. die Personen frei bleiben.
-   posQuer / posHoch: Bildausschnitt (object-position). qr: QR-Code zur Catering-Seite.
+   text: Seite der grünen Textfläche im Vollbild (immer hochkant seitlich, dort wo das
+   Produkt bzw. die Personen frei bleiben). fotoSeitlich: Produkt steht mittig im Foto –
+   das Foto rückt im Vollbild zur anderen Seite (siehe .bild-seite).
+   posQuer / posHoch: Bildausschnitt (object-position). qr: Schlüssel aus QRS (unten).
    aktiv: false = wird übersprungen. */
 const BILD = "/images/abholmonitor/";
-const QR = { bild: "/abholmonitor/qr-catering.svg", text: "tjorven-bistro.de/catering" };   // Ziel: https://tjorven-bistro.de/catering/
+/* QR-Codes: direkt zur Online-Broschüre mit Planer/Anfrageformular.
+   Eigene Seiten für Abendfeiern bzw. Brunch auf der Eventfläche gibt es noch nicht –
+   sobald es sie gibt, hier Ziel, Bild (neu erzeugen) und Text tauschen. */
+const QRS = {
+  catering: { bild: "/abholmonitor/qr-catering-broschuere.svg", text: "tjorven-bistro.de/catering/broschuere" },          // https://tjorven-bistro.de/catering/broschuere/
+  kindergeburtstag: { bild: "/abholmonitor/qr-kindergeburtstag.svg", text: "tjorven-bistro.de/kindergeburtstag" }       // https://tjorven-bistro.de/kindergeburtstag/
+};
 const slides = [
-  { typ: "willkommen", quer: BILD + "31-tjorven-anton-bistro-quer.jpeg", text: "rechts", posQuer: "50% 70%", posHochQuer: "44% 50%",
-    titel: "Herzlich Willkommen im Tjorven Bistro" },
+  { typ: "willkommen", quer: BILD + "33-willkommen-tjorven-anton-neu-quer.jpeg", text: "oben-links", posQuer: "50% 35%", posHochQuer: "66% 50%",
+    titel: ["Herzlich", "Willkommen", "im", "Tjorven Bistro"] },
 
   { typ: "produkt", quer: BILD + "13-saisonale-bowl-quer.jpeg", hoch: BILD + "14-saisonale-bowl-hochkant.jpeg",
     text: "rechts", posHoch: "50% 70%",
-    name: "Tjorvens saisonale Bowl", preis: "13,5",
+    name: "Tjorvens saisonale Bowl", preis: "13.5",
     texte: ["Knackiger Blattsalat auf Quinoa und Buchweizen aus Schwaigern mit gebackenen Kartoffeln, saisonalem Gemüse, gekeimten schwäbischen Linsen, Pickles und kleinen Leckereien an unserem hausgemachten French Dressing."] },
 
   { typ: "produkt", hoch: BILD + "23-pommes-service-hochkant.jpeg", posHoch: "50% 45%",
-    name: "Knusprige Pommes", preis: "4,5",
+    name: "Knusprige Pommes", preis: "4.5",
     texte: ["Eine große Portion Pommes mit Ketchup & hausgemachter Mayonnaise."] },
 
   { typ: "produkt", quer: BILD + "12-focaccia-quer.jpeg", hoch: BILD + "11-focaccia-hochkant.jpeg",
-    text: "oben-breit", posQuer: "50% 0%", posHoch: "50% 62%",
-    name: "Saisonales Focaccia", preis: "5,5",
+    text: "rechts", fotoSeitlich: true, posHoch: "50% 62%",
+    name: "Saisonales Focaccia", preis: "5.5",
     texte: ["Selbstgebackenes Focaccia, belegt mit Hummus, grünem Pesto, saisonalem Gemüse und Salat.", "Knusprig getoastet."] },
 
   { typ: "produkt", quer: BILD + "09-wrap-gemuese-quer.jpeg", hoch: BILD + "10-wrap-gemuese-hochkant.jpeg",
-    text: "oben-breit", posQuer: "50% 0%", posHoch: "50% 72%",
-    name: "Getoasteter Wrap", preis: "8",
+    text: "rechts", fotoSeitlich: true, posHoch: "50% 72%",
+    name: "Getoasteter Wrap", preis: "8.0",
     texte: ["Fladenbrot gefüllt mit saisonalem Gemüse, gekeimten schwäbischen Linsen, Kräutercreme und Blattsalat.",
             "Wir servieren unsere Wraps außen knusprig getoastet und innen erfrischend kühl."] },
 
   { typ: "produkt", quer: BILD + "18-waffel-puderzucker-quer.jpeg", hoch: BILD + "17-waffel-puderzucker-hochkant.jpeg",
     text: "rechts", posHoch: "35% 72%",
-    name: "Hausgemachte Belgische Waffel", preis: "4,5",
+    name: "Hausgemachte Belgische Waffel", preis: "4.5",
     texte: ["Mix & Match mit Toppings Deiner Wahl"],
-    toppings: [["Puderzucker", ""], ["Zimt & Zucker", ""], ["Schokosauce", "+1"], ["Rübensirup", "+1"], ["Apfelmus", "+1"]] },
+    toppings: [["Puderzucker", ""], ["Zimt & Zucker", ""], ["Schokosauce", "+1.0"], ["Rübensirup", "+1.0"], ["Apfelmus", "+1.0"]] },
 
   { typ: "produkt", hoch: BILD + "30-hagebutten-eistee-hochkant.jpeg", posHoch: "45% 70%",
-    name: "Hausgemachter Hagebutten-Eistee", preis: "3,5",
+    name: "Hausgemachter Hagebutten-Eistee", preis: "3.5",
     texte: ["Gesüßt oder ungesüßt", "0,40 l"] },
 
+  /* Kaffee wie auf der Speisekarte: „Espresso | Doppio  2.5 | 3.5“ in einer Zeile */
   { typ: "kaffee", hoch: BILD + "24-kaffee-cappuccino-barista-hochkant.jpeg", posHoch: "50% 62%",
     titel: "Espresso & Tee",
-    liste: [["Espresso", "2,5"], ["Doppio", "3,5"], ["Espresso Macchiato", "3"], ["Cortado", "3,2"], ["Americano", "3,5"],
-            ["Bio Tee", "3,5", "Kräuter | Früchte | Grün | Schwarz"]] },
+    liste: [["Espresso | Doppio", "2.5 | 3.5"], ["Espresso Macchiato", "3.0"], ["Cortado", "3.2"], ["Americano", "3.5"],
+            ["Bio Tee", "3.5", "Kräuter | Früchte | Grün | Schwarz"]] },
 
   { typ: "kaffee", hoch: BILD + "08-kaffee-cappuccino-hochkant.jpeg", posHoch: "50% 82%",
     titel: "Cappuccino & Kaffeespezialitäten",
-    liste: [["Cappuccino", "4"], ["Milchkaffee", "4"], ["Latte Macchiato", "4,5"], ["Heiße Schokolade", "3,5"]] },
+    liste: [["Cappuccino", "4.0"], ["Milchkaffee", "4.0"], ["Latte Macchiato", "4.5"], ["Heiße Schokolade", "3.5"]] },
 
   /* Kindergeburtstag: bestehende Folie (Deckblatt + Punkte aus downloads/kindergeburtstag-tjorven-bistro.pdf) + QR */
   { typ: "promo", deckblatt: "/images/kindergeburtstag-broschuere/seite-1-1200.webp", rot: true,
     punkte: ["Eigener Tischbereich für Eure Gruppe", "Mehrfaches Kommen und Gehen möglich",
-             "Kuchen darf mitgebracht werden", "Kindergeburtstags-Menüs auf Wunsch"], kontakt: true, qr: true },
+             "Kuchen darf mitgebracht werden", "Kindergeburtstags-Menüs auf Wunsch"], kontakt: true, qr: "kindergeburtstag" },
 
   { typ: "promo", hoch: BILD + "32-tjorven-anton-eventflaeche-hochkant.jpeg", posHoch: "50% 22%",
     titel: "Feiern in der KLIMA ARENA", unter: "Tagsüber auf der Eventfläche oder in den Workshopräumen",
     texte: ["Geburtstagsbrunch, Familienfest oder Jubiläum in besonderem Ambiente."],
     punkte: ["Eigener Raum", "Kinder können die Ausstellung erkunden", "Catering vom Tjorven Bistro",
-             "Brunch, Kaffee & Kuchen oder individuelles Catering"], qr: true },
+             "Brunch, Kaffee & Kuchen oder individuelles Catering"], qr: "catering" },
 
   { typ: "promo", quer: BILD + "31-tjorven-anton-bistro-quer.jpeg", text: "rechts-breit", posQuer: "50% 70%",
     titel: "Feiern im Tjorven Bistro", unter: "Abends ab 17 Uhr als geschlossene Gesellschaft",
     texte: ["Das Bistro exklusiv für Geburtstage, Vereinsfeiern oder Firmenfeiern."],
     punkte: ["Eigener Bistrobereich", "À-la-carte oder Buffet", "Wein- und Getränkeservice",
-             "Auf Wunsch mit vorheriger Führung durch die KLIMA ARENA"], qr: true },
+             "Auf Wunsch mit vorheriger Führung durch die KLIMA ARENA"], qr: "catering" },
 
   /* Zusatzinformationen (wie auf der Speisekarte) – Aufbau siehe infoSlide() */
   { typ: "info" },
@@ -718,11 +786,15 @@ function bild(src, klasse, pos) {
   if (pos) i.style.objectPosition = pos;
   return i;
 }
-function qrEl() {
+function qrEl(schluessel) {
+  const qr = QRS[schluessel];
   const q = el("div", "qr");
-  const i = el("img"); i.src = QR.bild; i.alt = "QR-Code zur Catering-Seite: " + QR.text;
+  const i = el("img"); i.src = qr.bild; i.alt = "QR-Code: " + qr.text;
   q.appendChild(i);
-  q.appendChild(el("span", "", QR.text));
+  /* Adresse unter/neben dem Code; Umbruch nur nach „/“ */
+  const t = el("span");
+  qr.text.split("/").forEach((teil, n) => { if (n) { t.appendChild(document.createTextNode("/")); t.appendChild(el("wbr")); } t.appendChild(document.createTextNode(teil)); });
+  q.appendChild(t);
   return q;
 }
 function punkteEl(liste) {
@@ -733,15 +805,21 @@ function punkteEl(liste) {
 /* Gleicher Inhalt für beide Formate: Titel/Name, Liste, Preis, Texte, Toppings, Punkte, Kontakt, QR */
 function inhalt(s) {
   const fc = el("figcaption");
-  if (s.titel) fc.appendChild(el("span", "titel", s.titel));
+  if (Array.isArray(s.titel)) {
+    /* feste Zeilen (Willkommen): je Zeile ein Block, mittig */
+    const t = el("span", "titel");
+    s.titel.forEach((z, n) => { if (n) t.appendChild(document.createTextNode(" ")); t.appendChild(el("span", "zeile", z)); });
+    fc.appendChild(t);
+  } else if (s.titel) fc.appendChild(el("span", "titel", s.titel));
   if (s.unter) fc.appendChild(el("span", "unter", s.unter));
   if (s.name) fc.appendChild(el("span", "name", s.name));
   if (s.liste) {
     const ul = el("ul", "karte");
     s.liste.forEach(([n, p, sub]) => {
-      const li = el("li"), links = el("span", "", n);
-      if (sub) links.appendChild(el("span", "sub", sub));
-      li.appendChild(links); li.appendChild(el("span", "preis", p)); ul.appendChild(li);
+      const li = el("li");
+      li.appendChild(el("span", "", n)); li.appendChild(el("span", "preis", p));
+      if (sub) li.appendChild(el("span", "sub", sub));
+      ul.appendChild(li);
     });
     fc.appendChild(ul);
   }
@@ -758,22 +836,27 @@ function inhalt(s) {
   }
   /* Punkte und QR-Code stehen nebeneinander; ohne Punkte steht der QR-Code neben dem Kontakt */
   if (s.punkte && s.qr && !s.kontakt) {
-    const z = el("div", "qr-zeile"); z.appendChild(punkteEl(s.punkte)); z.appendChild(qrEl()); fc.appendChild(z);
+    const z = el("div", "qr-zeile"); z.appendChild(punkteEl(s.punkte)); z.appendChild(qrEl(s.qr)); fc.appendChild(z);
   } else if (s.punkte) fc.appendChild(punkteEl(s.punkte));
   if (s.kontakt) {
     const c = el("span", "cta", KONTAKT[0]);
     c.appendChild(el("br"));
     c.appendChild(document.createTextNode(KONTAKT[1]));
-    if (s.qr) { const z = el("div", "qr-zeile"); z.appendChild(c); z.appendChild(qrEl()); fc.appendChild(z); }
+    if (s.qr) { const z = el("div", "qr-zeile"); z.appendChild(c); z.appendChild(qrEl(s.qr)); fc.appendChild(z); }
     else fc.appendChild(c);
   }
   return fc;
 }
-/* Zusatzinfo-Folie: drei Textflächen mit dem blassen Tjorven-Logo dahinter.
+/* Zusatzinfo-Folie: drei Textflächen auf dem Küchenfoto (unscharf), darüber das
+   blasse Tjorven-Logo; im Vollbild das Foto zusätzlich scharf in der Mitte.
    Texte wie vorgegeben bzw. wie auf der Speisekarte (Referenzbild Tilman). */
-function infoSlide() {
+const INFO_FOTO = BILD + "34-zusatzinfos-kueche-hintergrund-hochkant.jpeg";
+function infoSlide(format) {
   const f = el("figure", "slide info");
+  f.appendChild(bild(INFO_FOTO, "unschaerfe"));
+  f.appendChild(el("div", "schleier"));
   const logo = bild("/abholmonitor/logo-kreis.png", "info-logo"); f.appendChild(logo);
+  if (format === "quer") f.appendChild(bild(INFO_FOTO, "info-foto", "50% 50%"));
   const b1 = el("div", "blob rosa linsen");
   b1.appendChild(el("h3", "", "Unsere schwäbischen Linsen"));
   b1.appendChild(el("p", "kursiv", "Sprout Power! Wir keimen unsere Hülsenfrüchte. Das erhöht die Nährstoffaufnahme, trägt zu besserer Verdaulichkeit bei, setzt B- sowie C-Vitamine frei und wertet das Eiweißprofil erheblich auf. Ein echtes regionales Superfood!"));
@@ -789,15 +872,20 @@ function infoSlide() {
   return f;
 }
 function slideRahmen(s) {
-  return el("figure", "slide " + s.typ + (s.rot ? " rot" : "") + (s.deckblatt ? " mit-deckblatt" : ""));
+  return el("figure", "slide " + s.typ + (s.rot ? " rot" : "") + (s.deckblatt ? " mit-deckblatt" : "") + (s.toppings ? " mit-toppings" : ""));
 }
 
 /* Vollbild (quer) */
 function querSlide(s) {
-  if (s.typ === "info") return infoSlide();
+  if (s.typ === "info") return infoSlide("quer");
   const f = slideRahmen(s);
   const fc = inhalt(s);
-  if (s.quer) {
+  if (s.quer && s.fotoSeitlich) {
+    /* Produkt mittig im Foto: Foto links in voller Höhe, rechts unscharf auslaufend, Text rechts */
+    f.appendChild(bild(s.quer, "unschaerfe"));
+    f.appendChild(bild(s.quer, "bild-seite", s.posQuer));
+    fc.classList.add("pos-" + (s.text || "rechts"));
+  } else if (s.quer) {
     f.appendChild(bild(s.quer, "bild-voll", s.posQuer));
     fc.classList.add("pos-" + (s.text || "links"));
   } else if (s.deckblatt) {
@@ -805,10 +893,11 @@ function querSlide(s) {
     f.appendChild(bild(s.deckblatt, "deckblatt-bild"));
     fc.classList.add("pos-deckblatt");
   } else {
-    /* nur Hochkant-Foto: rechts ganz zeigen, dahinter dasselbe Bild unscharf, Text links */
+    /* nur Hochkant-Foto: rechts ganz zeigen, dahinter dasselbe Bild unscharf, Text links
+       (Produkte/Kaffee: hochkante Textfläche mittig im freien Bereich) */
     f.appendChild(bild(s.hoch, "unschaerfe"));
     f.appendChild(bild(s.hoch, "hoch-bild"));
-    fc.classList.add("pos-split");
+    fc.classList.add(s.typ === "promo" ? "pos-split" : "pos-seite");
   }
   f.appendChild(fc);
   return f;
@@ -816,7 +905,7 @@ function querSlide(s) {
 
 /* Spalte (hoch) */
 function hochSlide(s) {
-  if (s.typ === "info") return infoSlide();
+  if (s.typ === "info") return infoSlide("hoch");
   const f = slideRahmen(s);
   let foto;
   if (s.hoch) {
