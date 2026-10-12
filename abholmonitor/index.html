@@ -125,7 +125,7 @@ body[data-modus="bestellung"] #container {
 }
 
 /* ---------- Gemeinsam für beide Darstellungen ----------
-   Überblendung 3 s, Anzeigedauer 9000 ms wie im Original. */
+   Überblendung 3 s; Anzeigedauer je Slide nach Leseaufwand (siehe „dauer“ in der Slide-Liste). */
 .slide {
     position: absolute;
     inset: 0;
@@ -448,6 +448,25 @@ body[data-modus="bestellung"] #container {
 #vollbild .pos-deckblatt .qr,
 #vollbild .pos-rechts-breit .qr { flex-direction: row; align-items: flex-end; gap: 1vw; width: auto; }
 
+/* ---------- Tjorven-Logo dezent in der freien oberen Ecke ----------
+   Textfeld links → Logo rechts oben, Textfeld rechts → Logo links oben (Ausnahmen je
+   Slide über logoQuer / logoHoch). Nicht auf der Kindergeburtstagsfolie. */
+.slide .marke {
+    position: absolute;
+    z-index: 2;
+    height: auto;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+#vollbild .marke { top: 4vh; width: 11vh; }
+#vollbild .marke.links { left: 2.5vw; }
+#vollbild .marke.rechts { right: 2.5vw; }
+/* nur Hochkant-Foto rechts: Logo in dessen obere rechte Ecke */
+#vollbild .marke.rechts.im-foto { top: 6.5vh; right: 7.5vw; }
+#slideshow .marke { top: 3.5cqw; width: 90px; width: 15cqw; }
+#slideshow .marke.links { left: 3.5cqw; }
+#slideshow .marke.rechts { right: 3.5cqw; }
+
 /* ---------- Zusatzinfo-Folie: drei Textflächen wie auf der Speisekarte ----------
    Hintergrund wie bei den übrigen Folien: das Küchenfoto (Anton, Bild 34) unscharf
    und hell, darüber das echte Tjorven-Logo (abholmonitor/logo-kreis.png) groß und
@@ -692,6 +711,9 @@ body[data-modus="bestellung"] #container {
    Produkt bzw. die Personen frei bleiben). fotoSeitlich: Produkt steht mittig im Foto –
    das Foto rückt im Vollbild zur anderen Seite (siehe .bild-seite).
    posQuer / posHoch: Bildausschnitt (object-position). qr: Schlüssel aus QRS (unten).
+   dauer: Anzeigedauer in Sekunden nach Leseaufwand – gilt für Vollbild UND Spalte.
+   logoQuer / logoHoch: Ecke des Logos („links“/„rechts“), false = kein Logo; ohne Angabe
+   im Vollbild gegenüber der Textfläche, in der Spalte rechts oben.
    aktiv: false = wird übersprungen. */
 const BILD = "/images/abholmonitor/";
 /* QR-Codes: direkt zur Online-Broschüre mit Planer/Anfrageformular.
@@ -703,67 +725,71 @@ const QRS = {
 };
 const slides = [
   { typ: "willkommen", quer: BILD + "33-willkommen-tjorven-anton-neu-quer.jpeg", text: "oben-links", posQuer: "50% 35%", posHochQuer: "66% 50%",
-    titel: ["Herzlich", "Willkommen", "im", "Tjorven Bistro"] },
+    titel: ["Herzlich", "Willkommen", "im", "Tjorven Bistro"], dauer: 10 },
 
   { typ: "produkt", quer: BILD + "13-saisonale-bowl-quer.jpeg", hoch: BILD + "14-saisonale-bowl-hochkant.jpeg",
-    text: "rechts", posHoch: "50% 70%",
+    text: "rechts", posHoch: "50% 70%", dauer: 15,
     name: "Tjorvens saisonale Bowl", preis: "13.5",
     texte: ["Knackiger Blattsalat auf Quinoa und Buchweizen aus Schwaigern mit gebackenen Kartoffeln, saisonalem Gemüse, gekeimten schwäbischen Linsen, Pickles und kleinen Leckereien an unserem hausgemachten French Dressing."] },
 
-  { typ: "produkt", hoch: BILD + "23-pommes-service-hochkant.jpeg", posHoch: "50% 45%",
+  { typ: "produkt", hoch: BILD + "23-pommes-service-hochkant.jpeg", posHoch: "50% 45%", dauer: 10,
     name: "Knusprige Pommes", preis: "4.5",
     texte: ["Eine große Portion Pommes mit Ketchup & hausgemachter Mayonnaise."] },
 
   { typ: "produkt", quer: BILD + "12-focaccia-quer.jpeg", hoch: BILD + "11-focaccia-hochkant.jpeg",
-    text: "rechts", fotoSeitlich: true, posHoch: "50% 62%",
+    text: "rechts", fotoSeitlich: true, posHoch: "50% 62%", dauer: 12,
     name: "Saisonales Focaccia", preis: "5.5",
     texte: ["Selbstgebackenes Focaccia, belegt mit Hummus, grünem Pesto, saisonalem Gemüse und Salat.", "Knusprig getoastet."] },
 
   { typ: "produkt", quer: BILD + "09-wrap-gemuese-quer.jpeg", hoch: BILD + "10-wrap-gemuese-hochkant.jpeg",
-    text: "rechts", fotoSeitlich: true, posHoch: "50% 72%",
+    text: "rechts", fotoSeitlich: true, posHoch: "50% 72%", dauer: 15,
     name: "Getoasteter Wrap", preis: "8.0",
     texte: ["Fladenbrot gefüllt mit saisonalem Gemüse, gekeimten schwäbischen Linsen, Kräutercreme und Blattsalat.",
             "Wir servieren unsere Wraps außen knusprig getoastet und innen erfrischend kühl."] },
 
   { typ: "produkt", quer: BILD + "18-waffel-puderzucker-quer.jpeg", hoch: BILD + "17-waffel-puderzucker-hochkant.jpeg",
-    text: "rechts", posHoch: "35% 72%",
+    text: "rechts", posHoch: "35% 72%", dauer: 15,
     name: "Hausgemachte Belgische Waffel", preis: "4.5",
     texte: ["Mix & Match mit Toppings Deiner Wahl"],
     toppings: [["Puderzucker", ""], ["Zimt & Zucker", ""], ["Schokosauce", "+1.0"], ["Rübensirup", "+1.0"], ["Apfelmus", "+1.0"]] },
 
-  { typ: "produkt", hoch: BILD + "30-hagebutten-eistee-hochkant.jpeg", posHoch: "45% 70%",
+  { typ: "produkt", hoch: BILD + "30-hagebutten-eistee-hochkant.jpeg", posHoch: "45% 70%", dauer: 10,
     name: "Hausgemachter Hagebutten-Eistee", preis: "3.5",
     texte: ["Gesüßt oder ungesüßt", "0,40 l"] },
 
   /* Kaffee wie auf der Speisekarte: „Espresso | Doppio  2.5 | 3.5“ in einer Zeile */
-  { typ: "kaffee", hoch: BILD + "24-kaffee-cappuccino-barista-hochkant.jpeg", posHoch: "50% 62%",
+  { typ: "kaffee", hoch: BILD + "24-kaffee-cappuccino-barista-hochkant.jpeg", posHoch: "50% 62%", dauer: 16,
     titel: "Espresso & Tee",
     liste: [["Espresso | Doppio", "2.5 | 3.5"], ["Espresso Macchiato", "3.0"], ["Cortado", "3.2"], ["Americano", "3.5"],
             ["Bio Tee", "3.5", "Kräuter | Früchte | Grün | Schwarz"]] },
 
-  { typ: "kaffee", hoch: BILD + "08-kaffee-cappuccino-hochkant.jpeg", posHoch: "50% 82%",
+  { typ: "kaffee", hoch: BILD + "08-kaffee-cappuccino-hochkant.jpeg", posHoch: "50% 82%", dauer: 14,
+    logoQuer: "links",   /* rechts oben im Foto liegen die Zimtschnecken → Logo links über der Textfläche */
     titel: "Cappuccino & Kaffeespezialitäten",
     liste: [["Cappuccino", "4.0"], ["Milchkaffee", "4.0"], ["Latte Macchiato", "4.5"], ["Heiße Schokolade", "3.5"]] },
 
   /* Kindergeburtstag: bestehende Folie (Deckblatt + Punkte aus downloads/kindergeburtstag-tjorven-bistro.pdf) + QR */
   { typ: "promo", deckblatt: "/images/kindergeburtstag-broschuere/seite-1-1200.webp", rot: true,
     punkte: ["Eigener Tischbereich für Eure Gruppe", "Mehrfaches Kommen und Gehen möglich",
-             "Kuchen darf mitgebracht werden", "Kindergeburtstags-Menüs auf Wunsch"], kontakt: true, qr: "kindergeburtstag" },
+             "Kuchen darf mitgebracht werden", "Kindergeburtstags-Menüs auf Wunsch"], kontakt: true, qr: "kindergeburtstag",
+    dauer: 18, logoQuer: false, logoHoch: false },
 
   { typ: "promo", hoch: BILD + "32-tjorven-anton-eventflaeche-hochkant.jpeg", posHoch: "50% 22%",
     titel: "Feiern in der KLIMA ARENA", unter: "Tagsüber auf der Eventfläche oder in den Workshopräumen",
     texte: ["Geburtstagsbrunch, Familienfest oder Jubiläum in besonderem Ambiente."],
     punkte: ["Eigener Raum", "Kinder können die Ausstellung erkunden", "Catering vom Tjorven Bistro",
-             "Brunch, Kaffee & Kuchen oder individuelles Catering"], qr: "catering" },
+             "Brunch, Kaffee & Kuchen oder individuelles Catering"], qr: "catering", dauer: 20 },
 
   { typ: "promo", quer: BILD + "31-tjorven-anton-bistro-quer.jpeg", text: "rechts-breit", posQuer: "50% 70%",
     titel: "Feiern im Tjorven Bistro", unter: "Abends ab 17 Uhr als geschlossene Gesellschaft",
     texte: ["Das Bistro exklusiv für Geburtstage, Vereinsfeiern oder Firmenfeiern."],
     punkte: ["Eigener Bistrobereich", "À-la-carte oder Buffet", "Wein- und Getränkeservice",
-             "Auf Wunsch mit vorheriger Führung durch die KLIMA ARENA"], qr: "catering" },
+             "Auf Wunsch mit vorheriger Führung durch die KLIMA ARENA"], qr: "catering", dauer: 20 },
 
   /* Zusatzinformationen (wie auf der Speisekarte) – Aufbau siehe infoSlide() */
-  { typ: "info" },
+  /* längster Text (rund 85 Wörter in drei Flächen) → längste Dauer; in der Spalte ist keine
+     Ecke frei, dort steht das Logo bereits groß und blass im Hintergrund */
+  { typ: "info", dauer: 22, logoQuer: "rechts", logoHoch: false },
 
   /* Zimtschnecke: steht NICHT auf der Speisekarte, daher kein bestätigter Preis.
      Erst mit bestätigtem Preis aktivieren (aktiv: true, preis eintragen). */
@@ -871,13 +897,22 @@ function infoSlide(format) {
   [b1, b2, b3].forEach(b => { b.querySelectorAll("p").forEach(x => x.style.margin = "0"); f.appendChild(b); });
   return f;
 }
+/* Logo in der freien oberen Ecke */
+function marke(f, seite, imFoto) {
+  if (!seite) return;
+  f.appendChild(bild("/abholmonitor/logo-kreis.png", "marke " + seite + (imFoto ? " im-foto" : "")));
+}
+function logoSeiteQuer(s) {
+  if (s.logoQuer !== undefined) return s.logoQuer;
+  return /rechts/.test(s.text || "") && (s.quer) ? "links" : "rechts";
+}
 function slideRahmen(s) {
   return el("figure", "slide " + s.typ + (s.rot ? " rot" : "") + (s.deckblatt ? " mit-deckblatt" : "") + (s.toppings ? " mit-toppings" : ""));
 }
 
 /* Vollbild (quer) */
 function querSlide(s) {
-  if (s.typ === "info") return infoSlide("quer");
+  if (s.typ === "info") { const f = infoSlide("quer"); marke(f, logoSeiteQuer(s)); return f; }
   const f = slideRahmen(s);
   const fc = inhalt(s);
   if (s.quer && s.fotoSeitlich) {
@@ -900,12 +935,14 @@ function querSlide(s) {
     fc.classList.add(s.typ === "promo" ? "pos-split" : "pos-seite");
   }
   f.appendChild(fc);
+  const seite = logoSeiteQuer(s);
+  marke(f, seite, seite === "rechts" && !s.quer && !s.deckblatt);   // Hochkant-Foto rechts: Logo in dessen Ecke
   return f;
 }
 
 /* Spalte (hoch) */
 function hochSlide(s) {
-  if (s.typ === "info") return infoSlide("hoch");
+  if (s.typ === "info") { const f = infoSlide("hoch"); marke(f, s.logoHoch === undefined ? "rechts" : s.logoHoch); return f; }
   const f = slideRahmen(s);
   let foto;
   if (s.hoch) {
@@ -921,6 +958,7 @@ function hochSlide(s) {
   }
   f.appendChild(foto);
   f.appendChild(inhalt(s));
+  marke(f, s.logoHoch === undefined ? "rechts" : s.logoHoch);   // Spalte: oben rechts im Foto
   return f;
 }
 
@@ -936,7 +974,7 @@ aktiv.forEach(s => {
 const querSlides = vollbild.querySelectorAll(".slide");
 const hochSlides = spalte.querySelectorAll(".slide");
 let index = 0;
-const duration = 9000;
+const STANDARD_DAUER = 12;   // Sekunden, falls eine Slide keine eigene „dauer“ hat
 
 function showSlide() {
   const vorher = (index - 1 + aktiv.length) % aktiv.length;
@@ -951,7 +989,7 @@ function showSlide() {
   setTimeout(() => {
     index = (index + 1) % aktiv.length;
     showSlide();
-  }, duration);
+  }, (aktiv[index].dauer || STANDARD_DAUER) * 1000);   /* Dauer der GERADE gezeigten Slide – gleich für Vollbild und Spalte */
 }
 
 showSlide();
