@@ -468,15 +468,16 @@ body[data-modus="bestellung"] #container {
 #slideshow .marke.rechts { right: 3.5cqw; }
 
 /* ---------- Zusatzinfo-Folie: drei Textflächen wie auf der Speisekarte ----------
-   Hintergrund wie bei den übrigen Folien: das Küchenfoto (Anton, Bild 34) unscharf
-   und hell, darüber das echte Tjorven-Logo (abholmonitor/logo-kreis.png) groß und
-   blass. Im Vollbild steht das Foto zusätzlich scharf in der Mitte. Organische
-   Flächen in Rosa/Grün, dunkle Schrift – der Text bleibt immer INNERHALB der Fläche. */
+   Aufbau wie die Hagebutten-Eistee-Folie: Küchenfoto (Anton, Bild 34) rechts scharf
+   hochkant, dahinter dasselbe Foto bildfüllend und unscharf; die Textflächen im
+   freien Bereich links. KEIN Logo im Hintergrund (Wunsch Tilman). Organische Flächen
+   in Rosa/Grün, dunkle Schrift – der Text bleibt immer INNERHALB der Fläche. */
 .slide.info {
     background: #fdfbf8;
     color: #2a2724;
 }
-.slide.info .unschaerfe {
+/* Spalte: dasselbe Foto unscharf und hell hinter den Flächen */
+#slideshow .info .unschaerfe {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -484,15 +485,10 @@ body[data-modus="bestellung"] #container {
     object-fit: cover;
     filter: blur(26px) saturate(0.9);
 }
-.slide.info .schleier {
+#slideshow .info .schleier {
     position: absolute;
     inset: 0;
     background: rgba(253, 251, 248, 0.6);
-}
-.slide.info .info-logo {
-    position: absolute;
-    opacity: 0.14;
-    pointer-events: none;
 }
 .slide.info .blob {
     position: absolute;
@@ -519,28 +515,18 @@ body[data-modus="bestellung"] #container {
     font-style: italic;
     text-align: center;
 }
-/* Vollbild: Foto scharf in der Mitte, zwei Flächen links, eine rechts (Anton bleibt frei) */
-#vollbild .info .info-foto {
-    position: absolute;
-    top: 7vh;
-    left: 50%;
-    height: 86vh;
-    width: auto;
-    transform: translateX(-50%);
-    border-radius: 24px;
-    box-shadow: 0 1.2vh 4vh rgba(0, 0, 0, 0.25);
-}
-#vollbild .info .info-logo { height: 112vh; right: -16vh; top: -6vh; }
-#vollbild .info .linsen { left: 2.2vw; top: 4.5vh; width: 34vw; padding: 9vh 5.4vw 9.5vh; font-size: 2.75vh; }
-#vollbild .info .bohne { right: 2.2vw; top: 50%; transform: translateY(-50%); width: 30.5vw; padding: 9.5vh 4.6vw 10vh; font-size: 2.75vh; }
-#vollbild .info .koffein { left: 4.5vw; bottom: 4vh; width: 28vw; padding: 7vh 4.6vw; font-size: 3.3vh; transform: rotate(-5deg); text-wrap: balance; }
-#vollbild .info h3 { font-size: 3.7vh; }
+/* Vollbild: Foto rechts wie bei der Eistee-Folie (.hoch-bild, Hintergrund .unschaerfe);
+   Linsen oben links, Kaffeebohne versetzt rechts daneben, „entkoffeiniert“ unten links –
+   alles links vom Foto */
+#vollbild .info .linsen { left: 1.8vw; top: 3vh; width: 29.5vw; padding: 10.5vh 4.6vw 9vh; font-size: 2.55vh; }
+#vollbild .info .bohne { left: 31.2vw; top: 27vh; width: 26.8vw; padding: 9vh 4vw 9.5vh; font-size: 2.55vh; }
+#vollbild .info .koffein { left: 4vw; bottom: 3.5vh; width: 24vw; padding: 6vh 3.8vw; font-size: 3vh; transform: rotate(-5deg); text-wrap: balance; }
+#vollbild .info h3 { font-size: 3.4vh; }
 /* Hochkant-Spalte: untereinander */
 #slideshow .slide.info {
     justify-content: space-evenly;
     align-items: center;
 }
-#slideshow .info .info-logo { width: 125%; left: -12%; top: 18%; }
 #slideshow .info .blob { position: relative; width: 96%; padding: 8.5% 13% 9%; font-size: 21px; font-size: 3.45cqw; }
 /* schmale Spalte: flachere Rundungen oben/unten, damit auch die erste und letzte Zeile in der Fläche bleiben */
 #slideshow .info .linsen { border-radius: 42% 46% 44% 48% / 30% 28% 32% 30%; }
@@ -787,8 +773,8 @@ const slides = [
              "Auf Wunsch mit vorheriger Führung durch die KLIMA ARENA"], qr: "catering", dauer: 20 },
 
   /* Zusatzinformationen (wie auf der Speisekarte) – Aufbau siehe infoSlide() */
-  /* längster Text (rund 85 Wörter in drei Flächen) → längste Dauer; in der Spalte ist keine
-     Ecke frei, dort steht das Logo bereits groß und blass im Hintergrund */
+  /* längster Text (rund 85 Wörter in drei Flächen) → längste Dauer; Logo im Vollbild oben
+     rechts im Foto wie bei der Eistee-Folie, in der Spalte ist keine Ecke frei */
   { typ: "info", dauer: 22, logoQuer: "rechts", logoHoch: false },
 
   /* Zimtschnecke: steht NICHT auf der Speisekarte, daher kein bestätigter Preis.
@@ -873,16 +859,16 @@ function inhalt(s) {
   }
   return fc;
 }
-/* Zusatzinfo-Folie: drei Textflächen auf dem Küchenfoto (unscharf), darüber das
-   blasse Tjorven-Logo; im Vollbild das Foto zusätzlich scharf in der Mitte.
+/* Zusatzinfo-Folie: im Vollbild wie die Eistee-Folie – Küchenfoto rechts scharf, dasselbe
+   Foto unscharf als Hintergrund, Textflächen links; in der Spalte die Flächen auf dem
+   unscharfen, aufgehellten Foto. Kein Logo im Hintergrund.
    Texte wie vorgegeben bzw. wie auf der Speisekarte (Referenzbild Tilman). */
 const INFO_FOTO = BILD + "34-zusatzinfos-kueche-hintergrund-hochkant.jpeg";
 function infoSlide(format) {
   const f = el("figure", "slide info");
   f.appendChild(bild(INFO_FOTO, "unschaerfe"));
-  f.appendChild(el("div", "schleier"));
-  const logo = bild("/abholmonitor/logo-kreis.png", "info-logo"); f.appendChild(logo);
-  if (format === "quer") f.appendChild(bild(INFO_FOTO, "info-foto", "50% 50%"));
+  if (format === "quer") f.appendChild(bild(INFO_FOTO, "hoch-bild"));   // rechts scharf, wie Eistee
+  else f.appendChild(el("div", "schleier"));
   const b1 = el("div", "blob rosa linsen");
   b1.appendChild(el("h3", "", "Unsere schwäbischen Linsen"));
   b1.appendChild(el("p", "kursiv", "Sprout Power! Wir keimen unsere Hülsenfrüchte. Das erhöht die Nährstoffaufnahme, trägt zu besserer Verdaulichkeit bei, setzt B- sowie C-Vitamine frei und wertet das Eiweißprofil erheblich auf. Ein echtes regionales Superfood!"));
@@ -912,7 +898,7 @@ function slideRahmen(s) {
 
 /* Vollbild (quer) */
 function querSlide(s) {
-  if (s.typ === "info") { const f = infoSlide("quer"); marke(f, logoSeiteQuer(s)); return f; }
+  if (s.typ === "info") { const f = infoSlide("quer"); marke(f, logoSeiteQuer(s), true); return f; }   // Logo in der Fotoecke wie Eistee
   const f = slideRahmen(s);
   const fc = inhalt(s);
   if (s.quer && s.fotoSeitlich) {
