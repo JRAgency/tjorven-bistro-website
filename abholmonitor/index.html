@@ -308,7 +308,8 @@ body[data-modus="bestellung"] #container {
 #slideshow .promo figcaption { gap: 0.5em; }
 #slideshow .promo.mit-deckblatt figcaption,
 #slideshow .willkommen figcaption,
-#slideshow .promo .foto.quer-oben + figcaption {
+#slideshow .promo .foto.quer-oben + figcaption,
+#slideshow .produkt .foto.quer-oben + figcaption {
     flex: 1 1 auto;
     justify-content: center;
 }
@@ -367,6 +368,17 @@ body[data-modus="bestellung"] #container {
     max-width: none;
     -webkit-mask-image: linear-gradient(to right, #000 78%, transparent);
     mask-image: linear-gradient(to right, #000 78%, transparent);
+}
+/* Sehr breites Motiv (Lasagne mit Salatschale, Foto 16:9): Foto etwas kleiner links,
+   damit Teller UND Schale neben der Textfläche Platz haben; läuft oben, unten und
+   rechts weich in dieselbe, unscharfe Aufnahme aus. */
+#vollbild .bild-seite.klein {
+    top: 16%;
+    height: 76%;
+    -webkit-mask-image: linear-gradient(to right, #000 80%, transparent), linear-gradient(to bottom, transparent, #000 12%, #000 86%, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(to right, #000 80%, transparent), linear-gradient(to bottom, transparent, #000 12%, #000 86%, transparent);
+    mask-composite: intersect;
 }
 /* Nur ein Hochkant-Foto vorhanden: Foto rechts ganz, Text links */
 #vollbild .hoch-bild {
@@ -490,7 +502,10 @@ body[data-modus="bestellung"] #container {
 #vollbild .gastgeber { padding: 3.2vh 3vw 3.6vh; gap: 0.5vh; }
 #vollbild .gastgeber .gg-name { font-size: 3.8vh; }
 #vollbild .gastgeber .gg-zeile { font-size: 2.8vh; }
-#vollbild .gastgeber.q-links { left: 2.2vw; top: 50vh; }                                            /* Willkommen: freie Fläche links */
+/* Willkommen (Wunsch Tilman): kleiner, mittig zwischen Tjorven und Anton unter den Gesichtern, über den Tellern */
+#vollbild .gastgeber.q-unter { left: 54.5vw; top: 55.5vh; transform: translateX(-50%); padding: 2.4vh 2.4vw 2.7vh; gap: 0.3vh; }
+#vollbild .gastgeber.q-unter .gg-name { font-size: 3vh; }
+#vollbild .gastgeber.q-unter .gg-zeile { font-size: 2.2vh; }
 #vollbild .gastgeber.q-foto { right: calc(6vw + 30.65vh); top: 68vh; transform: translateX(50%); }  /* Hochkant-Foto rechts: über den Schürzen */
 #vollbild .gastgeber.q-schuerze { left: 47vw; top: 77vh; transform: translateX(-50%); }             /* Querformat-Foto: über den Schürzen */
 /* Spalte: flacher und breiter (wenig Platz zwischen Bildrand, Köpfen und Tellern) */
@@ -751,7 +766,7 @@ body[data-modus="bestellung"] #container {
    das vorhandene Bild ganz gezeigt (nichts verzerrt, nichts unvorteilhaft beschnitten).
    text: Seite der grünen Textfläche im Vollbild (immer hochkant seitlich, dort wo das
    Produkt bzw. die Personen frei bleiben). fotoSeitlich: Produkt steht mittig im Foto –
-   das Foto rückt im Vollbild zur anderen Seite (siehe .bild-seite).
+   das Foto rückt im Vollbild zur anderen Seite (siehe .bild-seite; „klein“ für sehr breite Motive).
    posQuer / posHoch: Bildausschnitt (object-position). qr: Schlüssel aus QRS (unten).
    dauer: Anzeigedauer in Sekunden nach Leseaufwand – gilt für Vollbild UND Spalte.
    logoQuer / logoHoch: Ecke des Logos („links“/„rechts“), false = kein Logo; ohne Angabe
@@ -771,12 +786,18 @@ const GASTGEBER = ["Tjorven & Anton", "Deine Gastgeber"];
 const slides = [
   { typ: "willkommen", quer: BILD + "33-willkommen-tjorven-anton-neu-quer.jpeg", text: "oben-links", posQuer: "50% 35%", posHochQuer: "66% 50%",
     titel: ["Herzlich", "Willkommen", "im", "Tjorven Bistro"], dauer: 10,
-    qrEcke: "website", gastgeber: { quer: "links", hoch: "oben-links" } },
+    qrEcke: "website", gastgeber: { quer: "unter", hoch: "oben-links" } },
 
   { typ: "produkt", quer: BILD + "13-saisonale-bowl-quer.jpeg", hoch: BILD + "14-saisonale-bowl-hochkant.jpeg",
     text: "rechts", posHoch: "50% 70%", dauer: 15,
     name: "Tjorvens saisonale Bowl", preis: "13.5",
     texte: ["Knackiger Blattsalat auf Quinoa und Buchweizen aus Schwaigern mit gebackenen Kartoffeln, saisonalem Gemüse, gekeimten schwäbischen Linsen, Pickles und kleinen Leckereien an unserem hausgemachten French Dressing."] },
+
+  /* Lasagne: Name, Preis und Text 1:1 wie auf der Speisekarte (Canva-PDF / speisekarte.html) */
+  { typ: "produkt", quer: BILD + "35-lasagne-neu-quer.jpeg", text: "rechts", fotoSeitlich: "klein", posHochQuer: "40% 50%", dauer: 15,
+    name: "Hausgemachte Lasagne & Beilagensalat", preis: "12.5",
+    texte: ["Unsere Lasagne basiert auf Sonnenblumenprotein und wird mit einer leckeren Kräutercreme sowie einem würzigen “Sonnenblumenparmesan” serviert.",
+            "Es gibt unsere Lasagne samstags, sonntags, feiertags und in den Schulferien."] },
 
   { typ: "produkt", hoch: BILD + "23-pommes-service-hochkant.jpeg", posHoch: "50% 45%", dauer: 10,
     name: "Knusprige Pommes", preis: "4.5",
@@ -974,7 +995,7 @@ function querSlide(s) {
   if (s.quer && s.fotoSeitlich) {
     /* Produkt mittig im Foto: Foto links in voller Höhe, rechts unscharf auslaufend, Text rechts */
     f.appendChild(bild(s.quer, "unschaerfe"));
-    f.appendChild(bild(s.quer, "bild-seite", s.posQuer));
+    f.appendChild(bild(s.quer, "bild-seite" + (s.fotoSeitlich === "klein" ? " klein" : ""), s.posQuer));
     fc.classList.add("pos-" + (s.text || "rechts"));
   } else if (s.quer) {
     f.appendChild(bild(s.quer, "bild-voll", s.posQuer));
