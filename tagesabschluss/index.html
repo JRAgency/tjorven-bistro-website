@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<!--
+  Tagesabschluss – interner Bereich des Tjorven Bistro (nur auf Vercel lauffähig, braucht /api/tagesabschluss/*).
+  Diese Seite enthält keine Daten: Alles wird erst nach der Anmeldung vom Server geladen.
+  Passwort, Schlüssel und Datenbankzugang liegen ausschließlich als Umgebungsvariablen auf dem Server.
+-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Tagesabschluss – Tjorven Bistro (intern)</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/tagesabschluss/style.css">
+<script src="/tagesabschluss/app.js" defer></script>
+</head>
+<body>
+
+<header class="kopf">
+  <div class="kopf-innen">
+    <img src="/images/tjorven-logo-gruen.png" alt="" class="kopf-logo" width="44" height="44">
+    <div class="kopf-titel">Tagesabschluss <span class="etikett">intern</span></div>
+    <button type="button" id="abmelden" class="knopf leise klein" hidden>Abmelden</button>
+  </div>
+</header>
+
+<main class="inhalt">
+
+  <!-- Anmeldung -->
+  <section id="anmeldung" class="karte schmal" hidden>
+    <h1>Anmelden</h1>
+    <p class="leise">Interner Bereich für den täglichen Kassenabschluss.</p>
+    <form id="anmeldeForm" autocomplete="on">
+      <label class="feld">
+        <span class="feld-name">Passwort</span>
+        <input type="password" id="passwort" name="passwort" autocomplete="current-password" required>
+      </label>
+      <p class="meldung" id="anmeldeMeldung" role="alert"></p>
+      <button type="submit" class="knopf haupt breit">Anmelden</button>
+    </form>
+  </section>
+
+  <p class="meldung zentriert" id="startMeldung" role="alert"></p>
+
+  <div id="app" hidden>
+
+    <!-- Erfassen -->
+    <section id="erfassen" class="karte">
+      <h2>Neuen Tagesabschluss erfassen</h2>
+      <p class="leise">Foto des Tagesabschluss-Bons aufnehmen oder auswählen. Gespeichert wird erst, nachdem du alle Werte geprüft hast.</p>
+      <p class="hinweis-kasten" id="einrichtungsHinweis" hidden></p>
+      <div class="knopfreihe">
+        <label class="knopf haupt">
+          Foto aufnehmen
+          <input type="file" id="kamera" accept="image/*" capture="environment" class="unsichtbar">
+        </label>
+        <label class="knopf">
+          Foto auswählen
+          <input type="file" id="datei" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" class="unsichtbar">
+        </label>
+      </div>
+      <div id="auswahl" class="auswahl" hidden>
+        <img id="auswahlBild" alt="Ausgewähltes Foto des Tagesabschlusses">
+        <div class="auswahl-text">
+          <p id="auswahlInfo" class="leise"></p>
+          <div class="knopfreihe">
+            <button type="button" id="analysieren" class="knopf haupt">Foto analysieren</button>
+            <button type="button" id="vonHand" class="knopf">Werte von Hand eintragen</button>
+          </div>
+          <p class="laden" id="analyseLaeuft" hidden><span class="kreisel" aria-hidden="true"></span> Der Bon wird gelesen – das dauert etwa 10 bis 30 Sekunden …</p>
+        </div>
+      </div>
+      <p class="meldung" id="erfassenMeldung" role="alert"></p>
+    </section>
+
+    <!-- Prüfansicht -->
+    <section id="pruefung" class="karte" hidden>
+      <h2 id="pruefTitel">Tagesabschluss erkannt</h2>
+      <p id="pruefInfo" class="leise"></p>
+      <div class="pruef-raster">
+        <figure class="bon">
+          <img id="bonVorschau" alt="Foto des Tagesabschlusses">
+          <button type="button" id="bonGross" class="knopf klein">Foto groß ansehen</button>
+        </figure>
+
+        <form id="pruefForm" novalidate>
+          <fieldset>
+            <legend>Vom Bon</legend>
+            <div class="feldraster" id="bonFelder"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Von Hand</legend>
+            <div class="feldraster" id="handFelder"></div>
+            <div class="barkasse-info" id="barkasseInfo" hidden></div>
+            <label class="feld voll">
+              <span class="feld-name">Bemerkung <span class="optional">(freiwillig)</span></span>
+              <textarea id="bemerkung" maxlength="500" rows="2"></textarea>
+            </label>
+          </fieldset>
+
+          <div class="warnung" id="dublette" hidden>
+            <p><strong id="dubletteTitel">Für dieses Datum existiert bereits ein Tagesabschluss.</strong></p>
+            <div id="dubletteDaten" class="dublette-daten"></div>
+            <p class="leise" id="dubletteText">Er wird nicht überschrieben. Prüfe das Datum – oder ersetze den bestehenden Eintrag bewusst.</p>
+            <div class="knopfreihe">
+              <button type="button" id="aktualisieren" class="knopf warn" hidden>Bestehenden Eintrag aktualisieren</button>
+            </div>
+          </div>
+
+          <p class="meldung" id="speicherMeldung" role="alert"></p>
+          <div class="knopfreihe aktionen">
+            <button type="submit" id="speichern" class="knopf haupt">Tagesabschluss speichern</button>
+            <button type="button" id="verwerfen" class="knopf">Abbrechen</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <p class="erfolg" id="erfolg" role="status" hidden></p>
+
+    <!-- Tabelle -->
+    <section id="liste" class="karte breit-karte">
+      <div class="kopfzeile">
+        <h2>Gespeicherte Tagesabschlüsse</h2>
+        <button type="button" id="excel" class="knopf">Excel herunterladen</button>
+      </div>
+      <p class="meldung" id="listeMeldung" role="alert"></p>
+      <div id="tabelle"></div>
+    </section>
+  </div>
+</main>
+
+<dialog id="fotoDialog" class="foto-dialog" aria-label="Foto des Tagesabschlusses">
+  <div class="foto-dialog-kopf">
+    <span id="fotoDialogTitel">Foto</span>
+    <span class="knopfreihe">
+      <button type="button" id="fotoZoom" class="knopf klein">Vergrößern</button>
+      <button type="button" id="fotoSchliessen" class="knopf klein">Schließen</button>
+    </span>
+  </div>
+  <div class="foto-dialog-bild"><img id="fotoDialogBild" alt="Foto des Tagesabschlusses"></div>
+</dialog>
+
+</body>
+</html>

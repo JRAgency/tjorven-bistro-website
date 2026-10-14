@@ -1,0 +1,9 @@
+# Nie hochladen (auch nicht bei Deployments direkt aus dem lokalen Ordner)
+private-reference/
+_deploy/
+inc/config.php
+inc/abholmonitor-config.php
+inc/abholmonitor-data.php
+inc/abholmonitor-login.php
+.claude/
+*.bak
