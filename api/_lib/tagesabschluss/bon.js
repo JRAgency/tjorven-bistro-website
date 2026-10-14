@@ -12,6 +12,9 @@
 //   KASSE:            Startbetrag + Eingenommenes Bargeld + Bargeldauszahlung (Karte)
 //                     + Bargeld hinzugefügt + Bargeld entfernt = Erwartetes Bargeld
 //                     Gezählter Bargeldbestand − Erwartetes Bargeld = Differenz
+//
+// Barkassenbestand = „Gezählter Bargeldbestand“ vom Bon, 1:1 übernommen (Vorgabe vom
+// 14.10.2026). Er wird NICHT berechnet – weder aus dem Vortag noch aus anderen Feldern.
 
 /* ---------------------------------------------------------------- Beträge */
 
@@ -86,12 +89,12 @@ const tageZwischen = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.p
 const SICHER = 'sicher', PRUEFEN = 'pruefen', FEHLT = 'fehlt';
 
 /** Ziel-Felder der Erkennung (Schlüssel = Feldname im Formular) */
-export const ERKANNTE_FELDER = ['datum', 'umsatz19', 'umsatz7', 'umsatzBar', 'bargeldEntfernt', 'gezaehlterBargeldbestand'];
+export const ERKANNTE_FELDER = ['datum', 'umsatz19', 'umsatz7', 'umsatzBar', 'bargeldEntfernt', 'barkassenbestand'];
 
 /** Schema-Pfade der Erkennung → Formularfeld */
 const UNSICHER_ZU_FELD = {
   'mwst_19.brutto': 'umsatz19', 'mwst_7.brutto': 'umsatz7', 'kasse.eingenommenes_bargeld': 'umsatzBar',
-  'kasse.bargeld_entfernt': 'bargeldEntfernt', 'kasse.gezaehlter_bargeldbestand': 'gezaehlterBargeldbestand',
+  'kasse.bargeld_entfernt': 'bargeldEntfernt', 'kasse.gezaehlter_bargeldbestand': 'barkassenbestand',
   offen: 'datum', schliessen: 'datum',
 };
 
@@ -165,12 +168,13 @@ export function bewerteBon(roh, { heute = heuteInBerlin() } = {}) {
     'Nicht sicher erkannt – bitte prüfen („Bargeld entfernt“ unter KASSE, meist mit Minus).',
     'Auf dem Foto nicht gefunden – bitte vom Bon abtippen („Bargeld entfernt“ unter KASSE).');
 
-  // --- Gezählter Bargeldbestand: Differenz = Gezählt − Erwartet, Erwartet durch KASSE bestätigt
+  // --- Barkassenbestand = „Gezählter Bargeldbestand“ (1:1 vom Bon, keine Berechnung).
+  // Sicher nur, wenn Differenz = Gezählt − Erwartet aufgeht und Erwartet durch KASSE bestätigt ist.
   const gezOk = kasse && gez !== null && diff !== null && gleich(gez - erw, diff);
   pruefungen.gezaehlt = gezOk;
-  setze('gezaehlterBargeldbestand', gez, gezOk,
+  setze('barkassenbestand', gez, gezOk,
     'Nicht sicher erkannt – bitte prüfen („Gezählter Bargeldbestand“ unter KASSE).',
-    'Auf dem Foto nicht gefunden („Gezählter Bargeldbestand“ unter KASSE).');
+    'Auf dem Foto nicht gefunden – bitte vom Bon abtippen („Gezählter Bargeldbestand“ unter KASSE).');
 
   // --- Datum: Tag der Kassenöffnung/-schließung, NICHT das Druckdatum
   const dOffen = datumAusText(r.offen), dSchl = datumAusText(r.schliessen), dDruck = datumAusText(r.gedruckt);

@@ -7,7 +7,6 @@ import { brauchtSitzung } from '../_lib/tagesabschluss/sitzung.js';
 import { pruefeFoto, base64ZuPuffer, MAX_ANFRAGE_BYTES } from '../_lib/tagesabschluss/pruefung.js';
 import { liesBon, kiEingerichtet, ErkennungsFehler } from '../_lib/tagesabschluss/erkennung.js';
 import { bewerteBon } from '../_lib/tagesabschluss/bon.js';
-import { barkassenInfo } from '../_lib/tagesabschluss/barkasse.js';
 import * as speicher from '../_lib/tagesabschluss/speicher.js';
 import { fuerAnzeige, unerwartet } from '../_lib/tagesabschluss/gemeinsam.js';
 
@@ -61,7 +60,6 @@ export default {
       werte: ergebnis.werte,
       status: ergebnis.status,
       hinweise: ergebnis.hinweise,
-      barkasse: barkassenInfo(),
       vorhanden,
     });
   },

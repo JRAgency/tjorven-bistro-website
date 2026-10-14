@@ -9,7 +9,6 @@ import crypto from 'node:crypto';
 import { json, fehler, nurMethoden, vonEigenerSeite, fremdeSeite, leseJson } from '../_lib/tagesabschluss/antwort.js';
 import { brauchtSitzung } from '../_lib/tagesabschluss/sitzung.js';
 import { pruefeEintrag, pruefeFoto, base64ZuPuffer, MAX_ANFRAGE_BYTES } from '../_lib/tagesabschluss/pruefung.js';
-import { BARKASSEN_REGEL, berechneBarkassenbestand } from '../_lib/tagesabschluss/barkasse.js';
 import * as speicher from '../_lib/tagesabschluss/speicher.js';
 import { fuerAnzeige, speicherFehlt, unerwartet } from '../_lib/tagesabschluss/gemeinsam.js';
 
@@ -38,12 +37,6 @@ async function speichern(request) {
   }
   if (vorhanden && daten.version !== vorhanden.geaendert) {
     return fehler(409, 'Der bestehende Tagesabschluss wurde inzwischen geändert. Bitte die Angaben erneut prüfen.', { code: 'geaendert', vorhanden: fuerAnzeige(vorhanden) });
-  }
-
-  // Barkassenbestand: nur wenn die Regel bestätigt ist und nichts eingetragen wurde (siehe barkasse.js)
-  if (BARKASSEN_REGEL.bestaetigt && eintrag.barkassenbestand === null) {
-    const vortag = (await speicher.liesEintraege()).find(e => e.datum < eintrag.datum) || null;
-    eintrag.barkassenbestand = berechneBarkassenbestand(eintrag, vortag);
   }
 
   const fotoId = crypto.randomUUID();

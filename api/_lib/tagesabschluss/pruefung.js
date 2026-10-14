@@ -84,21 +84,21 @@ export function base64ZuPuffer(text) {
 
 /* ----------------------------------------------------------- Datensatz */
 
-/** Pflicht-Geldfelder (Kassendifferenz wird laut Vorgabe immer von Hand abgefragt) */
+/** Pflicht-Geldfelder (Kassendifferenz wird laut Vorgabe immer von Hand abgefragt,
+ *  Barkassenbestand = „Gezählter Bargeldbestand“ vom Bon) */
 const PFLICHT = {
   umsatz7: '7 % Umsatz',
   umsatz19: '19 % Umsatz',
   umsatzBar: 'Umsatz bar',
   bargeldEntfernt: 'Bargeld entfernt',
   kassendifferenz: 'Kassendifferenz',
+  barkassenbestand: 'Barkassenbestand',
 };
 const FREIWILLIG = {
   barausgabe: 'Barausgabe',
   bankeinzahlung: 'Bankeinzahlung',
-  barkassenbestand: 'Barkassenbestand',
-  gezaehlterBargeldbestand: 'Gezählter Bargeldbestand',
 };
-const NICHT_NEGATIV = new Set(['umsatz7', 'umsatz19', 'umsatzBar', 'barausgabe', 'bankeinzahlung', 'barkassenbestand', 'gezaehlterBargeldbestand']);
+const NICHT_NEGATIV = new Set(['umsatz7', 'umsatz19', 'umsatzBar', 'barausgabe', 'bankeinzahlung', 'barkassenbestand']);
 const STATUS_WERTE = new Set(['sicher', 'pruefen', 'fehlt', 'manuell']);
 
 function geldwert(wert, name, fehlerliste, feld, pflicht) {
@@ -139,7 +139,7 @@ export function pruefeEintrag(eingabe, { heute = heuteInBerlin() } = {}) {
   // Herkunft der Werte (automatisch erkannt / von Hand) – nur bekannte Felder und Werte
   const erkennung = {};
   if (e.erkennung && typeof e.erkennung === 'object') {
-    for (const feld of ['datum', 'umsatz19', 'umsatz7', 'umsatzBar', 'bargeldEntfernt', 'gezaehlterBargeldbestand']) {
+    for (const feld of ['datum', 'umsatz19', 'umsatz7', 'umsatzBar', 'bargeldEntfernt', 'barkassenbestand']) {
       if (STATUS_WERTE.has(e.erkennung[feld])) erkennung[feld] = e.erkennung[feld];
     }
   }

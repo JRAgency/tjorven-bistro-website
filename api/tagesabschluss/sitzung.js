@@ -4,7 +4,6 @@ import { json, nurMethoden } from '../_lib/tagesabschluss/antwort.js';
 import { brauchtSitzung, pruefeSitzung } from '../_lib/tagesabschluss/sitzung.js';
 import { kiEingerichtet } from '../_lib/tagesabschluss/erkennung.js';
 import { istEingerichtet as speicherEingerichtet } from '../_lib/tagesabschluss/speicher.js';
-import { barkassenInfo } from '../_lib/tagesabschluss/barkasse.js';
 
 export default {
   async fetch(request) {
@@ -16,7 +15,6 @@ export default {
       ablauf: pruefeSitzung(request).ablauf,
       erkennung: kiEingerichtet(),
       speicher: speicherEingerichtet(),
-      barkasse: barkassenInfo(),
     });
   },
 };

@@ -15,12 +15,12 @@
     { feld: 'umsatz19', name: '19 % Umsatz', zusatz: 'Brutto unter „Rate: 19.0%“', pflicht: true },
     { feld: 'umsatzBar', name: 'Umsatz bar', zusatz: '„Eingenommenes Bargeld“', pflicht: true },
     { feld: 'bargeldEntfernt', name: 'Bargeld entfernt', zusatz: 'wie auf dem Bon, meist mit Minus', pflicht: true, vorzeichen: true },
+    { feld: 'barkassenbestand', name: 'Barkassenbestand', zusatz: '„Gezählter Bargeldbestand“ unter KASSE', pflicht: true },
   ];
   const HAND_FELDER = [
     { feld: 'kassendifferenz', name: 'Kassendifferenz', pflicht: true, vorzeichen: true, zusatz: 'bitte von Hand eintragen' },
     { feld: 'barausgabe', name: 'Barausgabe' },
     { feld: 'bankeinzahlung', name: 'Bankeinzahlung' },
-    { feld: 'barkassenbestand', name: 'Barkassenbestand' },
   ];
   const ALLE = BON_FELDER.concat(HAND_FELDER);
   const STATUS_TEXT = { sicher: 'automatisch erkannt', pruefen: 'Nicht sicher erkannt – bitte prüfen', fehlt: 'Nicht sicher erkannt – bitte prüfen', manuell: 'von Hand' };
@@ -30,7 +30,6 @@
     foto: null,             // { base64, url, breite, hoehe, bytes }
     erkennung: {},          // Feld → Status aus der Analyse
     erkannteWerte: {},      // Feld → Wert aus der Analyse (zum Erkennen von Änderungen)
-    kontrolle: null,        // gezählter Bargeldbestand laut Bon
     dublette: null,         // bestehender Eintrag beim Konflikt
     eintraege: [],
   };
@@ -328,8 +327,6 @@
       zustand.erkennung[def.feld] = ergebnis ? status[def.feld] || 'fehlt' : 'manuell';
       zustand.erkannteWerte[def.feld] = werte[def.feld] === undefined ? null : werte[def.feld];
     }
-    zustand.kontrolle = ergebnis && typeof werte.gezaehlterBargeldbestand === 'number' ? werte.gezaehlterBargeldbestand : null;
-    zustand.erkennung.gezaehlterBargeldbestand = ergebnis ? status.gezaehlterBargeldbestand || 'fehlt' : 'manuell';
 
     $('bonFelder').textContent = '';
     for (const def of BON_FELDER) {
@@ -338,7 +335,6 @@
     $('handFelder').textContent = '';
     for (const def of HAND_FELDER) $('handFelder').appendChild(feldBauen(def, null, null, null));
     $('bemerkung').value = '';
-    barkasseInfoZeigen(ergebnis ? ergebnis.barkasse : zustand.sitzung && zustand.sitzung.barkasse, ergebnis ? status.gezaehlterBargeldbestand : null);
 
     const unsicher = ergebnis ? BON_FELDER.filter(d => status[d.feld] !== 'sicher') : [];
     if (ergebnis) {
@@ -359,27 +355,6 @@
     $('pruefung').scrollIntoView({ behavior: 'smooth', block: 'start' });
     if (ergebnis && ergebnis.vorhanden) zeigeDublette(ergebnis.vorhanden, 'vorhanden');
     else pruefeDatumVorab();
-  }
-
-  function barkasseInfoZeigen(info, statusGezaehlt) {
-    const kasten = $('barkasseInfo');
-    kasten.textContent = '';
-    const teile = [];
-    if (info && !info.regelBestaetigt) teile.push(el('span', '', info.hinweis));
-    if (zustand.kontrolle !== null) {
-      const zeile = el('span', '');
-      zeile.appendChild(el('span', '', `Zum Vergleich – Gezählter Bargeldbestand laut Bon: `));
-      zeile.appendChild(el('strong', '', alsEuro(zustand.kontrolle)));
-      teile.push(zeile);
-      const knopf = el('button', 'knopf klein', 'Diesen Wert als Barkassenbestand übernehmen');
-      knopf.type = 'button';
-      knopf.addEventListener('click', () => { $('f_barkassenbestand').value = zahlFeld(zustand.kontrolle); $('f_barkassenbestand').focus(); });
-      teile.push(knopf);
-    } else if (statusGezaehlt && statusGezaehlt !== 'sicher') {
-      teile.push(el('span', '', 'Der gezählte Bargeldbestand wurde auf dem Foto nicht sicher erkannt.'));
-    }
-    teile.forEach(t => kasten.appendChild(t));
-    kasten.hidden = teile.length === 0;
   }
 
   /** Formularwerte sammeln und im Browser vorprüfen (der Server prüft noch einmal) */
@@ -412,8 +387,6 @@
       const geaendert = zustand.erkannteWerte[def.feld] !== eintrag[def.feld];
       eintrag.erkennung[def.feld] = vorher === 'sicher' && !geaendert ? 'sicher' : (vorher === 'manuell' ? 'manuell' : (geaendert ? 'manuell' : vorher));
     }
-    eintrag.gezaehlterBargeldbestand = zustand.kontrolle;
-    eintrag.erkennung.gezaehlterBargeldbestand = zustand.erkennung.gezaehlterBargeldbestand || 'manuell';
     eintrag.bemerkung = $('bemerkung').value.trim();
     return ok ? eintrag : null;
   }

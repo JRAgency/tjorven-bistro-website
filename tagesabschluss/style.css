@@ -96,7 +96,6 @@ legend { font-weight: 600; color: var(--gruen-tief); padding: 0 6px; }
 .hinweis-kasten { background: var(--sand); border-radius: 10px; padding: 10px 12px; }
 .warnung { border: 2px solid var(--rot); background: var(--rot-hell); border-radius: 12px; padding: 12px 14px; margin: 8px 0 12px; }
 .dublette-daten { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 4px 14px; margin: 6px 0; font-size: .95rem; }
-.barkasse-info { margin-top: 10px; font-size: .9rem; background: var(--sand); border-radius: 10px; padding: 8px 12px; display: grid; gap: 6px; }
 .laden { display: flex; align-items: center; gap: 10px; color: var(--gruen-tief); font-weight: 600; }
 .kreisel { width: 20px; height: 20px; border: 3px solid var(--gruen-rand); border-top-color: var(--gruen); border-radius: 50%; animation: drehen 1s linear infinite; }
 @keyframes drehen { to { transform: rotate(360deg); } }
