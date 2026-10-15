@@ -4,7 +4,7 @@
 <!--
   Tagesabschluss – interner Bereich des Tjorven Bistro (nur auf Vercel lauffähig, braucht /api/tagesabschluss/*).
   Diese Seite enthält keine Daten: Alles wird erst nach der Anmeldung vom Server geladen.
-  Passwort, Schlüssel und Datenbankzugang liegen ausschließlich als Umgebungsvariablen auf dem Server.
+  Passwort, Schlüssel und Speicherzugang liegen ausschließlich als Umgebungsvariablen auf dem Server.
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -82,6 +82,11 @@
         <figure class="bon">
           <img id="bonVorschau" alt="Foto des Tagesabschlusses">
           <button type="button" id="bonGross" class="knopf klein">Foto groß ansehen</button>
+          <label class="knopf klein" id="fotoErsetzenKnopf" hidden>
+            Anderes Foto verwenden
+            <input type="file" id="fotoErsetzen" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" class="unsichtbar">
+          </label>
+          <figcaption class="leise klein-text" id="fotoHinweis" hidden></figcaption>
         </figure>
 
         <form id="pruefForm" novalidate>
@@ -104,6 +109,7 @@
             <p class="leise" id="dubletteText">Er wird nicht überschrieben. Prüfe das Datum – oder ersetze den bestehenden Eintrag bewusst.</p>
             <div class="knopfreihe">
               <button type="button" id="aktualisieren" class="knopf warn" hidden>Bestehenden Eintrag aktualisieren</button>
+              <button type="button" id="neuLaden" class="knopf" hidden>Aktuellen Stand laden</button>
             </div>
           </div>
 

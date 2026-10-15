@@ -50,6 +50,7 @@
       ]
     }
   ],
+  "regions": ["fra1"],
   "functions": {
     "api/tagesabschluss/analysieren.js": { "maxDuration": 60 },
     "api/tagesabschluss/eintraege.js": { "maxDuration": 30 }

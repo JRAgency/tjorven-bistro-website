@@ -8,8 +8,8 @@ export const DATUM_MUSTER = /^\d{4}-\d{2}-\d{2}$/;
 /** Datensatz für den Browser: ohne interne Kennungen, Foto nur als Ja/Nein */
 export function fuerAnzeige(e) {
   if (!e || typeof e !== 'object') return null;
-  const { fotoId, ...rest } = e;
-  return { ...rest, hatFoto: Boolean(fotoId) };
+  const { foto, ...rest } = e;
+  return { ...rest, hatFoto: Boolean(foto && foto.pfad) };
 }
 
 export function speicherFehlt() {
@@ -19,8 +19,9 @@ export function speicherFehlt() {
 
 /** Unerwartete Fehler: nur ein Kennwort ins Protokoll, keine Finanzdaten */
 export function unerwartet(f, wo) {
-  console.error(`[tagesabschluss] ${wo}: ${f && f.name ? f.name : 'Fehler'}${f && f.status ? ' ' + f.status : ''}`);
+  console.error(`[tagesabschluss] ${wo}: ${f && f.name ? f.name : 'Fehler'}${f && f.ursache ? ' ' + f.ursache : ''}${f && f.status ? ' ' + f.status : ''}`);
   if (f instanceof SpeicherFehler) {
+    if (f.ursache === 'Format') return fehler(500, 'Die gespeicherten Daten sind beschädigt. Bitte nichts weiter speichern und Bescheid geben.', { code: 'speicher_format' });
     return fehler(f.status === 503 ? 503 : 502, f.status === 503
       ? 'Der Speicher ist gerade nicht erreichbar. Bitte später erneut versuchen.'
       : 'Die Daten konnten gerade nicht gespeichert oder geladen werden. Bitte erneut versuchen.', { code: 'speicher' });

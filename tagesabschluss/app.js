@@ -1,5 +1,6 @@
 /* Tagesabschluss – Oberfläche (intern).
    Ablauf: Anmelden → Foto → analysieren (Server) → Prüfansicht → Speichern (nur auf Knopfdruck) → Tabelle.
+   Gespeicherte Tage lassen sich über „Bearbeiten“ wieder in der Prüfansicht öffnen und korrigieren.
    Keine Finanzdaten in die Konsole, keine Daten im Browser-Speicher. */
 (function () {
   'use strict';
@@ -14,7 +15,7 @@
     { feld: 'umsatz7', name: '7 % Umsatz', zusatz: 'Brutto unter „Rate: 7.0%“', pflicht: true },
     { feld: 'umsatz19', name: '19 % Umsatz', zusatz: 'Brutto unter „Rate: 19.0%“', pflicht: true },
     { feld: 'umsatzBar', name: 'Umsatz bar', zusatz: '„Eingenommenes Bargeld“', pflicht: true },
-    { feld: 'bargeldEntfernt', name: 'Bargeld entfernt', zusatz: 'wie auf dem Bon, meist mit Minus', pflicht: true, vorzeichen: true },
+    { feld: 'bargeldEntfernt', name: 'Bargeld entfernt', zusatz: 'Entnahme – mit Minus gespeichert', pflicht: true, immerMinus: true },
     { feld: 'barkassenbestand', name: 'Barkassenbestand', zusatz: '„Gezählter Bargeldbestand“ unter KASSE', pflicht: true },
   ];
   const HAND_FELDER = [
@@ -31,6 +32,7 @@
     erkennung: {},          // Feld → Status aus der Analyse
     erkannteWerte: {},      // Feld → Wert aus der Analyse (zum Erkennen von Änderungen)
     dublette: null,         // bestehender Eintrag beim Konflikt
+    bearbeiten: null,       // { datum, version } beim Bearbeiten eines gespeicherten Tages
     eintraege: [],
   };
 
@@ -307,7 +309,10 @@
     if (h) label.appendChild(el('span', 'feld-hinweis', h));
     label.appendChild(el('span', 'feld-fehler'));
     if (def.art !== 'datum') {
-      input.addEventListener('blur', () => { const c = betragInCent(input.value); if (c !== null) input.value = zahlFeld(c / 100); });
+      input.addEventListener('blur', () => {
+        const c = betragInCent(input.value);
+        if (c !== null) input.value = zahlFeld((def.immerMinus ? -Math.abs(c) : c) / 100);
+      });
     }
     input.addEventListener('input', () => {
       label.classList.remove('fehler');
@@ -317,14 +322,16 @@
     return label;
   }
 
-  function oeffnePruefung(ergebnis) {
-    const werte = (ergebnis && ergebnis.werte) || {};
+  /** ergebnis = Analyse (oder null = von Hand); gespeichert = vorhandener Eintrag beim Bearbeiten */
+  function oeffnePruefung(ergebnis, gespeichert) {
+    const werte = (ergebnis && ergebnis.werte) || gespeichert || {};
     const status = (ergebnis && ergebnis.status) || {};
     const hinweise = (ergebnis && ergebnis.hinweise) || {};
+    const herkunft = (gespeichert && gespeichert.erkennung) || {};
     zustand.erkennung = {};
     zustand.erkannteWerte = {};
     for (const def of BON_FELDER) {
-      zustand.erkennung[def.feld] = ergebnis ? status[def.feld] || 'fehlt' : 'manuell';
+      zustand.erkennung[def.feld] = ergebnis ? status[def.feld] || 'fehlt' : (gespeichert ? herkunft[def.feld] || 'manuell' : 'manuell');
       zustand.erkannteWerte[def.feld] = werte[def.feld] === undefined ? null : werte[def.feld];
     }
 
@@ -333,11 +340,17 @@
       $('bonFelder').appendChild(feldBauen(def, werte[def.feld], ergebnis ? status[def.feld] : null, ergebnis ? hinweise[def.feld] : null));
     }
     $('handFelder').textContent = '';
-    for (const def of HAND_FELDER) $('handFelder').appendChild(feldBauen(def, null, null, null));
-    $('bemerkung').value = '';
+    for (const def of HAND_FELDER) $('handFelder').appendChild(feldBauen(def, gespeichert ? gespeichert[def.feld] : null, null, null));
+    $('bemerkung').value = gespeichert && gespeichert.bemerkung ? gespeichert.bemerkung : '';
+    $('fotoErsetzenKnopf').hidden = !gespeichert;
+    $('fotoHinweis').hidden = !gespeichert;
+    $('fotoHinweis').textContent = gespeichert ? 'Gespeichertes Foto. Es bleibt erhalten, außer du wählst ein anderes.' : '';
 
     const unsicher = ergebnis ? BON_FELDER.filter(d => status[d.feld] !== 'sicher') : [];
-    if (ergebnis) {
+    if (gespeichert) {
+      $('pruefTitel').textContent = `Tagesabschluss vom ${deDatum(gespeichert.datum)} bearbeiten`;
+      $('pruefInfo').textContent = 'Werte korrigieren und mit „Änderungen speichern“ übernehmen. Gespeichert wird erst auf Knopfdruck.';
+    } else if (ergebnis) {
       $('pruefTitel').textContent = 'Tagesabschluss erkannt';
       $('pruefInfo').textContent = unsicher.length
         ? `Bitte alle Werte mit dem Foto vergleichen. ${unsicher.length === 1 ? 'Ein Wert wurde' : unsicher.length + ' Werte wurden'} nicht sicher erkannt und ${unsicher.length === 1 ? 'ist' : 'sind'} markiert.`
@@ -346,10 +359,12 @@
       $('pruefTitel').textContent = 'Tagesabschluss eintragen';
       $('pruefInfo').textContent = 'Bitte die Werte vom Bon abtippen.';
     }
-    $('bonVorschau').src = zustand.foto.url;
+    if (zustand.foto && zustand.foto.url) $('bonVorschau').src = zustand.foto.url; else $('bonVorschau').removeAttribute('src');
+    $('speichern').textContent = gespeichert ? 'Änderungen speichern' : 'Tagesabschluss speichern';
     $('dublette').hidden = true;
     zustand.dublette = null;
     zeige($('speicherMeldung'), '');
+    zeige($('erfassenMeldung'), '');
     $('erfassen').hidden = true;
     $('pruefung').hidden = false;
     $('pruefung').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -375,7 +390,7 @@
       } else if (roh) {
         const c = betragInCent(roh);
         if (c === null) meldung = `Bitte als Betrag eingeben, z. B. 1.234,56.`;
-        else wert = c / 100;
+        else wert = ((def.immerMinus ? -Math.abs(c) : c) / 100) || 0;
       } else if (def.pflicht) {
         meldung = def.feld === 'kassendifferenz' ? 'Bitte gib die Kassendifferenz ein.' : `Bitte gib den Wert für „${def.name}“ ein.`;
       }
@@ -402,21 +417,28 @@
     }
     const knopf = $('speichern');
     knopf.disabled = true; $('aktualisieren').disabled = true;
+    const b = zustand.bearbeiten;
     try {
-      const daten = await api('eintraege/', {
-        method: 'POST',
-        body: JSON.stringify({ eintrag, bild: zustand.foto.base64, ueberschreiben: Boolean(ueberschreiben), version: ueberschreiben && zustand.dublette ? zustand.dublette.geaendert : undefined }),
-      });
+      const daten = b
+        ? await api('eintraege/', {
+          method: 'PUT',
+          body: JSON.stringify({ datum: b.datum, version: b.version, eintrag, bild: zustand.foto && zustand.foto.ersetzt ? zustand.foto.base64 : undefined }),
+        })
+        : await api('eintraege/', {
+          method: 'POST',
+          body: JSON.stringify({ eintrag, bild: zustand.foto.base64, ueberschreiben: Boolean(ueberschreiben), version: ueberschreiben && zustand.dublette ? zustand.dublette.geaendert : undefined }),
+        });
       const datum = deDatum(daten.eintrag.datum);
       verwerfen();
-      $('erfolg').textContent = daten.aktualisiert ? `Tagesabschluss vom ${datum} wurde aktualisiert.` : `Tagesabschluss vom ${datum} wurde gespeichert.`;
+      $('erfolg').textContent = daten.bearbeitet ? `Tagesabschluss vom ${datum} wurde geändert.`
+        : daten.aktualisiert ? `Tagesabschluss vom ${datum} wurde aktualisiert.` : `Tagesabschluss vom ${datum} wurde gespeichert.`;
       $('erfolg').hidden = false;
       await ladeListe();
       $('erfolg').scrollIntoView({ behavior: 'smooth', block: 'center' });
     } catch (f) {
       if (f.status === 401) return;
-      if (f.status === 409 && f.vorhanden) { zeigeDublette(f.vorhanden, f.code); return; }
-      if (f.status === 422 && Array.isArray(f.felder)) {
+      if (f.status === 409 && f.vorhanden) { zeigeDublette(f.vorhanden, b ? 'bearbeitet' : f.code); return; }
+      if ((f.status === 422 || f.status === 409) && Array.isArray(f.felder)) {
         for (const { feld, meldung } of f.felder) {
           const label = document.querySelector(`.feld[data-feld="${feld}"]`);
           if (label) { label.classList.add('fehler'); label.querySelector('.feld-fehler').textContent = meldung; }
@@ -428,17 +450,28 @@
     }
   }
 
+  /** code: 'vorhanden' | 'geaendert' (neuer Eintrag) | 'belegt' | 'bearbeitet' (beim Bearbeiten) */
   function zeigeDublette(vorhanden, code) {
     zustand.dublette = vorhanden;
-    $('dubletteTitel').textContent = code === 'geaendert'
-      ? 'Der bestehende Tagesabschluss wurde inzwischen geändert.'
-      : `Für den ${deDatum(vorhanden.datum)} existiert bereits ein Tagesabschluss.`;
+    const bearbeiten = code === 'belegt' || code === 'bearbeitet';
+    $('dubletteTitel').textContent = code === 'bearbeitet'
+      ? 'Dieser Tagesabschluss wurde inzwischen auf einem anderen Gerät geändert.'
+      : code === 'geaendert'
+        ? 'Der bestehende Tagesabschluss wurde inzwischen geändert.'
+        : code === 'belegt'
+          ? `Für den ${deDatum(vorhanden.datum)} existiert bereits ein anderer Tagesabschluss.`
+          : `Für den ${deDatum(vorhanden.datum)} existiert bereits ein Tagesabschluss.`;
     const box = $('dubletteDaten');
     box.textContent = '';
     for (const [feld, name] of SPALTEN) box.appendChild(el('span', '', `${name}: ${alsEuro(vorhanden[feld])}`));
     if (vorhanden.bemerkung) box.appendChild(el('span', '', `Bemerkung: ${vorhanden.bemerkung}`));
-    $('dubletteText').textContent = 'Er wird nicht automatisch überschrieben. Prüfe das Datum – oder ersetze den bestehenden Eintrag bewusst durch diese Angaben und dieses Foto.';
-    $('aktualisieren').hidden = false;
+    $('dubletteText').textContent = code === 'bearbeitet'
+      ? 'Deine Änderungen wurden nicht gespeichert, damit nichts überschrieben wird. Lade den aktuellen Stand und trage die Korrektur erneut ein.'
+      : code === 'belegt'
+        ? 'Beim Bearbeiten wird kein anderer Tag überschrieben. Bitte das Datum prüfen.'
+        : 'Er wird nicht automatisch überschrieben. Prüfe das Datum – oder ersetze den bestehenden Eintrag bewusst durch diese Angaben und dieses Foto.';
+    $('aktualisieren').hidden = bearbeiten;
+    $('neuLaden').hidden = code !== 'bearbeitet';
     $('dublette').hidden = false;
     $('dublette').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -449,16 +482,21 @@
     if (!input || !zustand.sitzung || !zustand.sitzung.speicher) return;
     const datum = input.value;
     const nr = ++datumPruefung;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(datum)) { $('dublette').hidden = true; zustand.dublette = null; return; }
+    const eigenerTag = zustand.bearbeiten && datum === zustand.bearbeiten.datum;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(datum) || eigenerTag) { $('dublette').hidden = true; zustand.dublette = null; return; }
     try {
       const { eintrag } = await api('eintrag/?datum=' + encodeURIComponent(datum));
       if (nr !== datumPruefung) return;
-      if (eintrag) zeigeDublette(eintrag, 'vorhanden');
+      if (eintrag) zeigeDublette(eintrag, zustand.bearbeiten ? 'belegt' : 'vorhanden');
       else { $('dublette').hidden = true; zustand.dublette = null; }
     } catch { /* Hinweis ist nur eine Hilfe – beim Speichern prüft der Server ohnehin */ }
   }
 
   $('pruefForm').addEventListener('submit', ev => { ev.preventDefault(); speichern(false); });
+  $('neuLaden').addEventListener('click', () => {
+    const b = zustand.bearbeiten;
+    if (b) starteBearbeiten(b.datum);
+  });
   $('aktualisieren').addEventListener('click', () => {
     if (!zustand.dublette) return;
     if (!window.confirm(`Den bestehenden Tagesabschluss vom ${deDatum(zustand.dublette.datum)} wirklich durch diese Angaben und dieses Foto ersetzen?`)) return;
@@ -470,6 +508,11 @@
     $('erfassen').hidden = false;
     $('dublette').hidden = true;
     zustand.dublette = null;
+    if (zustand.bearbeiten) {
+      zustand.bearbeiten = null;
+      if (zustand.foto && zustand.foto.url) URL.revokeObjectURL(zustand.foto.url);
+      zustand.foto = null;
+    }
     if (!nurPruefung) {
       $('auswahl').hidden = true;
       if (zustand.foto && zustand.foto.url) URL.revokeObjectURL(zustand.foto.url);
@@ -477,6 +520,40 @@
     }
   }
   $('verwerfen').addEventListener('click', () => verwerfen());
+
+  /* ---------------------------------------------------------- Bearbeiten */
+  async function starteBearbeiten(datum) {
+    zeige($('listeMeldung'), '');
+    $('erfolg').hidden = true;
+    try {
+      const { eintrag } = await api('eintrag/?datum=' + encodeURIComponent(datum));
+      if (!eintrag) { zeige($('listeMeldung'), 'Diesen Tagesabschluss gibt es nicht mehr.'); await ladeListe(); return; }
+      let url = null;
+      if (eintrag.hatFoto) url = URL.createObjectURL(await (await api('foto/?datum=' + encodeURIComponent(datum), { roh: true })).blob());
+      verwerfen();
+      zustand.foto = url ? { url, gespeichert: true } : null;
+      zustand.bearbeiten = { datum: eintrag.datum, version: eintrag.geaendert };
+      oeffnePruefung(null, eintrag);
+    } catch (f) {
+      if (f.status !== 401) zeige($('listeMeldung'), f.fehler);
+    }
+  }
+
+  $('fotoErsetzen').addEventListener('change', async ev => {
+    const datei = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if (!datei || !zustand.bearbeiten) return;
+    zeige($('speicherMeldung'), '');
+    try {
+      const foto = await bildVorbereiten(datei);
+      if (zustand.foto && zustand.foto.url) URL.revokeObjectURL(zustand.foto.url);
+      zustand.foto = { ...foto, ersetzt: true };
+      $('bonVorschau').src = foto.url;
+      $('fotoHinweis').textContent = 'Neues Foto – es ersetzt das gespeicherte erst beim Speichern.';
+    } catch (f) {
+      zeige($('speicherMeldung'), f.message || 'Das Foto konnte nicht gelesen werden.');
+    }
+  });
 
   /* ------------------------------------------------------------ Tabelle */
   async function ladeListe() {
@@ -510,6 +587,14 @@
     return k;
   }
 
+  function bearbeitenKnopf(e, klasse) {
+    const k = el('button', ('knopf ' + klasse).trim(), 'Bearbeiten');
+    k.type = 'button';
+    k.setAttribute('aria-label', 'Tagesabschluss vom ' + deDatum(e.datum) + ' bearbeiten');
+    k.addEventListener('click', () => starteBearbeiten(e.datum));
+    return k;
+  }
+
   function zeichneListe() {
     const ziel = $('tabelle');
     ziel.textContent = '';
@@ -527,7 +612,9 @@
     const tbody = el('tbody');
     for (const e of liste) {
       const tr = el('tr');
-      tr.appendChild(el('td', '', deDatum(e.datum)));
+      const tdDatum = el('td', 'datum', deDatum(e.datum));
+      tdDatum.appendChild(bearbeitenKnopf(e, 'mini'));
+      tr.appendChild(tdDatum);
       for (const [feld] of SPALTEN) {
         const td = el('td', 'zahl' + (typeof e[feld] === 'number' && e[feld] < 0 ? ' negativ' : '') + (typeof e[feld] !== 'number' ? ' leer' : ''), alsEuro(e[feld]));
         tr.appendChild(td);
@@ -551,7 +638,10 @@
       }
       k.appendChild(dl);
       if (e.bemerkung) k.appendChild(el('p', '', 'Bemerkung: ' + e.bemerkung));
-      k.appendChild(fotoKnopf(e));
+      const knoepfe = el('div', 'karten-knoepfe');
+      knoepfe.appendChild(bearbeitenKnopf(e, ''));
+      knoepfe.appendChild(fotoKnopf(e));
+      k.appendChild(knoepfe);
       karten.appendChild(k);
     }
     ziel.appendChild(karten);
@@ -580,7 +670,7 @@
     if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
   }
   $('bonGross').addEventListener('click', () => {
-    if (!zustand.foto) return;
+    if (!zustand.foto || !zustand.foto.url) return;
     $('fotoDialogTitel').textContent = 'Foto des Tagesabschlusses';
     $('fotoDialogBild').src = zustand.foto.url;
     oeffneDialog();

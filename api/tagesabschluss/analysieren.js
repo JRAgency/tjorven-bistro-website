@@ -13,7 +13,8 @@ import { fuerAnzeige, unerwartet } from '../_lib/tagesabschluss/gemeinsam.js';
 const MELDUNG = {
   zeit: 'Die Bilderkennung hat zu lange gedauert. Bitte erneut versuchen oder die Werte von Hand eintragen.',
   limit: 'Die Bilderkennung ist gerade ausgelastet. Bitte in einer Minute erneut versuchen oder die Werte von Hand eintragen.',
-  schluessel: 'Die Bilderkennung ist falsch eingerichtet (Schlüssel ungültig). Bitte die Werte von Hand eintragen.',
+  zugang: 'Die automatische Erkennung ist falsch eingerichtet (Zugang abgelehnt). Bitte die Werte von Hand eintragen.',
+  guthaben: 'Für die automatische Erkennung fehlt noch Guthaben im Vercel AI Gateway. Bitte die Werte von Hand eintragen.',
 };
 
 export default {
@@ -30,17 +31,18 @@ export default {
     const foto = pruefeFoto(puffer);
     if (!foto.ok) return fehler(422, foto.meldung, { code: 'foto' });
 
-    if (!kiEingerichtet()) {
+    if (!kiEingerichtet(request)) {
       return fehler(503, 'Die automatische Erkennung ist noch nicht eingerichtet. Bitte die Werte von Hand eintragen.', { code: 'ki_fehlt' });
     }
 
     let roh;
     try {
-      roh = await liesBon(puffer, foto.mime);
+      roh = await liesBon(puffer, foto.mime, request);
     } catch (f) {
       if (f instanceof ErkennungsFehler) {
         console.error(`[tagesabschluss] Erkennung: ${f.code}`);
-        return fehler(f.code === 'zeit' ? 504 : 502, MELDUNG[f.code] || 'Das Bild konnte nicht analysiert werden. Bitte die Werte von Hand eintragen.', { code: 'erkennung' });
+        return fehler(f.code === 'zeit' ? 504 : 502, MELDUNG[f.code] || 'Das Bild konnte nicht analysiert werden. Bitte die Werte von Hand eintragen.',
+          { code: f.code === 'guthaben' ? 'ki_guthaben' : 'erkennung' });
       }
       return unerwartet(f, 'Erkennung');
     }
@@ -53,7 +55,7 @@ export default {
     // Früher Hinweis, falls für das erkannte Datum schon ein Tagesabschluss existiert
     let vorhanden = null;
     if (ergebnis.werte.datum && speicher.istEingerichtet()) {
-      try { vorhanden = fuerAnzeige((await speicher.liesEintrag(ergebnis.werte.datum)).eintrag); } catch { vorhanden = null; }
+      try { vorhanden = fuerAnzeige(await speicher.liesEintrag(ergebnis.werte.datum)); } catch { vorhanden = null; }
     }
 
     return json({

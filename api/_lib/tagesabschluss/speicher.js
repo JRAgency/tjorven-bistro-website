@@ -1,130 +1,134 @@
-// Tagesabschluss – dauerhafter Speicher in der Firebase Realtime Database (nur serverseitig).
+// Tagesabschluss – dauerhafter, privater Speicher in Vercel Blob (nur serverseitig).
 //
-// Zugriff über die REST-Schnittstelle mit einem Dienstkonto (Umgebungsvariable
-// FIREBASE_SERVICE_ACCOUNT = Inhalt der JSON-Schlüsseldatei aus der Firebase-Konsole).
-// Alles liegt unter /tagesabschluss – getrennt vom Abholmonitor (/orders), der hier nie
-// gelesen oder geschrieben wird. Die Datenbankregeln geben /tagesabschluss für Browser
-// nicht frei (geprüft: unangemeldeter Lesezugriff → 401 „Permission denied“).
+// Blob-Store „tagesabschluss“ (Zugriff „private“, Region Frankfurt), mit dem Vercel-Projekt
+// verbunden. Den Schlüssel BLOB_READ_WRITE_TOKEN legt Vercel beim Verbinden selbst als
+// Umgebungsvariable an. Ohne ihn ist nichts lesbar – es gibt keine öffentlichen Adressen;
+// Daten und Fotos liefern ausschließlich die angemeldeten API-Funktionen aus.
 //
-//   /tagesabschluss/eintraege/{JJJJ-MM-TT}   ein Datensatz je Tag (Schlüssel = Datum → keine Dubletten)
-//   /tagesabschluss/fotos/{uuid}             Foto des Bons (Base64-JPEG), nur über /api/tagesabschluss/foto
-//   /tagesabschluss/sicherheit/anmeldung/…   Zähler für Fehlversuche bei der Anmeldung
+//   tagesabschluss/daten.json             alle Tagesabschlüsse (Schlüssel = Datum → keine Dubletten)
+//   tagesabschluss/fotos/{uuid}.{jpg|png|webp}   Originalfoto je Tag
+//
+// Zwei Geräte gleichzeitig: Jede Änderung liest daten.json samt ETag und schreibt nur, wenn
+// die Datei inzwischen unverändert ist (ifMatch). Sonst wird neu gelesen und die Änderung am
+// aktuellen Stand erneut geprüft – nichts geht verloren, nichts wird still überschrieben.
+//
+// Sparsam mit Vorgängen (Hobby-Tarif: 2.000 Schreib- und 10.000 Lesevorgänge im Monat):
+// Speichern = 2 Schreibvorgänge (Foto + daten.json), Tabelle oder Excel = 1 Lesevorgang.
 
 import crypto from 'node:crypto';
+import { get, put, del, BlobError, BlobPreconditionFailedError } from '@vercel/blob';
 
-const STANDARD_DATENBANK = 'https://abholmonitor-default-rtdb.europe-west1.firebasedatabase.app';
-const WURZEL = 'tagesabschluss';
-const SCOPES = 'https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email';
+// Das SDK wiederholt fehlgeschlagene Anfragen sonst bis zu zehnmal – zu lange für eine Anfrage
+process.env.VERCEL_BLOB_RETRIES ??= '2';
+
+const DATEN = 'tagesabschluss/daten.json';
+const FOTOS = 'tagesabschluss/fotos/';
+const ENDUNG = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+const FOTO_PFAD = /^tagesabschluss\/fotos\/[0-9a-f-]{36}\.(jpg|png|webp)$/;
 
 export class SpeicherFehler extends Error {
-  constructor(meldung, status) { super(meldung); this.status = status; }
+  constructor(meldung, status, ursache) { super(meldung); this.status = status; this.ursache = ursache; }
 }
 
-let kontoCache = { roh: undefined, konto: null };
-function dienstkonto() {
-  const roh = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (roh === kontoCache.roh) return kontoCache.konto;
-  let konto = null;
-  if (typeof roh === 'string' && roh.trim()) {
-    try {
-      const t = roh.trim();
-      const json = JSON.parse(t.startsWith('{') ? t : Buffer.from(t, 'base64').toString('utf8'));
-      if (json.client_email && json.private_key) {
-        konto = { email: json.client_email, schluessel: json.private_key.replace(/\\n/g, '\n'), tokenUri: json.token_uri || 'https://oauth2.googleapis.com/token' };
-      }
-    } catch { konto = null; }
+export const istEingerichtet = () => typeof process.env.BLOB_READ_WRITE_TOKEN === 'string' && process.env.BLOB_READ_WRITE_TOKEN.trim() !== '';
+
+/** Fehler des SDK übersetzen – weiter geht nur der Fehlername, nie ein Inhalt */
+function alsSpeicherFehler(f) {
+  if (f instanceof SpeicherFehler) return f;
+  const name = (f && f.constructor && f.constructor.name) || 'Fehler';
+  const gesperrt = /StoreSuspended|StoreNotFound|AccessError|RateLimited|ServiceNotAvailable/.test(name);
+  return new SpeicherFehler(gesperrt ? 'Der Speicher ist gerade nicht erreichbar.' : 'Der Speicher hat die Anfrage abgelehnt.', gesperrt ? 503 : 502, name);
+}
+
+const warte = ms => new Promise(r => setTimeout(r, ms));
+
+/* ------------------------------------------------------------ daten.json */
+
+async function liesDaten() {
+  let r;
+  try { r = await get(DATEN, { access: 'private', useCache: false }); } catch (f) { throw alsSpeicherFehler(f); }
+  if (!r) return { daten: { format: 1, eintraege: {} }, etag: null };            // noch nie gespeichert
+  if (r.statusCode !== 200 || !r.stream) throw new SpeicherFehler('Die Daten konnten nicht gelesen werden.', 502, 'Lesen');
+  let daten;
+  try { daten = JSON.parse(await new Response(r.stream).text()); } catch { daten = null; }
+  // Beschädigte Datei NIE als leer behandeln – sonst würde der nächste Speichervorgang alles überschreiben
+  if (!daten || typeof daten !== 'object' || !daten.eintraege || typeof daten.eintraege !== 'object' || Array.isArray(daten.eintraege)) {
+    throw new SpeicherFehler('Die gespeicherten Daten sind beschädigt.', 500, 'Format');
   }
-  kontoCache = { roh, konto };
-  return konto;
+  return { daten, etag: r.blob.etag || null };
 }
 
-export const istEingerichtet = () => dienstkonto() !== null;
-
-function datenbankUrl() {
-  const url = (process.env.TAGESABSCHLUSS_DATABASE_URL || STANDARD_DATENBANK).replace(/\/+$/, '');
-  return url;
+/** true = geschrieben, false = inzwischen von einem anderen Gerät geändert */
+async function schreibeDaten(daten, etag) {
+  try {
+    await put(DATEN, JSON.stringify(daten), {
+      access: 'private',
+      contentType: 'application/json',
+      addRandomSuffix: false,
+      allowOverwrite: etag !== null,
+      ...(etag ? { ifMatch: etag } : {}),
+      cacheControlMaxAge: 60,
+    });
+    return true;
+  } catch (f) {
+    if (f instanceof BlobPreconditionFailedError) return false;
+    // zwei Geräte legen die Datei gleichzeitig zum allerersten Mal an
+    if (etag === null && f instanceof BlobError && /exist/i.test(f.message || '')) return false;
+    throw alsSpeicherFehler(f);
+  }
 }
 
-/* ------------------------------------------------ OAuth-Zugriffstoken */
-
-const b64url = buf => Buffer.from(buf).toString('base64').replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
-let tokenCache = { token: null, gueltigBis: 0, email: null };
-
-async function zugriffstoken() {
-  const konto = dienstkonto();
-  if (!konto) throw new SpeicherFehler('Der Speicher ist noch nicht eingerichtet.', 503);
-  const jetzt = Math.floor(Date.now() / 1000);
-  if (tokenCache.token && tokenCache.email === konto.email && tokenCache.gueltigBis - 120 > jetzt) return tokenCache.token;
-  const kopf = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
-  const inhalt = b64url(JSON.stringify({ iss: konto.email, scope: SCOPES, aud: konto.tokenUri, iat: jetzt, exp: jetzt + 3600 }));
-  const signatur = b64url(crypto.sign('RSA-SHA256', Buffer.from(`${kopf}.${inhalt}`), konto.schluessel));
-  const antwort = await fetch(konto.tokenUri, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: `${kopf}.${inhalt}.${signatur}` }),
-  });
-  if (!antwort.ok) throw new SpeicherFehler('Anmeldung beim Speicher fehlgeschlagen.', 503);
-  const daten = await antwort.json();
-  tokenCache = { token: daten.access_token, gueltigBis: jetzt + (Number(daten.expires_in) || 3600), email: konto.email };
-  return tokenCache.token;
-}
-
-/* ------------------------------------------------------ REST-Zugriff */
-
-const PFAD_TEIL = /^[A-Za-z0-9_-]+$/;
-
-async function anfrage(methode, teile, { daten, wennEtag, etagLesen } = {}) {
-  if (!teile.every(t => PFAD_TEIL.test(t))) throw new SpeicherFehler('Ungültiger Speicherpfad.', 400);
-  const token = await zugriffstoken();
-  const kopf = { Authorization: `Bearer ${token}` };
-  if (daten !== undefined) kopf['Content-Type'] = 'application/json';
-  if (wennEtag) kopf['if-match'] = wennEtag;
-  if (etagLesen) kopf['X-Firebase-ETag'] = 'true';
-  const antwort = await fetch(`${datenbankUrl()}/${[WURZEL, ...teile].join('/')}.json`, {
-    method: methode, headers: kopf, body: daten === undefined ? undefined : JSON.stringify(daten),
-  });
-  const textInhalt = await antwort.text();
-  let json = null;
-  try { json = textInhalt ? JSON.parse(textInhalt) : null; } catch { json = null; }
-  if (antwort.status === 412) return { konflikt: true, daten: json, etag: antwort.headers.get('etag') };
-  if (!antwort.ok) throw new SpeicherFehler('Der Speicher hat die Anfrage abgelehnt.', antwort.status === 401 || antwort.status === 403 ? 503 : 502);
-  return { konflikt: false, daten: json, etag: antwort.headers.get('etag') };
-}
-
-/* ------------------------------------------------------ Tagesdatensätze */
-
+/** alle Tagesabschlüsse, neuestes Datum zuerst */
 export async function liesEintraege() {
-  const { daten } = await anfrage('GET', ['eintraege']);
-  const liste = daten && typeof daten === 'object' ? Object.values(daten).filter(e => e && typeof e === 'object') : [];
-  return liste.sort((a, b) => (a.datum < b.datum ? 1 : a.datum > b.datum ? -1 : 0));   // neuestes Datum zuerst
+  const { daten } = await liesDaten();
+  return Object.values(daten.eintraege)
+    .filter(e => e && typeof e === 'object' && typeof e.datum === 'string')
+    .sort((a, b) => (a.datum < b.datum ? 1 : a.datum > b.datum ? -1 : 0));
 }
 
-/** Datensatz eines Tages samt ETag (für bedingtes Schreiben) */
+/** Tagesabschluss eines Tages oder null */
 export async function liesEintrag(datum) {
-  const { daten, etag } = await anfrage('GET', ['eintraege', datum], { etagLesen: true });
-  return { eintrag: daten, etag };
+  const { daten } = await liesDaten();
+  return daten.eintraege[datum] || null;
 }
 
 /**
- * Datensatz schreiben – nur wenn der Stand noch dem erwarteten ETag entspricht.
- * Neuer Tag: etag 'null_etag' (Firebase-Kennung für „noch nichts vorhanden“).
- * Rückgabe { ok: true } oder { ok: false, aktuell } bei zwischenzeitlicher Änderung.
+ * Änderung sicher schreiben. aendern(eintraege) prüft den AKTUELLEN Stand, ändert ihn direkt
+ * und gibt { schreiben: true|false, … } zurück. Hat ein anderes Gerät inzwischen gespeichert,
+ * wird neu gelesen und aendern() am neuen Stand erneut aufgerufen.
  */
-export async function schreibeEintrag(datum, eintrag, etag) {
-  const r = await anfrage('PUT', ['eintraege', datum], { daten: eintrag, wennEtag: etag });
-  return r.konflikt ? { ok: false, aktuell: r.daten } : { ok: true };
+export async function aendere(aendern) {
+  for (let versuch = 0; versuch < 5; versuch++) {
+    const { daten, etag } = await liesDaten();
+    const ergebnis = aendern(daten.eintraege);
+    if (!ergebnis || !ergebnis.schreiben) return ergebnis;
+    daten.format = 1;
+    if (await schreibeDaten(daten, etag)) return ergebnis;
+    await warte(80 + Math.random() * 150 * (versuch + 1));
+  }
+  throw new SpeicherFehler('Der Speicher ist gerade stark beschäftigt.', 503, 'Konflikt');
 }
 
 /* ------------------------------------------------------------- Fotos */
 
-export async function speichereFoto(id, foto) { await anfrage('PUT', ['fotos', id], { daten: foto }); }
-export async function liesFoto(id) { return (await anfrage('GET', ['fotos', id])).daten; }
-export async function loescheFoto(id) { await anfrage('DELETE', ['fotos', id]); }
+/** Foto ablegen → interner Pfad (zufälliger Name, nicht erratbar) */
+export async function speichereFoto(puffer, mime) {
+  const pfad = `${FOTOS}${crypto.randomUUID()}.${ENDUNG[mime]}`;
+  try {
+    await put(pfad, puffer, { access: 'private', contentType: mime, addRandomSuffix: false, allowOverwrite: false, cacheControlMaxAge: 60 });
+  } catch (f) { throw alsSpeicherFehler(f); }
+  return pfad;
+}
 
-/* ------------------------------------------- Zähler für Anmeldeversuche */
+/** Foto lesen → ReadableStream oder null */
+export async function liesFoto(pfad) {
+  if (typeof pfad !== 'string' || !FOTO_PFAD.test(pfad)) return null;
+  let r;
+  try { r = await get(pfad, { access: 'private' }); } catch (f) { throw alsSpeicherFehler(f); }
+  return r && r.statusCode === 200 && r.stream ? r.stream : null;
+}
 
-export async function liesZaehler(schluessel) { return (await anfrage('GET', ['sicherheit', 'anmeldung', schluessel])).daten; }
-export async function schreibeZaehler(schluessel, wert) {
-  if (wert === null) await anfrage('DELETE', ['sicherheit', 'anmeldung', schluessel]);
-  else await anfrage('PUT', ['sicherheit', 'anmeldung', schluessel], { daten: wert });
+export async function loescheFoto(pfad) {
+  if (typeof pfad !== 'string' || !FOTO_PFAD.test(pfad)) return;
+  try { await del(pfad); } catch (f) { throw alsSpeicherFehler(f); }
 }

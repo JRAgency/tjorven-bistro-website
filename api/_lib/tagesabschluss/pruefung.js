@@ -111,7 +111,7 @@ function geldwert(wert, name, fehlerliste, feld, pflicht) {
   if (Math.abs(wert * 100 - cent) > 1e-6) { fehlerliste.push({ feld, meldung: `„${name}“ darf höchstens zwei Nachkommastellen haben.` }); return null; }
   if (Math.abs(cent) > 100_000_000) { fehlerliste.push({ feld, meldung: `„${name}“ ist unplausibel hoch.` }); return null; }
   if (cent < 0 && NICHT_NEGATIV.has(feld)) { fehlerliste.push({ feld, meldung: `„${name}“ darf nicht negativ sein.` }); return null; }
-  return cent / 100;
+  return (cent / 100) || 0;   // ohne „-0“
 }
 
 /**
@@ -128,6 +128,8 @@ export function pruefeEintrag(eingabe, { heute = heuteInBerlin() } = {}) {
   else eintrag.datum = e.datum;
 
   for (const [feld, name] of Object.entries(PFLICHT)) eintrag[feld] = geldwert(e[feld], name, fehlerliste, feld, true);
+  // „Bargeld entfernt“ ist immer eine Entnahme und wird einheitlich als Minusbetrag gespeichert (siehe bon.js)
+  if (typeof eintrag.bargeldEntfernt === 'number') eintrag.bargeldEntfernt = -Math.abs(eintrag.bargeldEntfernt) || 0;
   for (const [feld, name] of Object.entries(FREIWILLIG)) eintrag[feld] = geldwert(e[feld], name, fehlerliste, feld, false);
 
   let bemerkung = typeof e.bemerkung === 'string' ? e.bemerkung : '';

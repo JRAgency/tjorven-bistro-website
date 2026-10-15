@@ -13,14 +13,14 @@ export default {
     let daten;
     try { daten = await leseJson(request, 2000); } catch (f) { return fehler(f.status || 400, f.meldung || 'Die Anfrage ist ungültig.'); }
 
-    const minuten = await sitzung.anmeldungGesperrt(request);
+    const minuten = sitzung.anmeldungGesperrt(request);
     if (minuten) return fehler(429, `Zu viele Fehlversuche. Bitte in ${minuten} ${minuten === 1 ? 'Minute' : 'Minuten'} erneut versuchen.`, { code: 'gesperrt' });
     if (!sitzung.passwortStimmt(daten.passwort)) {
-      await sitzung.fehlversuchMerken(request);
-      await warte(700);
+      sitzung.fehlversuchMerken(request);
+      await warte(1000);
       return fehler(401, 'Das Passwort ist falsch.', { code: 'passwort' });
     }
-    await sitzung.fehlversucheLoeschen(request);
+    sitzung.fehlversucheLoeschen(request);
     const { keks, ablauf } = sitzung.neueSitzung();
     return json({ ok: true, ablauf }, 200, { 'Set-Cookie': keks });
   },

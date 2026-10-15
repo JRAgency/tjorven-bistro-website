@@ -58,6 +58,7 @@ p { margin: .3rem 0; }
 .knopf.warn:hover { background: var(--rot-hell); }
 .knopf.leise { border-color: var(--linie); color: var(--grau); }
 .knopf.klein { min-height: 38px; padding: 0 12px; font-size: .9rem; }
+.knopf.mini { min-height: 30px; padding: 0 8px; font-size: .8rem; border-width: 1.5px; border-radius: 8px; }
 .knopf.breit { width: 100%; }
 .knopf[disabled] { opacity: .55; cursor: wait; }
 .knopf:has(input:focus-visible) { outline: 3px solid var(--gold); outline-offset: 2px; }
@@ -81,6 +82,7 @@ input.betrag { text-align: right; font-variant-numeric: tabular-nums; }
 .marke.sicher { background: var(--gruen-hell); color: var(--gruen-tief); }
 .marke.pruefen, .marke.fehlt { background: var(--orange-hell); color: var(--orange); }
 .marke.manuell { background: #eee; color: var(--grau); }
+.klein-text { font-size: .85rem; }
 .feld-hinweis { font-size: .85rem; color: var(--grau); }
 .feld.pruefen .feld-hinweis, .feld.fehlt .feld-hinweis { color: var(--orange); }
 .feld-fehler { font-size: .85rem; color: var(--rot); font-weight: 600; }
@@ -117,6 +119,10 @@ th { background: var(--gruen-hell); color: var(--gruen-tief); font-weight: 600; 
 td.zahl, th.zahl { text-align: right; font-variant-numeric: tabular-nums; }
 td.zahl, td .knopf { white-space: nowrap; }
 td.bemerkung { max-width: 260px; overflow-wrap: anywhere; }
+td.datum { white-space: nowrap; }
+td.datum .knopf { display: flex; margin-top: 4px; }
+.karten-knoepfe { display: flex; gap: 8px; flex-wrap: wrap; }
+.karten-knoepfe .knopf { flex: 1 1 auto; }
 .negativ { color: var(--rot); }
 .leer { color: var(--grau); }
 .karten { display: none; gap: 10px; }

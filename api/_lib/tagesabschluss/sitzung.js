@@ -10,7 +10,6 @@
 
 import crypto from 'node:crypto';
 import { fehler, kekse } from './antwort.js';
-import * as speicher from './speicher.js';
 
 const KEKS = '__Host-tagesabschluss';
 export const SITZUNG_SEKUNDEN = 12 * 60 * 60;
@@ -76,14 +75,16 @@ export function brauchtSitzung(request) {
 }
 
 /* ---------------------------------------------------------------------------
-   Fehlversuche: höchstens 5 je Gerät/IP und 30 insgesamt in 15 Minuten, danach
-   15 Minuten Sperre. Gezählt wird in der Datenbank (gilt für alle Server-Instanzen);
-   ohne eingerichteten Speicher nur im Arbeitsspeicher der jeweiligen Instanz. */
+   Fehlversuche: höchstens 5 je Gerät/IP und 30 insgesamt in 15 Minuten, danach Sperre bis
+   zum Ende des Zeitfensters, dazu eine Wartezeit nach jedem Fehlversuch (anmelden.js).
+   Gezählt wird im Arbeitsspeicher der Server-Instanz (Vercel verwendet Instanzen wieder) –
+   bewusst NICHT im Blob-Speicher: Jeder Schreibvorgang dort zählt gegen das Monatskontingent,
+   ein Angreifer könnte es mit Fehlversuchen sonst gezielt aufbrauchen. */
 
 const FENSTER_MS = 15 * 60 * 1000;
 const MAX_JE_IP = 5;
 const MAX_GESAMT = 30;
-const lokal = new Map();
+const zaehler = new Map();
 
 function ipVon(request) {
   const h = request.headers;
@@ -96,36 +97,33 @@ function zaehlerSchluessel(request) {
   return b64url(crypto.createHmac('sha256', k.geheimnis).update('ip|' + ipVon(request)).digest()).slice(0, 32);
 }
 
-// Ist die Datenbank nicht erreichbar, wird ersatzweise im Arbeitsspeicher gezählt –
-// die Anmeldung bleibt dadurch möglich, der Schutz gilt dann je Server-Instanz.
-async function lies(schluessel) {
-  if (speicher.istEingerichtet()) {
-    try { return await speicher.liesZaehler(schluessel); } catch { /* Ersatz unten */ }
-  }
-  return lokal.get(schluessel) || null;
+function aktuell(schluessel) {
+  const z = zaehler.get(schluessel);
+  if (z && Date.now() - z.seit < FENSTER_MS) return z;
+  zaehler.delete(schluessel);
+  return null;
 }
-async function schreib(schluessel, wert) {
-  if (wert === null) lokal.delete(schluessel); else lokal.set(schluessel, wert);
-  if (speicher.istEingerichtet()) {
-    try { await speicher.schreibeZaehler(schluessel, wert); } catch { /* Ersatz: Arbeitsspeicher */ }
-  }
+
+function aufraeumen() {
+  if (zaehler.size < 500) return;
+  for (const s of [...zaehler.keys()]) aktuell(s);
 }
-const aktuell = z => (z && typeof z.seit === 'number' && Date.now() - z.seit < FENSTER_MS ? z : null);
 
 /** Sperre prüfen → null oder verbleibende Minuten */
-export async function anmeldungGesperrt(request) {
-  const [ip, alle] = await Promise.all([lies(zaehlerSchluessel(request)), lies('_alle')]);
-  for (const z of [aktuell(ip) && ip.anzahl >= MAX_JE_IP ? ip : null, aktuell(alle) && alle.anzahl >= MAX_GESAMT ? alle : null]) {
+export function anmeldungGesperrt(request) {
+  const ip = aktuell(zaehlerSchluessel(request)), alle = aktuell('_alle');
+  for (const z of [ip && ip.anzahl >= MAX_JE_IP ? ip : null, alle && alle.anzahl >= MAX_GESAMT ? alle : null]) {
     if (z) return Math.max(1, Math.ceil((z.seit + FENSTER_MS - Date.now()) / 60000));
   }
   return null;
 }
 
-export async function fehlversuchMerken(request) {
+export function fehlversuchMerken(request) {
+  aufraeumen();
   for (const s of [zaehlerSchluessel(request), '_alle']) {
-    const z = aktuell(await lies(s));
-    await schreib(s, z ? { anzahl: z.anzahl + 1, seit: z.seit } : { anzahl: 1, seit: Date.now() });
+    const z = aktuell(s);
+    zaehler.set(s, z ? { anzahl: z.anzahl + 1, seit: z.seit } : { anzahl: 1, seit: Date.now() });
   }
 }
 
-export async function fehlversucheLoeschen(request) { await schreib(zaehlerSchluessel(request), null); }
+export function fehlversucheLoeschen(request) { zaehler.delete(zaehlerSchluessel(request)); }

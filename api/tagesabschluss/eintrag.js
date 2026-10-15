@@ -16,7 +16,7 @@ export default {
     const datum = new URL(request.url).searchParams.get('datum');
     if (!istIsoDatum(datum)) return fehler(400, 'Bitte gib ein gültiges Datum an.');
     try {
-      return json({ eintrag: fuerAnzeige((await speicher.liesEintrag(datum)).eintrag) });
+      return json({ eintrag: fuerAnzeige(await speicher.liesEintrag(datum)) });
     } catch (f) {
       return unerwartet(f, 'Eintrag');
     }

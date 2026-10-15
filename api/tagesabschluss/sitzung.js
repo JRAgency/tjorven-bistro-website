@@ -13,7 +13,7 @@ export default {
     return json({
       angemeldet: true,
       ablauf: pruefeSitzung(request).ablauf,
-      erkennung: kiEingerichtet(),
+      erkennung: kiEingerichtet(request),
       speicher: speicherEingerichtet(),
     });
   },

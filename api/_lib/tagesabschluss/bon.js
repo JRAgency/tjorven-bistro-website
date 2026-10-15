@@ -6,12 +6,16 @@
 // Rechnungen aufgeht – sonst bleibt das Feld leer und muss von Hand geprüft werden.
 // Es wird nie ein Wert errechnet oder geraten, der nicht so auf dem Bon steht.
 //
-// Kontrollrechnungen (an beiden Referenzbons nachvollzogen):
+// Kontrollrechnungen (an den Referenzbons und den 30 Juli-Berichten nachvollzogen):
 //   Rate 19 % / 7 %:  Netto + MwSt. = Brutto, MwSt. ≈ Brutto × Satz / (100 + Satz)
 //   Gesamt:           Brutto 19 % + Brutto 7 % = Gesamt Brutto
-//   KASSE:            Startbetrag + Eingenommenes Bargeld + Bargeldauszahlung (Karte)
-//                     + Bargeld hinzugefügt + Bargeld entfernt = Erwartetes Bargeld
+//   KASSE:            Startbetrag + Eingenommenes Bargeld ± Bargeldauszahlung (Karte)
+//                     + Bargeld hinzugefügt − Bargeld entfernt = Erwartetes Bargeld
 //                     Gezählter Bargeldbestand − Erwartetes Bargeld = Differenz
+//
+// „Bargeld entfernt“ ist immer eine Entnahme: Der gedruckte Bon zeigt sie mit Minus
+// („-12,39 €“), der digitale Bericht ohne („13,82 EUR“). Gerechnet wird mit dem Betrag,
+// gespeichert wird einheitlich als Minusbetrag.
 //
 // Barkassenbestand = „Gezählter Bargeldbestand“ vom Bon, 1:1 übernommen (Vorgabe vom
 // 14.10.2026). Er wird NICHT berechnet – weder aus dem Vortag noch aus anderen Feldern.
@@ -50,14 +54,14 @@ export function betragInCent(text, { streng = true } = {}) {
   return neg ? -wert : wert;
 }
 
-export const centInEuro = c => (c === null || c === undefined ? null : Math.round(c) / 100);
+export const centInEuro = c => (c === null || c === undefined ? null : (Math.round(c) / 100) || 0);   // ohne „-0“
 
 /* ----------------------------------------------------------------- Datum */
 
-/** „01.10.2026“ oder „01.10.2026 17:01:04“ → „2026-10-01“; ungültige Kalenderdaten → null */
+/** „01.10.2026“, „01.10.2026 17:01:04“ oder „31/07/2026, 17:25“ → ISO-Datum; ungültige Kalenderdaten → null */
 export function datumAusText(text) {
   if (typeof text !== 'string') return null;
-  const m = text.replace(LEER, ' ').match(/(\d{1,2})[.,](\d{1,2})[.,](\d{4})/);
+  const m = text.replace(LEER, ' ').match(/(\d{1,2})[.,/](\d{1,2})[.,/](\d{4})/);
   if (!m) return null;
   return isoDatum(Number(m[3]), Number(m[2]), Number(m[1]));
 }
@@ -150,12 +154,14 @@ export function bewerteBon(roh, { heute = heuteInBerlin() } = {}) {
     'Auf dem Foto nicht gefunden – bitte vom Bon abtippen (Brutto unter „Rate: 7.0%“).');
 
   // --- KASSE: Startbetrag + Bewegungen = Erwartetes Bargeld
-  // Das Vorzeichen der „Bargeldauszahlung (Karte)“ ist auf den Referenzbons nicht
-  // erkennbar (dort 0,00 €) – beide Lesarten werden geprüft.
+  // Entnahme/Zugabe zählen unabhängig vom gedruckten Vorzeichen (siehe oben). Das Vorzeichen der
+  // „Bargeldauszahlung (Karte)“ ist auf keinem Referenzbericht erkennbar (immer 0,00) – beide Lesarten werden geprüft.
+  const entnahme = entf === null ? null : -Math.abs(entf);
+  const zugabe = hinzu === null ? null : Math.abs(hinzu);
   let kasse = false;
-  if ([start, ein, hinzu, entf, erw].every(v => v !== null)) {
-    const basis = start + ein + hinzu + entf;
-    kasse = ausz === null ? false : (gleich(basis + ausz, erw) || gleich(basis - ausz, erw));
+  if ([start, ein, zugabe, entnahme, erw, ausz].every(v => v !== null)) {
+    const basis = start + ein + zugabe + entnahme;
+    kasse = gleich(basis + Math.abs(ausz), erw) || gleich(basis - Math.abs(ausz), erw);
   }
   pruefungen.kasse = kasse;
   // Eingenommenes Bargeld zusätzlich über die Zahlungsübersicht („Bargeld … Gesamt“)
@@ -164,8 +170,8 @@ export function bewerteBon(roh, { heute = heuteInBerlin() } = {}) {
   setze('umsatzBar', ein, kasse || einZweitquelle,
     'Nicht sicher erkannt – bitte prüfen („Eingenommenes Bargeld“ unter KASSE).',
     'Auf dem Foto nicht gefunden – bitte vom Bon abtippen („Eingenommenes Bargeld“ unter KASSE).');
-  setze('bargeldEntfernt', entf, kasse,
-    'Nicht sicher erkannt – bitte prüfen („Bargeld entfernt“ unter KASSE, meist mit Minus).',
+  setze('bargeldEntfernt', entnahme, kasse,
+    'Nicht sicher erkannt – bitte prüfen („Bargeld entfernt“ unter KASSE).',
     'Auf dem Foto nicht gefunden – bitte vom Bon abtippen („Bargeld entfernt“ unter KASSE).');
 
   // --- Barkassenbestand = „Gezählter Bargeldbestand“ (1:1 vom Bon, keine Berechnung).
@@ -185,7 +191,7 @@ export function bewerteBon(roh, { heute = heuteInBerlin() } = {}) {
     if (!datumOk) datumHinweis = 'Öffnungs- und Schließdatum auf dem Bon unterscheiden sich – bitte Datum prüfen.';
   } else if (dSchl || dOffen) {
     datum = dSchl || dOffen;
-    datumHinweis = 'Datum nur einmal lesbar – bitte prüfen („Offen:“ / „Schließen:“ oben auf dem Bon).';
+    datumHinweis = 'Datum nur einmal lesbar – bitte prüfen („Offen:“ / „Schließen:“ bzw. „Startdatum“ / „Abschlussdatum“ oben auf dem Bericht).';
   } else if (dDruck) {
     datumHinweis = 'Auf dem Foto ist nur das Druckdatum lesbar – das ist nicht unbedingt der Tag des Abschlusses. Bitte Datum eintragen.';
   }

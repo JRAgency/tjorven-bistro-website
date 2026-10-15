@@ -40,7 +40,7 @@ export function erzeugeXlsx(eintraege, fotoLink) {
       }
       if (s.art === 'text') return e.bemerkung ? `<c r="${ref}" t="inlineStr" s="4"><is><t xml:space="preserve">${esc(e.bemerkung)}</t></is></c>` : '';
       if (s.art === 'foto') {
-        if (!e.fotoId) return '';
+        if (!(e.foto && e.foto.pfad)) return '';
         const anzeige = `Foto vom ${deutschesDatum(e.datum)} (nur nach Anmeldung)`;
         const formel = `HYPERLINK("${fotoLink(e.datum).replace(/"/g, '""')}","${anzeige.replace(/"/g, '""')}")`;
         return `<c r="${ref}" t="str" s="5"><f>${esc(formel)}</f><v>${esc(anzeige)}</v></c>`;
