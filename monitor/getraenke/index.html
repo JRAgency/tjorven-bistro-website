@@ -2,7 +2,8 @@
 <html lang="de">
 <head>
 <!-- Monitor 3 – Getränkekarte (Display-Seite für 32-Zoll-Full-HD, 1920 × 1080).
-     Statisch: keine Animation, kein Bildwechsel. Drei Spalten, damit alles groß und ohne Scrollen passt. -->
+     Statisch: keine Animation, kein Bildwechsel. Drei klar getrennte Spalten wie auf der Original-Getränkekarte
+     (Überschriften klein und fett), Preise mit einer Nachkommastelle wie auf der Karte. -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
@@ -20,55 +21,54 @@
   </header>
   <div class="trenner"></div>
 
-  <div class="bildband">
-    <img class="foto bild-maschine" src="/images/abholmonitor/24-kaffee-cappuccino-barista-hochkant.jpeg" alt="Espressomaschine">
-    <img class="foto bild-cappuccino" src="/images/abholmonitor/27-herzlich-willkommen-tjorven-bistro.jpeg" alt="Cappuccino">
-    <img class="foto bild-eistee" src="/images/abholmonitor/30-hagebutten-eistee-hochkant.jpeg" alt="Hagebutten-Eistee">
-  </div>
-
   <div class="spalten">
-    <section class="gruppe">
-      <h2>Kaffee &amp; Warmes</h2>
-      <div class="zeile"><span class="name">Espresso</span><span class="fuell"></span><span class="preis" data-artikel="Espresso">2.50</span></div>
-      <div class="zeile"><span class="name">Doppio</span><span class="fuell"></span><span class="preis" data-artikel="Doppio">3.50</span></div>
-      <div class="zeile"><span class="name">Espresso Macchiato</span><span class="fuell"></span><span class="preis" data-artikel="Espresso Macchiato">3.00</span></div>
-      <div class="zeile"><span class="name">Cortado</span><span class="fuell"></span><span class="preis" data-artikel="Cortado">3.20</span></div>
-      <div class="zeile"><span class="name">Americano</span><span class="fuell"></span><span class="preis" data-artikel="Americano">3.50</span></div>
-      <div class="zeile"><span class="name">Cappuccino</span><span class="fuell"></span><span class="preis" data-artikel="Cappuccino">4.00</span></div>
-      <div class="zeile"><span class="name">Milchkaffee</span><span class="fuell"></span><span class="preis" data-artikel="Milchkaffee">4.00</span></div>
-      <div class="zeile"><span class="name">Latte Macchiato</span><span class="fuell"></span><span class="preis" data-artikel="Latte Macchiato">4.50</span></div>
-      <div class="zeile"><span class="name">Heiße Schokolade</span><span class="fuell"></span><span class="preis" data-artikel="Heiße Schokolade">3.50</span></div>
-      <div class="zeile"><span class="name">Bio Tee</span><span class="fuell"></span><span class="preis" data-artikel="Bio Tee">3.50</span></div>
+    <section class="spalte gruppe">
+      <!-- Ein Foto mit verschiedenen fritz-Flaschen gibt es im Projekt noch nicht. Sobald es da ist:
+           diese Fläche durch <img class="foto bildfeld" src="…" alt="fritz-kola-Flaschen"> ersetzen. -->
+      <div class="bildfeld ohne-foto"><span>kalt &amp; erfrischend</span></div>
+      <h2>fritz kola getränke</h2>
+      <div class="zeile"><span class="name">Fritz Kola Original</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Fritz Kola Original">3.5</span></div>
+      <div class="zeile"><span class="name">Fritz Kola Superzero</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Fritz Kola Superzero">3.5</span></div>
+      <div class="zeile"><span class="name">Fritz Mischmasch</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Fritz Mischmasch">3.5</span></div>
+      <div class="zeile"><span class="name">Fritz Zitrone</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Fritz Zitrone">3.5</span></div>
+      <div class="zeile"><span class="name">Fritz Orange</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Fritz Orange">3.5</span></div>
+      <div class="zeile"><span class="name">Bio Rhabarberschorle</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Bio Rhabarberschorle">3.5</span></div>
+      <div class="zeile"><span class="name">Bio Traubenschorle</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Bio Traubenschorle">3.5</span></div>
+      <div class="zeile"><span class="name">Bio Apfelschorle</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Bio Apfelschorle">3.5</span></div>
     </section>
 
-    <section class="gruppe">
-      <h2>Kaltgetränke</h2>
-      <div class="zeile"><span class="name">Fritz Kola Original</span><span class="fuell"></span><span class="preis" data-artikel="Fritz Kola Original">3.50</span></div>
-      <div class="zeile"><span class="name">Fritz Kola Superzero</span><span class="fuell"></span><span class="preis" data-artikel="Fritz Kola Superzero">3.50</span></div>
-      <div class="zeile"><span class="name">Fritz Mischmasch</span><span class="fuell"></span><span class="preis" data-artikel="Fritz Mischmasch">3.50</span></div>
-      <div class="zeile"><span class="name">Fritz Zitrone</span><span class="fuell"></span><span class="preis" data-artikel="Fritz Zitrone">3.50</span></div>
-      <div class="zeile"><span class="name">Fritz Orange</span><span class="fuell"></span><span class="preis" data-artikel="Fritz Orange">3.50</span></div>
-      <div class="zeile"><span class="name">Bio Rhabarberschorle</span><span class="fuell"></span><span class="preis" data-artikel="Bio Rhabarberschorle">3.50</span></div>
-      <div class="zeile"><span class="name">Bio Traubenschorle</span><span class="fuell"></span><span class="preis" data-artikel="Bio Traubenschorle">3.50</span></div>
-      <div class="zeile"><span class="name">Bio Apfelschorle</span><span class="fuell"></span><span class="preis" data-artikel="Bio Apfelschorle">3.50</span></div>
+    <section class="spalte gruppe">
+      <img class="foto bildfeld bild-eistee" src="/images/abholmonitor/30-hagebutten-eistee-hochkant.jpeg" alt="Hausgemachter Hagebutten-Eistee">
+      <h2>eistee, wasser &amp; bier</h2>
+      <h3>eistee</h3>
+      <div class="zeile"><span class="name">Hagebutten-Eistee</span><span class="fuell"></span><span class="menge">0.40l</span><span class="preis" data-artikel="Hagebutten-Eistee hausgemacht">3.5</span></div>
+      <div class="zusatz">hausgemacht</div>
+      <h3>wasser</h3>
+      <div class="zeile"><span class="name">Black Forest Gourmet Still</span></div>
+      <div class="zeile groessen"><span class="menge">0.25l | 0.75l</span><span class="fuell"></span><span class="preis" data-artikel="Black Forest Gourmet Still">2.5 | 4.5</span></div>
+      <div class="zeile"><span class="name">Peterstaler Gourmet Classic</span></div>
+      <div class="zeile groessen"><span class="menge">0.25l | 0.75l</span><span class="fuell"></span><span class="preis" data-artikel="Peterstaler Gourmet Classic">2.5 | 4.5</span></div>
+      <h3>bier</h3>
+      <div class="zeile"><span class="name">Lammsbräu Bio Pils</span><span class="fuell"></span><span class="preis" data-artikel="Lammsbräu Bio Pils">4.0</span></div>
+      <div class="zeile"><span class="name">Lammsbräu Bio Radler</span><span class="fuell"></span><span class="preis" data-artikel="Lammsbräu Bio Radler">4.0</span></div>
+      <div class="zeile"><span class="name">Lammsbräu Bio alkoholfrei</span><span class="fuell"></span><span class="preis" data-artikel="Lammsbräu Bio alkoholfrei">4.0</span></div>
     </section>
 
-    <div class="spalte">
-      <section class="gruppe">
-        <h2>Wasser &amp; Eistee</h2>
-        <div class="zeile"><span class="name">Black Forest Gourmet Still</span></div>
-        <div class="zeile groessen"><span class="menge">0.25</span><span class="preis" data-artikel="Black Forest Gourmet Still 0.25">2.50</span><span class="menge">0.75</span><span class="preis" data-artikel="Black Forest Gourmet Still 0.75">4.50</span></div>
-        <div class="zeile"><span class="name">Peterstaler Gourmet Classic</span></div>
-        <div class="zeile groessen"><span class="menge">0.25</span><span class="preis" data-artikel="Peterstaler Gourmet Classic 0.25">2.50</span><span class="menge">0.75</span><span class="preis" data-artikel="Peterstaler Gourmet Classic 0.75">4.50</span></div>
-        <div class="zeile"><span class="name">Hagebutten-Eistee <span class="menge">0.40</span></span><span class="fuell"></span><span class="preis" data-artikel="Hagebutten-Eistee 0.40">3.50</span></div>
-      </section>
-      <section class="gruppe">
-        <h2>Bier</h2>
-        <div class="zeile"><span class="name">Lammsbräu Bio Pils</span><span class="fuell"></span><span class="preis" data-artikel="Lammsbräu Bio Pils">4.00</span></div>
-        <div class="zeile"><span class="name">Lammsbräu Bio Radler</span><span class="fuell"></span><span class="preis" data-artikel="Lammsbräu Bio Radler">4.00</span></div>
-        <div class="zeile"><span class="name">Lammsbräu Alkoholfrei</span><span class="fuell"></span><span class="preis" data-artikel="Lammsbräu Alkoholfrei">4.00</span></div>
-      </section>
-    </div>
+    <section class="spalte gruppe">
+      <img class="foto bildfeld bild-cappuccino" src="/images/abholmonitor/27-herzlich-willkommen-tjorven-bistro.jpeg" alt="Cappuccino">
+      <h2>heiß</h2>
+      <div class="zeile"><span class="name">Espresso | Doppio</span><span class="fuell"></span><span class="preis" data-artikel="Espresso | Doppio">2.5 | 3.5</span></div>
+      <div class="zeile"><span class="name">Espresso Macchiato</span><span class="fuell"></span><span class="preis" data-artikel="Espresso Macchiato">3.0</span></div>
+      <div class="zeile"><span class="name">Cortado</span><span class="fuell"></span><span class="preis" data-artikel="Cortado">3.2</span></div>
+      <div class="zeile"><span class="name">Americano</span><span class="fuell"></span><span class="preis" data-artikel="Americano">3.5</span></div>
+      <div class="zeile"><span class="name">Cappuccino</span><span class="fuell"></span><span class="preis" data-artikel="Cappuccino">4.0</span></div>
+      <div class="zeile"><span class="name">Milchkaffee</span><span class="fuell"></span><span class="preis" data-artikel="Milchkaffee">4.0</span></div>
+      <div class="zeile"><span class="name">Latte Macchiato</span><span class="fuell"></span><span class="preis" data-artikel="Latte Macchiato">4.5</span></div>
+      <div class="zeile"><span class="name">Heiße Schokolade</span><span class="fuell"></span><span class="preis" data-artikel="Heiße Schokolade">3.5</span></div>
+      <div class="leerzeile"></div>
+      <div class="zeile"><span class="name">Bio Tee</span><span class="fuell"></span><span class="preis" data-artikel="Bio Tee">3.5</span></div>
+      <div class="zusatz">Kräuter | Früchte | Grün | Schwarz</div>
+    </section>
   </div>
 </main>
 </body>

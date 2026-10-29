@@ -1,20 +1,36 @@
-/* Monitor 2 – Speisekarte: links eine ruhige Bildkomposition, rechts die Karte. */
-.speisen .inhalt { flex: 1; min-height: 0; display: flex; gap: 56px; }
+/* Monitor 2 – Speisekarte: links die Bildkacheln, rechts die vollständige Karte.
+   Kachel: Foto füllt die ganze Fläche, Name und Preis im grünen Schild im Bild.
+   Ohne Lasagne 5 Kacheln (Bowl über zwei Reihen), mit Lasagne 6 Kacheln (2 × 3) – nie eine leere Kachel. */
+.speisen .inhalt { flex: 1; min-height: 0; display: flex; gap: 48px; }
 
-/* Bildkomposition: mit Lasagne 2 × 2, ohne Lasagne Bowl groß oben und zwei Bilder darunter */
-.speisen .bilder { flex: none; width: 740px; display: grid; gap: 20px; grid-template-columns: 1fr 1fr; grid-template-rows: 1.2fr 1fr; }
-.speisen .bilder .bild-bowl { grid-column: 1 / span 2; grid-row: 1; }
-.speisen .bilder .bild-wrap { grid-column: 1; grid-row: 2; }
-.speisen .bilder .bild-focaccia { grid-column: 2; grid-row: 2; }
-.speisen .bilder.mit-lasagne { grid-template-rows: 1fr 1fr; }
-.speisen .bilder.mit-lasagne .bild-bowl { grid-column: 1; grid-row: 1; }
-.speisen .bilder.mit-lasagne .bild-lasagne { grid-column: 2; grid-row: 1; }
-.bild-bowl { object-position: 50% 60%; }
-.bild-lasagne { object-position: 40% 55%; }
-.bild-wrap { object-position: 50% 62%; }
-.bild-focaccia { object-position: 50% 62%; }
+.speisen .kacheln { flex: none; width: 868px; display: grid; gap: 20px; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, minmax(0, 1fr)); }
+.speisen .kacheln .k-bowl { grid-column: 1; grid-row: 1 / span 2; }
+.speisen .kacheln .k-focaccia { grid-column: 2; grid-row: 1; }
+.speisen .kacheln .k-wrap { grid-column: 2; grid-row: 2; }
+.speisen .kacheln .k-pommes { grid-column: 1; grid-row: 3; }
+.speisen .kacheln .k-waffel { grid-column: 2; grid-row: 3; }
+.speisen .kacheln.mit-lasagne .k-bowl { grid-row: 1; }
+.speisen .kacheln.mit-lasagne .k-lasagne { grid-column: 2; grid-row: 1; }
+.speisen .kacheln.mit-lasagne .k-focaccia { grid-column: 1; grid-row: 2; }
+
+.kachel { position: relative; margin: 0; min-width: 0; min-height: 0; overflow: hidden; border-radius: 20px; background: var(--sand-hell); }
+.kachel .foto { position: absolute; inset: 0; border-radius: 0; transform-origin: var(--fokus, 50% 50%); transform: scale(var(--nah, 1)); object-position: var(--fokus, 50% 50%); }
+/* Bildausschnitt je Gericht (--fokus = Mitte des Gerichts, --nah = Vergrößerung) */
+.k-bowl { --fokus: 42% 70%; --nah: 1.25; }
+.k-lasagne { --fokus: 46% 62%; --nah: 1.15; }
+.k-focaccia { --fokus: 50% 74%; --nah: 1.3; }
+.k-wrap { --fokus: 52% 74%; --nah: 1.3; }
+.k-pommes { --fokus: 44% 88%; --nah: 1.1; }
+.k-waffel { --fokus: 47% 76%; --nah: 1.4; }
+
+.kachel .schild {
+  position: absolute; left: 16px; bottom: 16px; max-width: calc(100% - 32px);
+  display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  padding: 8px 18px 10px 14px; border-radius: 14px; border-left: 6px solid var(--gold);
+  background: rgba(18, 74, 18, 0.94); color: #fff; font-size: 36px; line-height: 1.1; font-weight: 600;
+}
+.kachel .k-preis { white-space: nowrap; font-variant-numeric: tabular-nums; }
 
 /* Karte */
-.speisen .karte { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 40px; }
-.speisen .gruppe .zeile { font-size: 44px; line-height: 1.32; padding: 5px 0; }
-.speisen .gruppe h2 { font-size: 40px; margin-bottom: 6px; }
+.speisen .karte { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 30px; }
+.speisen .gruppe .zeile { font-size: 40px; line-height: 1.28; padding: 4px 0; }

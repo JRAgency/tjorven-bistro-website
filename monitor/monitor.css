@@ -52,13 +52,8 @@ body { font-family: var(--schrift); color: var(--tinte); -webkit-font-smoothing:
 /* Bilder */
 .foto { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 18px; background: var(--sand-hell); }
 
-/* Abschnittsüberschriften und Produktzeilen */
-.gruppe h2 {
-  margin: 0 0 10px; font-size: 40px; line-height: 1.1; font-weight: 600; color: var(--gruen);
-  text-transform: uppercase; letter-spacing: 3px;
-  display: flex; align-items: center; gap: 18px;
-}
-.gruppe h2::after { content: ''; flex: 1; height: 3px; background: var(--linie); border-radius: 2px; }
+/* Abschnittsüberschriften wie auf der Original-Karte: klein geschrieben, fett. Produktzeilen mit Punktlinie. */
+.gruppe h2 { margin: 0 0 10px; font-size: 52px; line-height: 1.05; font-weight: 600; color: var(--gruen); text-transform: none; letter-spacing: 0; }
 .zeile { display: flex; align-items: baseline; gap: 16px; }
 .zeile .name { white-space: nowrap; }
 .zeile .fuell { flex: 1; border-bottom: 3px dotted #cdbfa6; transform: translateY(-9px); min-width: 24px; }

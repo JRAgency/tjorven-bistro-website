@@ -1,4 +1,4 @@
-// Verwaltung Monitor 4: Angebote ein-/ausschalten und speichern.
+// Verwaltung Monitor 4: Angebote ein-/ausschalten, Texte der zwei freien Kacheln eingeben, speichern.
 // Anmeldung und Sitzung wie beim Tagesabschluss (Cookie „__Host-tagesabschluss“, nur serverseitig
 // lesbar). Jede Änderung geht mit dem Kopf „X-Tagesabschluss: 1“ an den Server (CSRF-Schutz).
 (() => {
@@ -6,7 +6,10 @@
   const $ = id => document.getElementById(id);
   let stand = null;          // ETag des geladenen Stands (null = noch nie gespeichert)
   let geladen = new Map();   // id → aktiv (zuletzt vom Server)
+  let geladenText = new Map();   // id → Text der freien Kachel (zuletzt vom Server)
   let angebote = [];
+  let entwurf = null;        // Texte der freien Kacheln, falls die Sitzung beim Speichern abgelaufen war
+  const MAX_ZEICHEN = 160, MAX_ZEILEN = 6;   // wie auf dem Server (api/_lib/monitore/katalog.js)
 
   async function api(pfad, optionen = {}) {
     const kopf = {};
@@ -39,18 +42,11 @@
     return e;
   }
 
-  function zeile(a) {
-    const li = el('li');
+  function schalter(a, vorschau, artText) {
     const label = el('label', 'schalter');
-    if (a.bild) {
-      const img = el('img', 'vorschau');
-      img.src = a.bild; img.alt = ''; img.loading = 'lazy';
-      label.append(img);
-    } else {
-      label.append(el('span', 'vorschau ohne', a.titel.charAt(0)));
-    }
+    label.append(vorschau);
     const name = el('span', 'name');
-    name.append(el('span', 'titel', a.titel), el('span', 'art', a.bild ? (a.art === 'event' ? 'mit Foto und QR-Code' : 'mit Foto') : 'als Textkarte'));
+    name.append(el('span', 'titel', a.titel), el('span', 'art', artText));
     const box = el('input');
     box.type = 'checkbox';
     box.setAttribute('role', 'switch');
@@ -58,14 +54,72 @@
     box.checked = a.aktiv;
     box.addEventListener('change', aktualisiere);
     label.append(name, box, el('span', 'regler'));
-    li.append(label);
+    return label;
+  }
+
+  function zeile(a) {
+    const li = el('li');
+    let vorschau;
+    if (a.bild) {
+      vorschau = el('img', 'vorschau');
+      vorschau.src = a.bild; vorschau.alt = ''; vorschau.loading = 'lazy';
+    } else {
+      vorschau = el('span', 'vorschau ohne', a.titel.charAt(0));
+    }
+    const art = a.bild ? (a.art === 'event' ? 'mit Foto und QR-Code' : 'mit Foto') : 'als Textkarte';
+    li.append(schalter(a, vorschau, a.preis ? `${art} · ${a.preis}` : art));
+    return li;
+  }
+
+  // Freie Kachel: Schalter + Textfeld (reiner Text, jede Zeile = eine Zeile auf dem Monitor)
+  function freiZeile(a) {
+    const li = el('li', 'frei');
+    li.append(schalter(a, el('span', 'vorschau ohne frei-symbol', a.titel.slice(-1)), 'eigener Text'));
+    const feld = el('label', 'feld');
+    feld.append(el('span', 'feld-name', `Text für ${a.titel}`));
+    const ta = el('textarea');
+    ta.dataset.id = a.id;
+    ta.rows = 4;
+    ta.maxLength = 400;
+    ta.spellcheck = true;
+    ta.placeholder = 'z. B.\nHerzlich willkommen\nFamilie Muster\nTisch 7';
+    ta.value = a.text || '';
+    ta.addEventListener('input', aktualisiere);
+    const zaehler = el('span', 'zaehler');
+    zaehler.dataset.fuer = a.id;
+    feld.append(ta, zaehler);
+    li.append(feld);
     return li;
   }
 
   function auswahl() {
     return Object.fromEntries([...document.querySelectorAll('#verwaltung input[type=checkbox]')].map(b => [b.dataset.id, b.checked]));
   }
-  const geaendert = () => Object.entries(auswahl()).some(([id, an]) => geladen.get(id) !== an);
+  function texte() {
+    return Object.fromEntries([...document.querySelectorAll('#verwaltung textarea')].map(t => [t.dataset.id, t.value]));
+  }
+  // grob wie der Server zählen: Zeichen ohne Zeilenumbrüche, Zeilen ohne Leerzeilen am Rand
+  function messen(t) {
+    const zeilen = t.replace(/\r\n?/g, '\n').split('\n').map(z => z.replace(/\s+/g, ' ').trim());
+    while (zeilen.length && zeilen[0] === '') zeilen.shift();
+    while (zeilen.length && zeilen[zeilen.length - 1] === '') zeilen.pop();
+    return { zeichen: [...zeilen.join('')].length, zeilen: zeilen.length };
+  }
+  const geaendert = () => Object.entries(auswahl()).some(([id, an]) => geladen.get(id) !== an)
+    || Object.entries(texte()).some(([id, t]) => (geladenText.get(id) || '') !== t);
+
+  /** Fehler in den freien Kacheln (vor dem Speichern) oder '' */
+  function freiFehler() {
+    const an = auswahl();
+    for (const [id, t] of Object.entries(texte())) {
+      const titel = (angebote.find(a => a.id === id) || {}).titel || id;
+      const m = messen(t);
+      if (m.zeichen > MAX_ZEICHEN) return `${titel}: Der Text ist zu lang (höchstens ${MAX_ZEICHEN} Zeichen).`;
+      if (m.zeilen > MAX_ZEILEN) return `${titel}: Der Text hat zu viele Zeilen (höchstens ${MAX_ZEILEN}).`;
+      if (an[id] && m.zeichen === 0) return `${titel} ist eingeschaltet, hat aber keinen Text. Bitte Text eingeben oder die Kachel ausschalten.`;
+    }
+    return '';
+  }
 
   function zeitText(iso) {
     if (!iso) return '';
@@ -74,6 +128,12 @@
 
   let zuletzt = null;
   function aktualisiere() {
+    for (const z of document.querySelectorAll('#verwaltung .zaehler')) {
+      const ta = document.querySelector(`#verwaltung textarea[data-id="${z.dataset.fuer}"]`);
+      const m = messen(ta.value);
+      z.textContent = `${m.zeichen} / ${MAX_ZEICHEN} Zeichen · ${m.zeilen} / ${MAX_ZEILEN} Zeilen`;
+      z.classList.toggle('zu-viel', m.zeichen > MAX_ZEICHEN || m.zeilen > MAX_ZEILEN);
+    }
     const an = Object.values(auswahl()).filter(Boolean).length;
     const offen = geaendert();
     $('speichern').disabled = !offen;
@@ -82,12 +142,15 @@
     $('status').classList.toggle('offen', offen);
   }
 
-  function zeige(daten) {
+  // eigeneTexte: Texte, die im Feld bleiben sollen statt des Server-Stands (Konflikt, abgelaufene Sitzung)
+  function zeige(daten, eigeneTexte = null) {
     stand = daten.stand;
     angebote = daten.angebote;
     geladen = new Map(angebote.map(a => [a.id, a.aktiv]));
+    geladenText = new Map(angebote.filter(a => a.art === 'frei').map(a => [a.id, a.text || '']));
     zuletzt = zeitText(daten.geaendert);
-    $('listeProdukt').replaceChildren(...angebote.filter(a => a.art !== 'event').map(zeile));
+    $('listeFrei').replaceChildren(...angebote.filter(a => a.art === 'frei').map(a => freiZeile(eigeneTexte && typeof eigeneTexte[a.id] === 'string' ? { ...a, text: eigeneTexte[a.id] } : a)));
+    $('listeProdukt').replaceChildren(...angebote.filter(a => a.art === 'produkt').map(zeile));
     $('listeEvent').replaceChildren(...angebote.filter(a => a.art === 'event').map(zeile));
     $('anmeldung').hidden = true;
     $('verwaltung').hidden = false;
@@ -98,7 +161,8 @@
 
   async function laden() {
     try {
-      zeige(await api('/api/monitore/verwaltung/'));
+      zeige(await api('/api/monitore/verwaltung/'), entwurf);
+      entwurf = null;
     } catch (f) {
       if (f.status === 401) return zeigeAnmeldung();
       $('startMeldung').textContent = f.meldung;
@@ -119,19 +183,26 @@
   });
 
   $('speichern').addEventListener('click', async () => {
-    $('speichern').disabled = true;
     $('meldung').textContent = '';
     $('meldung').className = 'meldung';
+    const problem = freiFehler();
+    if (problem) { $('meldung').textContent = problem; return; }
+    $('speichern').disabled = true;
+    // nur Texte merken, die vom geladenen Stand abweichen (die übrigen kommen ohnehin vom Server)
+    const eigene = Object.fromEntries(Object.entries(texte()).filter(([id, t]) => (geladenText.get(id) || '') !== t));
     try {
-      const daten = await api('/api/monitore/verwaltung/', { method: 'PUT', body: JSON.stringify({ aktiv: auswahl(), stand }) });
+      const daten = await api('/api/monitore/verwaltung/', { method: 'PUT', body: JSON.stringify({ aktiv: auswahl(), frei: texte(), stand }) });
       zeige(daten);
       $('meldung').textContent = daten.monitor === false
         ? 'Gespeichert. Monitor 4 übernimmt die Auswahl spätestens in einer Stunde.'
         : 'Gespeichert. Monitor 4 zeigt die neue Auswahl innerhalb einer Minute.';
       $('meldung').className = 'meldung gut';
     } catch (f) {
-      if (f.status === 401) return zeigeAnmeldung('Deine Sitzung ist abgelaufen. Bitte erneut anmelden – die Änderungen bitte danach noch einmal vornehmen.');
-      if (f.status === 409 && f.daten && Array.isArray(f.daten.angebote)) zeige(f.daten);
+      if (f.status === 401) {
+        entwurf = eigene;
+        return zeigeAnmeldung('Deine Sitzung ist abgelaufen. Bitte erneut anmelden. Eingegebene Texte bleiben erhalten, die Schalter bitte danach noch einmal prüfen.');
+      }
+      if (f.status === 409 && f.daten && Array.isArray(f.daten.angebote)) zeige(f.daten, eigene);   // Schalter vom anderen Gerät, eigene Texte bleiben stehen
       $('meldung').textContent = f.meldung;
       aktualisiere();
     }

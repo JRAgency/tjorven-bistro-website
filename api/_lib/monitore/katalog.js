@@ -5,16 +5,18 @@
 // wiederverwenden) und neu deployen. In der Verwaltung erscheint es sofort, aktiv ist es erst
 // nach dem Einschalten (oder bei standard: true, solange noch nie gespeichert wurde).
 //
-//   art    'produkt' (Speise/Getränk) oder 'event' (Feier mit QR-Code)
+//   art    'produkt' (Speise/Getränk), 'event' (Feier mit QR-Code) oder 'frei' (Text aus der Verwaltung)
 //   bild   vorhandenes Foto (keine KI-Bilder); ohne Bild zeigt der Monitor eine Textkarte
 //   pos    Bildausschnitt (CSS object-position)
 //   zoom   nur den oberen Teil des Bildes zeigen (Faktor; Kindergeburtstag: Deckblatt ohne dessen Schrift)
+//   preis  genau wie auf der Karte geschrieben (eine Nachkommastelle, „2.0 | 3.0“)
 //   unter  kurze Zeile unter dem Titel (optional)
-//   punkte nur für große Darstellungen (1–2 aktive Angebote)
+//   punkte nur für die ganz große Darstellung (1 aktives Angebot)
 //   qr     Schlüssel aus QRS
 //
-// Preise stehen bewusst nicht dabei: Keines dieser Angebote hat einen bestätigten Preis auf der
-// Speisekarte. Stichpunkte der Feiern 1:1 wie auf Monitor 1 (Abholmonitor).
+// Preise nur dort, wo sie bestätigt sind. Stichpunkte der Feiern 1:1 wie auf Monitor 1 (Abholmonitor).
+// Lasagne ist hier ein normales, von Hand schaltbares Angebot – unabhängig von der Lasagne-Regel
+// auf Monitor 2. Für Brezel | Butterbrezel gibt es noch kein Foto (Textkarte).
 
 const BILD = '/images/abholmonitor/';
 
@@ -24,13 +26,18 @@ export const QRS = {
 };
 
 export const KATALOG = [
-  { id: 'zimtschnecke', titel: 'Zimtschnecke', art: 'produkt', bild: BILD + '06-zimtschnecken-quer.jpeg', pos: '50% 60%', standard: false },
+  { id: 'frei-1', titel: 'Freie Kachel 1', art: 'frei', standard: false },
+  { id: 'frei-2', titel: 'Freie Kachel 2', art: 'frei', standard: false },
+  { id: 'zimtschnecke', titel: 'Zimtschnecke', art: 'produkt', bild: BILD + '06-zimtschnecken-quer.jpeg', pos: '50% 60%', preis: '3.5', standard: false },
   { id: 'apfelkuchen', titel: 'Apfelkuchen', art: 'produkt', standard: false },
-  { id: 'mousse-au-chocolat', titel: 'Mousse au Chocolat', art: 'produkt', standard: false },
-  { id: 'weihnachtswaffel', titel: 'Weihnachtswaffel', art: 'produkt', bild: BILD + '18-waffel-puderzucker-quer.jpeg', pos: '35% 55%', standard: false },
+  { id: 'mousse-au-chocolat', titel: 'Mousse au Chocolat', art: 'produkt', preis: '2.0', standard: false },
+  { id: 'weihnachtswaffel', titel: 'Weihnachtswaffel', art: 'produkt', bild: BILD + '18-waffel-puderzucker-quer.jpeg', pos: '40% 55%', standard: false },
   { id: 'kuerbissuppe', titel: 'Kürbissuppe', art: 'produkt', standard: false },
+  { id: 'lasagne', titel: 'Lasagne', art: 'produkt', bild: BILD + '35-lasagne-neu-quer.jpeg', pos: '45% 55%', preis: '12.5', standard: false },
+  { id: 'gemuese-wrap', titel: 'Gemüse Wrap', art: 'produkt', bild: BILD + '09-wrap-gemuese-quer.jpeg', pos: '50% 62%', preis: '6.0', standard: false },
+  { id: 'brezel', titel: 'Brezel | Butterbrezel', art: 'produkt', preis: '2.0 | 3.0', standard: false },
   { id: 'saisonangebot', titel: 'Saisonangebot', art: 'produkt', unter: 'Fragt uns an der Theke', standard: false },
-  { id: 'kindergeburtstag', titel: 'Kindergeburtstage', art: 'event', bild: '/images/kindergeburtstag-broschuere/seite-1-2400.webp', pos: '45% 0%', zoom: 2.1,
+  { id: 'kindergeburtstag', titel: 'Kindergeburtstage', art: 'event', bild: '/images/kindergeburtstag-broschuere/seite-1-2400.webp', pos: '45% 0%', zoom: 2.3,
     unter: 'Das Tjorven Bistro als Dein fester Treffpunkt',
     punkte: ['Eigener Tischbereich für Eure Gruppe', 'Mehrfaches Kommen und Gehen möglich', 'Kuchen darf mitgebracht werden', 'Kindergeburtstags-Menüs auf Wunsch'],
     qr: 'kindergeburtstag', standard: true },
@@ -45,6 +52,33 @@ export const KATALOG = [
 ];
 
 export const IDS = new Set(KATALOG.map(k => k.id));
+/** Kacheln, deren Text in der Verwaltung frei eingegeben wird */
+export const FREI_IDS = KATALOG.filter(k => k.art === 'frei').map(k => k.id);
+
+/** Grenzen für den Text einer freien Kachel (Verwaltung und Server prüfen dasselbe) */
+export const FREI_MAX_ZEICHEN = 160;
+export const FREI_MAX_ZEILEN = 6;
+
+/**
+ * Text einer freien Kachel vereinheitlichen: Zeilenumbrüche, keine Steuer- oder unsichtbaren
+ * Formatzeichen, Leerzeichen zusammengefasst, Zeilen ohne Rand, höchstens eine Leerzeile am Stück.
+ * → { text } oder { fehler } (zu lang / zu viele Zeilen). Kein HTML: der Monitor setzt den Text
+ * ausschließlich als reinen Text (textContent).
+ */
+export function bereinigeFreitext(roh) {
+  if (typeof roh !== 'string') return { fehler: 'Der Text ist ungültig.' };
+  if (roh.length > 2000) return { fehler: `Der Text ist zu lang (höchstens ${FREI_MAX_ZEICHEN} Zeichen).` };
+  let t = roh.normalize('NFC').replace(/\r\n?|[\u2028\u2029\u0085]/g, '\n').replace(/\t/g, ' ');
+  t = t.replace(/[^\P{C}\n]/gu, '');   // Steuer-, Format- (z. B. Richtungswechsel), private und unbelegte Zeichen
+  const zeilen = t.split('\n').map(z => z.replace(/\s+/g, ' ').trim());
+  const sauber = [];
+  for (const z of zeilen) if (z !== '' || (sauber.length && sauber[sauber.length - 1] !== '')) sauber.push(z);
+  while (sauber.length && sauber[sauber.length - 1] === '') sauber.pop();
+  const text = sauber.join('\n');
+  if ([...text.replace(/\n/g, '')].length > FREI_MAX_ZEICHEN) return { fehler: `Der Text ist zu lang (höchstens ${FREI_MAX_ZEICHEN} Zeichen).` };
+  if (sauber.length > FREI_MAX_ZEILEN) return { fehler: `Der Text hat zu viele Zeilen (höchstens ${FREI_MAX_ZEILEN}).` };
+  return { text };
+}
 
 /** aktiv-Zustand je Angebot: gespeicherter Wert, sonst Standard aus dem Katalog */
 export function zustand(gespeichert) {
@@ -52,8 +86,18 @@ export function zustand(gespeichert) {
   return KATALOG.map(k => ({ id: k.id, aktiv: typeof aktiv[k.id] === 'boolean' ? aktiv[k.id] : k.standard }));
 }
 
+/** gespeicherte Texte der freien Kacheln (beim Lesen erneut bereinigt; fehlend/ungültig = leer) */
+export function freieTexte(gespeichert) {
+  const frei = (gespeichert && gespeichert.frei && typeof gespeichert.frei === 'object') ? gespeichert.frei : {};
+  return Object.fromEntries(FREI_IDS.map(id => [id, bereinigeFreitext(frei[id]).text || '']));
+}
+
 /** nur die Anzeigedaten der aktiven Angebote (für den öffentlichen Monitor) */
 export function anzeige(gespeichert) {
   const an = new Set(zustand(gespeichert).filter(z => z.aktiv).map(z => z.id));
-  return KATALOG.filter(k => an.has(k.id)).map(({ standard, qr, ...k }) => (qr ? { ...k, qr: QRS[qr] } : k));
+  const texte = freieTexte(gespeichert);
+  return KATALOG.filter(k => an.has(k.id)).flatMap(({ standard, qr, titel, ...k }) => {
+    if (k.art === 'frei') return texte[k.id] ? [{ id: k.id, art: 'frei', zeilen: texte[k.id].split('\n') }] : [];   // leer: Verwaltung lässt das nicht zu
+    return [qr ? { ...k, titel, qr: QRS[qr] } : { ...k, titel }];
+  });
 }

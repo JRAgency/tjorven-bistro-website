@@ -28,6 +28,7 @@ h1 { font-size: 1.5rem; }
 h2 { font-size: 1.1rem; margin-top: 1.2rem; }
 p { margin: .3rem 0; }
 .leise { color: var(--grau); }
+p.klein { font-size: .9rem; }
 .zentriert { text-align: center; }
 
 /* Kopf */
@@ -46,7 +47,7 @@ p { margin: .3rem 0; }
 .knopfreihe { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .knopf { font: inherit; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; padding: 0 18px; border-radius: 10px; border: 2px solid var(--gruen); background: var(--weiss); color: var(--gruen-tief); cursor: pointer; text-decoration: none; }
 .knopf:hover { background: var(--gruen-hell); }
-.knopf:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.knopf:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .knopf.haupt { background: var(--gruen); color: var(--weiss); }
 .knopf.haupt:hover { background: var(--gruen-tief); }
 .knopf.leise { border-color: var(--linie); color: var(--grau); }
@@ -57,7 +58,8 @@ p { margin: .3rem 0; }
 /* Felder */
 .feld { display: grid; gap: 4px; margin: 12px 0; }
 .feld-name { font-weight: 600; font-size: .95rem; }
-input[type=password] { font: inherit; width: 100%; min-height: 46px; padding: 8px 12px; border: 2px solid var(--linie); border-radius: 10px; background: var(--weiss); color: var(--tinte); }
+input[type=password], textarea { font: inherit; width: 100%; min-height: 46px; padding: 8px 12px; border: 2px solid var(--linie); border-radius: 10px; background: var(--weiss); color: var(--tinte); }
+textarea { font-size: 1.05rem; line-height: 1.4; resize: vertical; min-height: 7.2em; }
 
 /* Meldungen */
 .meldung { color: var(--rot); font-weight: 600; }
@@ -81,5 +83,13 @@ input[type=password] { font: inherit; width: 100%; min-height: 46px; padding: 8p
 .regler::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--weiss); box-shadow: 0 1px 2px rgba(0, 0, 0, .25); }
 .schalter input:checked + .regler { background: var(--gruen); }
 .schalter input:checked + .regler::after { left: 25px; }
+
+/* Freie Kachel: Schalter, darunter das Textfeld */
+.liste li.frei { display: grid; gap: 6px; padding: 8px; border: 2px dashed var(--linie); border-radius: 14px; }
+.liste li.frei .schalter { border-style: solid; }
+.liste li.frei .feld { margin: 2px 4px 4px; }
+.vorschau.frei-symbol { background: var(--sand); color: var(--gruen-tief); border: 2px solid var(--gold); }
+.zaehler { font-size: .85rem; color: var(--grau); justify-self: end; }
+.zaehler.zu-viel { color: var(--rot); font-weight: 600; }
 
 .leiste { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--linie); display: grid; gap: 10px; }

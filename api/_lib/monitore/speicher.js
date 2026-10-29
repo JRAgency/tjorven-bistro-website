@@ -2,7 +2,9 @@
 //
 // Eigene, klar getrennte Datei im privaten Vercel-Blob-Store des Projekts:
 //
-//   monitore/specials.json   { format: 1, aktiv: { <id>: true|false }, geaendert: ISO-Zeit }
+//   monitore/specials.json   { format: 2, aktiv: { <id>: true|false }, frei: { <id>: Text }, geaendert: ISO-Zeit }
+//
+// (format 1 hatte noch kein „frei“ – wird weiter gelesen, die freien Kacheln sind dann leer und aus.)
 //
 // Sonst nichts – kein Zugriff auf tagesabschluss/… und keinerlei Verbindung zu den Daten des
 // Abholmonitors (der liegt in Firebase und wird hier nie angesprochen).

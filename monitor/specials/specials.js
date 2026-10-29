@@ -1,6 +1,7 @@
 // Monitor 4: aktive Angebote laden und alle gleichzeitig zeigen.
 // Fragt einmal pro Minute nach (Antwort kommt meist aus dem Vercel-CDN) und baut die Seite nur
 // neu, wenn sich die Auswahl geändert hat. Bei einem Fehler bleibt der letzte Stand stehen.
+// Alle Texte (auch die frei eingegebenen) werden nur als reiner Text gesetzt (textContent).
 
 const API = '/api/monitore/specials/';
 const angebote = document.getElementById('angebote');
@@ -15,51 +16,129 @@ function el(tag, klasse, text) {
   return e;
 }
 const eigenesBild = s => typeof s === 'string' && s.startsWith('/') && !s.startsWith('//');
+const text = s => (typeof s === 'string' ? s : '');
 
-function karte(a) {
-  const k = el('article', 'angebot art-' + (a.art === 'event' ? 'event' : 'produkt') + (eigenesBild(a.bild) ? ' mit-bild' : ' ohne-bild'));
-  k.dataset.id = a.id;
-  if (eigenesBild(a.bild)) {
-    const bild = el('div', 'bild');
-    const img = el('img');
-    img.src = a.bild;
-    img.alt = a.titel;
-    if (a.pos) img.style.objectPosition = a.pos;
-    if (typeof a.zoom === 'number' && a.zoom > 1 && a.zoom <= 4) img.style.height = a.zoom * 100 + '%';   // nur oberer Bildteil
-    bild.append(img);
-    k.append(bild);
-  }
-  const text = el('div', 'text');
-  text.append(el('h2', '', a.titel));
-  if (a.unter) text.append(el('p', 'unter', a.unter));
+function qrBild(qr) {
+  const img = el('img');
+  img.src = qr.bild;
+  img.alt = 'QR-Code: ' + text(qr.text);
+  return img;
+}
+
+/** Kachel mit Foto: Foto füllt die Kachel, Name (+ Preis) im grünen Schild im Bild */
+function fotoKachel(a, k) {
+  const img = el('img', 'kachel-foto');
+  img.src = a.bild;
+  img.alt = text(a.titel);
+  if (a.pos) img.style.objectPosition = a.pos;
+  if (typeof a.zoom === 'number' && a.zoom > 1 && a.zoom <= 4) img.style.height = a.zoom * 100 + '%';   // nur oberer Bildteil
+  k.append(img);
+
+  const schild = el('div', 'schild');
+  const zeile = el('div', 'titelzeile');
+  zeile.append(el('h2', 'k-titel', text(a.titel)));
+  if (a.preis) zeile.append(el('span', 'k-preis', text(a.preis)));
+  schild.append(zeile);
+  if (a.unter) schild.append(el('p', 'unter', text(a.unter)));
   if (Array.isArray(a.punkte) && a.punkte.length) {
     const ul = el('ul', 'punkte');
-    for (const p of a.punkte) ul.append(el('li', '', p));
-    text.append(ul);
+    for (const p of a.punkte) ul.append(el('li', '', text(p)));
+    schild.append(ul);
   }
   if (a.qr && eigenesBild(a.qr.bild)) {
-    const qr = el('div', 'qr');
-    const img = el('img');
-    img.src = a.qr.bild;
-    img.alt = 'QR-Code: ' + a.qr.text;
-    qr.append(img, el('span', 'qr-text', a.qr.text));
-    k.append(qr);
+    const qz = el('div', 'qr-zeile');   // nur bei einer einzigen, großen Kachel: QR-Code mit Adresse im Schild
+    qz.append(qrBild(a.qr), el('span', 'qr-text', text(a.qr.text)));
+    schild.append(qz);
+    const badge = el('div', 'qr');      // sonst: weißes Feld oben rechts im Foto
+    badge.append(qrBild(a.qr));
+    k.append(badge);
   }
-  k.append(text);
+  k.append(schild);
+}
+
+/** Kachel nur mit Text: Text so groß wie möglich (siehe einpassen) */
+function textKachel(a, k) {
+  const f = el('div', 'textflaeche');
+  if (a.art === 'frei') {
+    for (const z of a.zeilen) f.append(z ? el('p', 'frei-zeile', text(z)) : el('div', 'frei-luecke'));
+  } else {
+    f.append(el('h2', 'k-titel', text(a.titel)));
+    if (a.preis) f.append(el('p', 'k-preis', text(a.preis)));
+    if (a.unter) f.append(el('p', 'unter', text(a.unter)));
+  }
+  k.append(f);
+}
+
+function kachel(a) {
+  const art = a.art === 'event' ? 'event' : a.art === 'frei' ? 'frei' : 'produkt';
+  const mitBild = art !== 'frei' && eigenesBild(a.bild);
+  const k = el('article', `kachel art-${art} ${mitBild ? 'mit-bild' : 'ohne-bild'}`);
+  k.dataset.id = text(a.id);
+  if (mitBild) fotoKachel(a, k); else textKachel(a, k);
   return k;
 }
 
-// 1, 2, 3, 4 → eigene Aufteilung; 5–6 → 3 × 2; ab 7 → 3 × 3
-const aufteilung = n => (n <= 4 ? n : n <= 6 ? 6 : 9);
+// Raster nach Anzahl: [Spalten, Zeilen]. Mehr als 15 kommt mit dem heutigen Katalog (14) nicht vor,
+// würde aber auch gezeigt (6 Spalten) – es wird nie etwas weggelassen.
+function raster(n) {
+  if (n <= 3) return [Math.max(n, 1), 1];
+  if (n === 4) return [2, 2];
+  if (n <= 6) return [3, 2];
+  if (n <= 8) return [4, 2];
+  if (n === 9) return [3, 3];
+  if (n <= 12) return [4, 3];
+  if (n <= 15) return [5, 3];
+  return [6, Math.ceil(n / 6)];
+}
+
+// Schrift einer Fläche so groß wie möglich wählen, ohne dass etwas übersteht (binäre Suche).
+function passt(e) {
+  if (e.scrollHeight > e.clientHeight + 1 || e.scrollWidth > e.clientWidth + 1) return false;
+  for (const c of e.children) if (c.scrollWidth > c.clientWidth + 1) return false;
+  return true;
+}
+function groesstePassende(e, min, max) {
+  let lo = min, hi = max, beste = min;
+  while (hi - lo > 0.5) {
+    const mitte = (lo + hi) / 2;
+    e.style.fontSize = mitte + 'px';
+    if (passt(e)) { beste = mitte; lo = mitte; } else hi = mitte;
+  }
+  e.style.fontSize = Math.floor(beste) + 'px';
+  return passt(e);
+}
+
+function einpassen() {
+  const stil = getComputedStyle(angebote);
+  const maxText = parseFloat(stil.getPropertyValue('--text-max')) || 120;
+  for (const f of angebote.querySelectorAll('.textflaeche')) {
+    f.classList.remove('umbrechen');
+    if (!groesstePassende(f, 16, maxText)) { f.classList.add('umbrechen'); groesstePassende(f, 16, maxText); }   // sehr lange Wörter notfalls trennen
+  }
+  // Schilder auf Fotos: Größe aus dem Raster (--t), nur verkleinern, falls es nicht passt
+  const basis = parseFloat(stil.getPropertyValue('--t')) || 44;
+  for (const s of angebote.querySelectorAll('.schild')) {
+    s.style.fontSize = basis + 'px';
+    if (!passt(s)) groesstePassende(s, basis * 0.5, basis);
+  }
+}
 
 function zeigen(liste) {
   const leer = liste.length === 0;
   willkommen.hidden = !leer;
   angebote.hidden = leer;
   titel.textContent = leer ? 'Herzlich Willkommen im Tjorven Bistro' : 'Heute bei uns';
-  angebote.className = 'angebote n-' + aufteilung(liste.length);
-  angebote.replaceChildren(...liste.slice(0, 9).map(karte));
+  const [spalten, zeilen] = raster(liste.length);
+  angebote.className = 'angebote r-' + spalten + 'x' + zeilen;
+  angebote.style.setProperty('--spuren', String(spalten * 2));   // zwei halbe Spalten je Kachel
+  angebote.style.setProperty('--zeilen', String(zeilen));
+  const karten = liste.map(kachel);
+  // unvollständige letzte Reihe mittig setzen (jede Kachel belegt zwei halbe Spalten)
+  const rest = liste.length - spalten * (zeilen - 1);
+  if (zeilen > 1 && rest > 0 && rest < spalten) karten[spalten * (zeilen - 1)].style.gridColumn = `${spalten - rest + 1} / span 2`;
+  angebote.replaceChildren(...karten);
   document.documentElement.dataset.anzahl = String(liste.length);
+  einpassen();
 }
 
 async function laden() {
@@ -76,6 +155,12 @@ async function laden() {
   } catch {
     if (stand === null && willkommen.hidden && !angebote.childElementCount) zeigen([]);   // noch nie geladen
   }
+}
+
+// Schriftgrößen erst endgültig, wenn die Schrift geladen ist
+if (document.fonts) {
+  document.fonts.ready.then(einpassen);
+  document.fonts.addEventListener('loadingdone', einpassen);
 }
 
 laden();
