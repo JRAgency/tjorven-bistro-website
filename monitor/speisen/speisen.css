@@ -1,0 +1,20 @@
+/* Monitor 2 – Speisekarte: links eine ruhige Bildkomposition, rechts die Karte. */
+.speisen .inhalt { flex: 1; min-height: 0; display: flex; gap: 56px; }
+
+/* Bildkomposition: mit Lasagne 2 × 2, ohne Lasagne Bowl groß oben und zwei Bilder darunter */
+.speisen .bilder { flex: none; width: 740px; display: grid; gap: 20px; grid-template-columns: 1fr 1fr; grid-template-rows: 1.2fr 1fr; }
+.speisen .bilder .bild-bowl { grid-column: 1 / span 2; grid-row: 1; }
+.speisen .bilder .bild-wrap { grid-column: 1; grid-row: 2; }
+.speisen .bilder .bild-focaccia { grid-column: 2; grid-row: 2; }
+.speisen .bilder.mit-lasagne { grid-template-rows: 1fr 1fr; }
+.speisen .bilder.mit-lasagne .bild-bowl { grid-column: 1; grid-row: 1; }
+.speisen .bilder.mit-lasagne .bild-lasagne { grid-column: 2; grid-row: 1; }
+.bild-bowl { object-position: 50% 60%; }
+.bild-lasagne { object-position: 40% 55%; }
+.bild-wrap { object-position: 50% 62%; }
+.bild-focaccia { object-position: 50% 62%; }
+
+/* Karte */
+.speisen .karte { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 40px; }
+.speisen .gruppe .zeile { font-size: 44px; line-height: 1.32; padding: 5px 0; }
+.speisen .gruppe h2 { font-size: 40px; margin-bottom: 6px; }

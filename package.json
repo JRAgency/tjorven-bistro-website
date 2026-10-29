@@ -1,13 +1,14 @@
 {
   "name": "tjorven-bistro-website",
   "private": true,
-  "description": "Statische Website des Tjorven Bistro. Nur der interne Tagesabschluss (api/tagesabschluss) nutzt Vercel-Funktionen.",
+  "description": "Statische Website des Tjorven Bistro. Vercel-Funktionen nutzen nur der interne Tagesabschluss (api/tagesabschluss) und die Verwaltung von Monitor 4 (api/monitore).",
   "type": "module",
   "engines": {
     "node": "24.x"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.133.0",
-    "@vercel/blob": "2.8.0"
+    "@vercel/blob": "2.8.0",
+    "@vercel/functions": "3.9.11"
   }
 }

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<!-- Monitor 2 – Speisekarte (Display-Seite für 32-Zoll-Full-HD, 1920 × 1080).
+     Statisch: keine Animation, kein Bildwechsel. Einzige Logik: Lasagne (Menüeintrag + Foto) nur an
+     Tagen, an denen sie angeboten wird – entschieden zentral in /monitor/lasagne.js. -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Speisekarte – Tjorven Bistro</title>
+<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/fontin-sans">
+<link rel="stylesheet" href="/monitor/monitor.css">
+<link rel="stylesheet" href="/monitor/speisen/speisen.css">
+<script src="/monitor/buehne.js"></script>
+<script type="module" src="/monitor/speisen/speisen.js"></script>
+</head>
+<body>
+<main class="buehne speisen">
+  <header class="kopf">
+    <h1>Speisekarte</h1>
+    <img class="logo" src="/images/tjorven-logo-gruen.png" alt="Tjorven Bistro">
+  </header>
+  <div class="trenner"></div>
+
+  <div class="inhalt">
+    <div class="bilder" id="bilder">
+      <img class="foto bild-bowl" src="/images/abholmonitor/13-saisonale-bowl-quer.jpeg" alt="Tjorvens saisonale Bowl">
+      <img class="foto bild-lasagne" data-nur-mit-lasagne hidden src="/images/abholmonitor/35-lasagne-neu-quer.jpeg" alt="Hausgemachte Lasagne mit Beilagensalat">
+      <img class="foto bild-wrap" src="/images/abholmonitor/09-wrap-gemuese-quer.jpeg" alt="Getoasteter Wrap">
+      <img class="foto bild-focaccia" src="/images/abholmonitor/12-focaccia-quer.jpeg" alt="Saisonales Focaccia">
+    </div>
+
+    <div class="karte">
+      <section class="gruppe">
+        <h2>Herzhaft</h2>
+        <div class="zeile"><span class="name">Tjorvens saisonale Bowl</span><span class="fuell"></span><span class="preis" data-artikel="Tjorvens saisonale Bowl">13.50</span></div>
+        <div class="zeile" data-nur-mit-lasagne hidden><span class="name">Hausgemachte Lasagne &amp; Beilagensalat</span><span class="fuell"></span><span class="preis" data-artikel="Hausgemachte Lasagne &amp; Beilagensalat">12.50</span></div>
+        <div class="zeile"><span class="name">Knusprige Pommes</span><span class="fuell"></span><span class="preis" data-artikel="Knusprige Pommes">4.50</span></div>
+        <div class="zeile"><span class="name">Loaded Pommes</span><span class="fuell"></span><span class="preis" data-artikel="Loaded Pommes">9.00</span></div>
+        <div class="zeile"><span class="name">Saisonales Focaccia</span><span class="fuell"></span><span class="preis" data-artikel="Saisonales Focaccia">5.50</span></div>
+        <div class="zeile"><span class="name">Bunter Blattsalat</span><span class="fuell"></span><span class="preis" data-artikel="Bunter Blattsalat">4.50</span></div>
+        <div class="zeile"><span class="name">Getoasteter Wrap</span><span class="fuell"></span><span class="preis" data-artikel="Getoasteter Wrap">8.00</span></div>
+      </section>
+      <section class="gruppe">
+        <h2>Süß</h2>
+        <div class="zeile"><span class="name">Hausgemachte Belgische Waffel</span><span class="fuell"></span><span class="preis" data-artikel="Hausgemachte Belgische Waffel">4.50</span></div>
+        <div class="zeile"><span class="name">Homemade Cookies</span><span class="fuell"></span><span class="preis" data-artikel="Homemade Cookies">2.00</span></div>
+        <div class="zeile"><span class="name">Eiscreme</span><span class="fuell"></span><span class="preis" data-artikel="Eiscreme">2.20 | 3.00</span></div>
+      </section>
+    </div>
+  </div>
+</main>
+</body>
+</html>

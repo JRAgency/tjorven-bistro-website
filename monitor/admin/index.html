@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<!--
+  Verwaltung Monitor 4 „Heute bei uns“ – interner Bereich (nur auf Vercel lauffähig, braucht /api/monitore/*).
+  Anmeldung mit dem Passwort des Tagesabschlusses. Diese Seite enthält keine Daten: Die Auswahl
+  wird erst nach der Anmeldung vom Server geladen und nur dort gespeichert.
+-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Monitor 4 verwalten – Tjorven Bistro (intern)</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/monitor/admin/admin.css">
+<script src="/monitor/admin/admin.js" defer></script>
+</head>
+<body>
+
+<header class="kopf">
+  <div class="kopf-innen">
+    <img src="/images/tjorven-logo-gruen.png" alt="" class="kopf-logo" width="44" height="44">
+    <div class="kopf-titel">Monitor 4 <span class="etikett">intern</span></div>
+    <button type="button" id="abmelden" class="knopf leise klein" hidden>Abmelden</button>
+  </div>
+</header>
+
+<main class="inhalt">
+
+  <section id="anmeldung" class="karte schmal" hidden>
+    <h1>Anmelden</h1>
+    <p class="leise">Verwaltung für Monitor 4 „Heute bei uns“. Passwort wie beim Tagesabschluss.</p>
+    <form id="anmeldeForm" autocomplete="on">
+      <label class="feld">
+        <span class="feld-name">Passwort</span>
+        <input type="password" id="passwort" name="passwort" autocomplete="current-password" required>
+      </label>
+      <p class="meldung" id="anmeldeMeldung" role="alert"></p>
+      <button type="submit" class="knopf haupt breit">Anmelden</button>
+    </form>
+  </section>
+
+  <p class="meldung zentriert" id="startMeldung" role="alert"></p>
+
+  <section id="verwaltung" class="karte" hidden>
+    <h1>Heute bei uns</h1>
+    <p class="leise">Eingeschaltete Angebote zeigt Monitor 4 alle gleichzeitig – ohne Wechsel. Nach „Speichern“ übernimmt der Monitor die Auswahl innerhalb einer Minute.</p>
+
+    <h2>Speisen &amp; Kuchen</h2>
+    <ul class="liste" id="listeProdukt"></ul>
+    <h2>Feiern</h2>
+    <ul class="liste" id="listeEvent"></ul>
+
+    <div class="leiste">
+      <p class="status" id="status" aria-live="polite"></p>
+      <p class="meldung" id="meldung" role="alert"></p>
+      <div class="knopfreihe">
+        <button type="button" id="speichern" class="knopf haupt" disabled>Speichern</button>
+        <a class="knopf" href="/monitor/specials/" target="_blank" rel="noopener">Monitor 4 öffnen</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

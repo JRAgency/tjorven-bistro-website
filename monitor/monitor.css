@@ -1,0 +1,66 @@
+/* Tjorven Bistro – Display-Monitore 2–4 (Speisen, Getränke, Specials).
+   Eigenständig: nutzt weder css/style.css der Website noch Dateien des Abholmonitors.
+   Gestaltet für 32-Zoll-Full-HD (1920 × 1080). Die „Bühne“ hat immer genau 1920 × 1080 px und wird
+   auf anderen Bildschirmgrößen nur proportional verkleinert (buehne.js) – nie gescrollt, nie abgeschnitten.
+   Keine Animationen, keine Übergänge. */
+
+/* Schrift: Fontin Sans wie Website und Abholmonitor (Link im HTML). Ist der Schriftdienst nicht
+   erreichbar, greift die lokale Nunito der Website. */
+@font-face { font-family: 'Nunito'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/nunito-400-normal-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Nunito'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/nunito-600-normal-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Nunito'; font-style: italic; font-weight: 400; font-display: swap; src: url('/fonts/nunito-400-italic-latin.woff2') format('woff2'); }
+
+:root {
+  /* Markenfarben (wie Website / Abholmonitor) */
+  --gruen: #186118;
+  --gruen-tief: #124a12;
+  --gruen-hell: #eaf3eb;
+  --sand: #d2b080;
+  --sand-hell: #f5edd8;
+  --creme: #faf6ee;
+  --gold: #e9ba5f;
+  --bordeaux: #af2f3d;
+  --tinte: #1a1816;
+  --grau: #5e564c;
+  --linie: #e4d9c6;
+  --schrift: 'Fontin Sans', 'Nunito', system-ui, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; animation: none !important; transition: none !important; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1816; }
+body { font-family: var(--schrift); color: var(--tinte); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+/* Bühne 1920 × 1080, zentriert, per --skala eingepasst */
+.buehne {
+  position: absolute; left: 50%; top: 50%;
+  width: 1920px; height: 1080px;
+  transform: translate(-50%, -50%) scale(var(--skala, 1));
+  transform-origin: 50% 50%;
+  background: var(--creme);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  padding: 44px 64px 52px;
+}
+
+/* Kopf: Titel links, Logo rechts oben */
+.kopf { display: flex; align-items: center; justify-content: space-between; height: 118px; flex: none; }
+.kopf h1 { margin: 0; font-size: 78px; line-height: 1; font-weight: 600; color: var(--gruen-tief); letter-spacing: -0.5px; }
+.kopf .logo { height: 112px; width: auto; display: block; }
+.trenner { height: 4px; background: var(--gold); border-radius: 2px; margin: 18px 0 30px; flex: none; }
+
+/* Bilder */
+.foto { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 18px; background: var(--sand-hell); }
+
+/* Abschnittsüberschriften und Produktzeilen */
+.gruppe h2 {
+  margin: 0 0 10px; font-size: 40px; line-height: 1.1; font-weight: 600; color: var(--gruen);
+  text-transform: uppercase; letter-spacing: 3px;
+  display: flex; align-items: center; gap: 18px;
+}
+.gruppe h2::after { content: ''; flex: 1; height: 3px; background: var(--linie); border-radius: 2px; }
+.zeile { display: flex; align-items: baseline; gap: 16px; }
+.zeile .name { white-space: nowrap; }
+.zeile .fuell { flex: 1; border-bottom: 3px dotted #cdbfa6; transform: translateY(-9px); min-width: 24px; }
+.zeile .preis { white-space: nowrap; font-weight: 600; color: var(--gruen-tief); font-variant-numeric: tabular-nums; }
+.zeile .menge { font-weight: 400; color: var(--grau); }

@@ -1,0 +1,17 @@
+/* Monitor 3 – Getränkekarte: schmales Bildband oben, darunter drei gleich breite Spalten. */
+.getraenke .bildband { flex: none; height: 180px; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 180px; gap: 20px; margin-bottom: 30px; }
+.getraenke .bildband .foto { min-height: 0; }
+.bild-maschine { object-position: 50% 40%; }
+.bild-cappuccino { object-position: 50% 74%; }
+.bild-eistee { object-position: 50% 52%; }
+
+.getraenke .spalten { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 56px; align-items: start; }
+.getraenke .spalte { display: flex; flex-direction: column; gap: 22px; }
+.getraenke .gruppe h2 { font-size: 34px; letter-spacing: 2.5px; margin-bottom: 4px; }
+.getraenke .gruppe .zeile { font-size: 38px; line-height: 1.24; padding: 3px 0; }
+.getraenke .zeile .menge { font-size: 32px; }
+
+/* Wasser: Name in einer Zeile, darunter beide Größen mit Preis */
+.getraenke .zeile.groessen { justify-content: flex-start; gap: 0; padding-top: 0; }
+.getraenke .zeile.groessen .menge { margin-right: 14px; }
+.getraenke .zeile.groessen .preis { margin-right: 46px; }

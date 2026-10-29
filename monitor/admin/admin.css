@@ -1,0 +1,85 @@
+/* Verwaltung Monitor 4 – intern. Gestaltung wie der Tagesabschluss (Nunito, Grün/Sand), fürs Handy gedacht. */
+@font-face { font-family: 'Nunito'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/nunito-400-normal-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Nunito'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/nunito-600-normal-latin.woff2') format('woff2'); }
+
+:root {
+  --gruen: #186118;
+  --gruen-tief: #124a12;
+  --gruen-hell: #eaf3eb;
+  --gruen-rand: #d4e8d6;
+  --sand: #f5edd8;
+  --gold: #e9ba5f;
+  --rot: #b8173a;
+  --orange: #9a5b00;
+  --tinte: #1a1816;
+  --grau: #726859;
+  --linie: #e0d8cd;
+  --hintergrund: #f7f4ef;
+  --weiss: #fff;
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; font-family: 'Nunito', system-ui, sans-serif; font-size: 16px; line-height: 1.45; color: var(--tinte); background: var(--hintergrund); }
+[hidden] { display: none !important; }
+h1, h2 { margin: 0 0 .4rem; font-weight: 600; color: var(--gruen-tief); }
+h1 { font-size: 1.5rem; }
+h2 { font-size: 1.1rem; margin-top: 1.2rem; }
+p { margin: .3rem 0; }
+.leise { color: var(--grau); }
+.zentriert { text-align: center; }
+
+/* Kopf */
+.kopf { background: var(--weiss); border-bottom: 3px solid var(--gruen); position: sticky; top: 0; z-index: 5; }
+.kopf-innen { max-width: 720px; margin: 0 auto; padding: 8px 16px; display: flex; align-items: center; gap: 12px; }
+.kopf-logo { width: 44px; height: 44px; }
+.kopf-titel { font-weight: 600; font-size: 1.15rem; color: var(--gruen-tief); flex: 1; }
+.etikett { font-size: .75rem; font-weight: 600; color: var(--weiss); background: var(--gruen); border-radius: 99px; padding: 2px 8px; vertical-align: middle; }
+
+/* Inhalt */
+.inhalt { max-width: 720px; margin: 0 auto; padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.karte { background: var(--weiss); border-radius: var(--radius); padding: 18px; box-shadow: 0 1px 3px rgba(0, 0, 0, .06); border: 1px solid var(--linie); }
+.karte.schmal { max-width: 420px; width: 100%; margin: 24px auto 0; }
+
+/* Knöpfe */
+.knopfreihe { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.knopf { font: inherit; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; padding: 0 18px; border-radius: 10px; border: 2px solid var(--gruen); background: var(--weiss); color: var(--gruen-tief); cursor: pointer; text-decoration: none; }
+.knopf:hover { background: var(--gruen-hell); }
+.knopf:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.knopf.haupt { background: var(--gruen); color: var(--weiss); }
+.knopf.haupt:hover { background: var(--gruen-tief); }
+.knopf.leise { border-color: var(--linie); color: var(--grau); }
+.knopf.klein { min-height: 38px; padding: 0 12px; font-size: .9rem; }
+.knopf.breit { width: 100%; }
+.knopf[disabled] { opacity: .5; cursor: default; }
+
+/* Felder */
+.feld { display: grid; gap: 4px; margin: 12px 0; }
+.feld-name { font-weight: 600; font-size: .95rem; }
+input[type=password] { font: inherit; width: 100%; min-height: 46px; padding: 8px 12px; border: 2px solid var(--linie); border-radius: 10px; background: var(--weiss); color: var(--tinte); }
+
+/* Meldungen */
+.meldung { color: var(--rot); font-weight: 600; }
+.meldung.gut { color: var(--gruen-tief); }
+.meldung:empty { display: none; }
+.status { color: var(--grau); }
+.status.offen { color: var(--orange); font-weight: 600; }
+
+/* Liste mit Schaltern: ganze Zeile antippbar */
+.liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.schalter { display: flex; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; border: 2px solid var(--linie); border-radius: 12px; cursor: pointer; min-height: 64px; position: relative; }
+.schalter:has(input:checked) { border-color: var(--gruen-rand); background: var(--gruen-hell); }
+.schalter:has(input:focus-visible) { outline: 3px solid var(--gold); outline-offset: 2px; }
+.vorschau { width: 64px; height: 48px; border-radius: 8px; object-fit: cover; flex: none; background: var(--sand); }
+.vorschau.ohne { display: flex; align-items: center; justify-content: center; background: var(--gruen-tief); color: var(--weiss); font-weight: 600; font-size: 1.3rem; }
+.name { flex: 1; min-width: 0; display: grid; }
+.titel { font-weight: 600; font-size: 1.05rem; }
+.art { font-size: .85rem; color: var(--grau); }
+.schalter input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.regler { flex: none; width: 52px; height: 30px; border-radius: 99px; background: #cfc6b8; position: relative; }
+.regler::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--weiss); box-shadow: 0 1px 2px rgba(0, 0, 0, .25); }
+.schalter input:checked + .regler { background: var(--gruen); }
+.schalter input:checked + .regler::after { left: 25px; }
+
+.leiste { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--linie); display: grid; gap: 10px; }
