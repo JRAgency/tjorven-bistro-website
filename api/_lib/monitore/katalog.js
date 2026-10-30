@@ -5,7 +5,8 @@
 // wiederverwenden) und neu deployen. In der Verwaltung erscheint es sofort, aktiv ist es erst
 // nach dem Einschalten (oder bei standard: true, solange noch nie gespeichert wurde).
 //
-//   art    'produkt' (Speise/Getränk), 'event' (Feier mit QR-Code) oder 'frei' (Text aus der Verwaltung)
+//   art    'produkt' (Speise/Getränk), 'event' (Feier mit QR-Code) oder 'frei' (Text, Farbe und optional
+//          ein hochgeladenes Bild aus der Verwaltung)
 //   bild   vorhandenes Foto (keine KI-Bilder); ohne Bild zeigt der Monitor eine Textkarte
 //   pos    Bildausschnitt (CSS object-position)
 //   zoom   nur den oberen Teil des Bildes zeigen (Faktor; Kindergeburtstag: Deckblatt ohne dessen Schrift)
@@ -34,7 +35,7 @@ export const KATALOG = [
   { id: 'weihnachtswaffel', titel: 'Weihnachtswaffel', art: 'produkt', bild: BILD + '18-waffel-puderzucker-quer.jpeg', pos: '40% 55%', standard: false },
   { id: 'kuerbissuppe', titel: 'Kürbissuppe', art: 'produkt', standard: false },
   { id: 'lasagne', titel: 'Lasagne', art: 'produkt', bild: BILD + '35-lasagne-neu-quer.jpeg', pos: '45% 55%', preis: '12.5', standard: false },
-  { id: 'gemuese-wrap', titel: 'Gemüse Wrap', art: 'produkt', bild: BILD + '09-wrap-gemuese-quer.jpeg', pos: '50% 62%', preis: '6.0', standard: false },
+  { id: 'gemuese-wrap', titel: 'Gemüse Wrap', art: 'produkt', bild: BILD + '09-wrap-gemuese-quer.jpeg', pos: '50% 62%', preis: '8.0', standard: false },
   { id: 'brezel', titel: 'Brezel | Butterbrezel', art: 'produkt', preis: '2.0 | 3.0', standard: false },
   { id: 'saisonangebot', titel: 'Saisonangebot', art: 'produkt', unter: 'Fragt uns an der Theke', standard: false },
   { id: 'kindergeburtstag', titel: 'Kindergeburtstage', art: 'event', bild: '/images/kindergeburtstag-broschuere/seite-1-2400.webp', pos: '45% 0%', zoom: 2.3,
@@ -58,6 +59,12 @@ export const FREI_IDS = KATALOG.filter(k => k.art === 'frei').map(k => k.id);
 /** Grenzen für den Text einer freien Kachel (Verwaltung und Server prüfen dasselbe) */
 export const FREI_MAX_ZEICHEN = 160;
 export const FREI_MAX_ZEILEN = 6;
+/** Hintergrund einer freien Kachel: Bistro-Grün (Standard) oder Markenrot */
+export const FREI_FARBEN = ['gruen', 'rot'];
+/** hochgeladenes Bild einer freien Kachel: SHA-256 des Inhalts + Endung (liegt privat unter monitore/bilder/) */
+export const BILD_MUSTER = /^[0-9a-f]{64}\.(jpg|png|webp)$/;
+/** öffentliche Adresse eines hochgeladenen Bildes (ausgeliefert von /api/monitore/specials/) */
+export const bildAdresse = id => '/api/monitore/specials/?bild=' + id;
 
 /**
  * Text einer freien Kachel vereinheitlichen: Zeilenumbrüche, keine Steuer- oder unsichtbaren
@@ -86,18 +93,33 @@ export function zustand(gespeichert) {
   return KATALOG.map(k => ({ id: k.id, aktiv: typeof aktiv[k.id] === 'boolean' ? aktiv[k.id] : k.standard }));
 }
 
-/** gespeicherte Texte der freien Kacheln (beim Lesen erneut bereinigt; fehlend/ungültig = leer) */
-export function freieTexte(gespeichert) {
+/**
+ * gespeicherte freie Kacheln → { id: { text, farbe, bild } } (beim Lesen erneut geprüft; fehlend/ungültig =
+ * leer, grün, ohne Bild). Liest auch format 2, in dem nur der Text als Zeichenkette stand.
+ */
+export function freieKacheln(gespeichert) {
   const frei = (gespeichert && gespeichert.frei && typeof gespeichert.frei === 'object') ? gespeichert.frei : {};
-  return Object.fromEntries(FREI_IDS.map(id => [id, bereinigeFreitext(frei[id]).text || '']));
+  return Object.fromEntries(FREI_IDS.map(id => {
+    const k = frei[id];
+    const roh = typeof k === 'string' ? { text: k } : (k && typeof k === 'object' ? k : {});
+    return [id, {
+      text: bereinigeFreitext(roh.text).text || '',
+      farbe: FREI_FARBEN.includes(roh.farbe) ? roh.farbe : 'gruen',
+      bild: typeof roh.bild === 'string' && BILD_MUSTER.test(roh.bild) ? roh.bild : null,
+    }];
+  }));
 }
 
 /** nur die Anzeigedaten der aktiven Angebote (für den öffentlichen Monitor) */
 export function anzeige(gespeichert) {
   const an = new Set(zustand(gespeichert).filter(z => z.aktiv).map(z => z.id));
-  const texte = freieTexte(gespeichert);
+  const frei = freieKacheln(gespeichert);
   return KATALOG.filter(k => an.has(k.id)).flatMap(({ standard, qr, titel, ...k }) => {
-    if (k.art === 'frei') return texte[k.id] ? [{ id: k.id, art: 'frei', zeilen: texte[k.id].split('\n') }] : [];   // leer: Verwaltung lässt das nicht zu
+    if (k.art === 'frei') {
+      const f = frei[k.id];
+      if (!f.text && !f.bild) return [];   // leer: Verwaltung lässt das nicht zu
+      return [{ id: k.id, art: 'frei', zeilen: f.text ? f.text.split('\n') : [], farbe: f.farbe, ...(f.bild ? { bild: bildAdresse(f.bild) } : {}) }];
+    }
     return [qr ? { ...k, titel, qr: QRS[qr] } : { ...k, titel }];
   });
 }

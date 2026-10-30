@@ -2,12 +2,17 @@
 // Fragt einmal pro Minute nach (Antwort kommt meist aus dem Vercel-CDN) und baut die Seite nur
 // neu, wenn sich die Auswahl geändert hat. Bei einem Fehler bleibt der letzte Stand stehen.
 // Alle Texte (auch die frei eingegebenen) werden nur als reiner Text gesetzt (textContent).
+//
+// Sonderfall GENAU 4 Angebote: zwei Spalten – links eine ruhige Bildfolge der vier Angebote (alle 7 s
+// langsam überblenden, die einzige Bewegung auf dieser Seite), rechts dieselben vier als feste Liste mit Preis.
 
 const API = '/api/monitore/specials/';
+const DIA_SEKUNDEN = 7;
 const angebote = document.getElementById('angebote');
 const willkommen = document.getElementById('willkommen');
 const titel = document.getElementById('titel');
 let stand = null;
+let diaTimer = null;
 
 function el(tag, klasse, text) {
   const e = document.createElement(tag);
@@ -25,14 +30,25 @@ function qrBild(qr) {
   return img;
 }
 
-/** Kachel mit Foto: Foto füllt die Kachel, Name (+ Preis) im grünen Schild im Bild */
+const zeilenVon = a => (Array.isArray(a.zeilen) ? a.zeilen.map(text) : []);
+
+/** Kachel mit Foto: Foto füllt die Kachel, Name (+ Preis) bzw. der freie Text im grünen (oder roten) Schild im Bild */
 function fotoKachel(a, k) {
   const img = el('img', 'kachel-foto');
   img.src = a.bild;
-  img.alt = text(a.titel);
+  img.alt = a.art === 'frei' ? zeilenVon(a).filter(Boolean).join(' ') : text(a.titel);
   if (a.pos) img.style.objectPosition = a.pos;
   if (typeof a.zoom === 'number' && a.zoom > 1 && a.zoom <= 4) img.style.height = a.zoom * 100 + '%';   // nur oberer Bildteil
   k.append(img);
+
+  if (a.art === 'frei') {   // freie Kachel mit Bild: Text (falls vorhanden) zeilenweise im Schild
+    const zeilen = zeilenVon(a);
+    if (!zeilen.some(Boolean)) return;
+    const schild = el('div', 'schild');
+    for (const z of zeilen) schild.append(z ? el('p', 'frei-zeile', z) : el('div', 'frei-luecke'));
+    k.append(schild);
+    return;
+  }
 
   const schild = el('div', 'schild');
   const zeile = el('div', 'titelzeile');
@@ -60,7 +76,7 @@ function fotoKachel(a, k) {
 function textKachel(a, k) {
   const f = el('div', 'textflaeche');
   if (a.art === 'frei') {
-    for (const z of a.zeilen) f.append(z ? el('p', 'frei-zeile', text(z)) : el('div', 'frei-luecke'));
+    for (const z of zeilenVon(a)) f.append(z ? el('p', 'frei-zeile', z) : el('div', 'frei-luecke'));
   } else {
     f.append(el('h2', 'k-titel', text(a.titel)));
     if (a.preis) f.append(el('p', 'k-preis', text(a.preis)));
@@ -71,8 +87,9 @@ function textKachel(a, k) {
 
 function kachel(a) {
   const art = a.art === 'event' ? 'event' : a.art === 'frei' ? 'frei' : 'produkt';
-  const mitBild = art !== 'frei' && eigenesBild(a.bild);
-  const k = el('article', `kachel art-${art} ${mitBild ? 'mit-bild' : 'ohne-bild'}`);
+  const mitBild = eigenesBild(a.bild);
+  const farbe = art === 'frei' && a.farbe === 'rot' ? ' farbe-rot' : '';
+  const k = el('article', `kachel art-${art} ${mitBild ? 'mit-bild' : 'ohne-bild'}${farbe}`);
   k.dataset.id = text(a.id);
   if (mitBild) fotoKachel(a, k); else textKachel(a, k);
   return k;
@@ -121,6 +138,48 @@ function einpassen() {
     s.style.fontSize = basis + 'px';
     if (!passt(s)) groesstePassende(s, basis * 0.5, basis);
   }
+  // rechte Liste bei genau 4: alle Einträge gleich groß, so groß wie möglich
+  const liste = angebote.querySelector('.vier-liste');
+  if (liste) groesstePassende(liste, 24, parseFloat(stil.getPropertyValue('--liste-max')) || 64);
+}
+
+/** Eintrag der rechten Liste (nur bei genau 4): Name ……… Preis, darunter klein die Zusatzzeile */
+function listenEintrag(a) {
+  let name = text(a.titel), unter = text(a.unter);
+  if (a.art === 'frei') {   // freier Text: erste Zeile als Name, der Rest klein darunter
+    const zeilen = zeilenVon(a).filter(Boolean);
+    if (!zeilen.length) return null;   // nur Bild, kein Text → steht nur in der Bildfolge
+    name = zeilen[0]; unter = zeilen.slice(1).join(' · ');
+  }
+  const e = el('div', 'eintrag');
+  e.dataset.id = text(a.id);
+  const z = el('div', 'zeile');
+  z.append(el('span', 'name', name));
+  if (a.preis) z.append(el('span', 'fuell'), el('span', 'preis', text(a.preis)));
+  e.append(z);
+  if (unter) e.append(el('p', 'unter', unter));
+  return e;
+}
+
+function zeigeVier(liste) {
+  angebote.className = 'angebote vier';
+  angebote.style.removeProperty('--spuren');
+  angebote.style.removeProperty('--zeilen');
+  const dias = el('div', 'vier-dias');
+  const folien = liste.map(a => { const k = kachel(a); k.classList.add('dia'); return k; });
+  folien[0].classList.add('aktiv');
+  dias.append(...folien);
+  const rechts = el('div', 'vier-liste');
+  rechts.append(...liste.map(listenEintrag).filter(Boolean));
+  angebote.replaceChildren(dias, rechts);
+  let i = 0;
+  diaTimer = setInterval(() => {
+    folien[i].classList.remove('aktiv');
+    i = (i + 1) % folien.length;
+    folien[i].classList.add('aktiv');
+    document.documentElement.dataset.dia = folien[i].dataset.id;
+  }, DIA_SEKUNDEN * 1000);
+  document.documentElement.dataset.dia = folien[0].dataset.id;
 }
 
 function zeigen(liste) {
@@ -128,6 +187,10 @@ function zeigen(liste) {
   willkommen.hidden = !leer;
   angebote.hidden = leer;
   titel.textContent = leer ? 'Herzlich Willkommen im Tjorven Bistro' : 'Heute bei uns';
+  clearInterval(diaTimer);
+  diaTimer = null;
+  document.documentElement.dataset.anzahl = String(liste.length);
+  if (liste.length === 4) { zeigeVier(liste); einpassen(); return; }
   const [spalten, zeilen] = raster(liste.length);
   angebote.className = 'angebote r-' + spalten + 'x' + zeilen;
   angebote.style.setProperty('--spuren', String(spalten * 2));   // zwei halbe Spalten je Kachel
@@ -137,7 +200,6 @@ function zeigen(liste) {
   const rest = liste.length - spalten * (zeilen - 1);
   if (zeilen > 1 && rest > 0 && rest < spalten) karten[spalten * (zeilen - 1)].style.gridColumn = `${spalten - rest + 1} / span 2`;
   angebote.replaceChildren(...karten);
-  document.documentElement.dataset.anzahl = String(liste.length);
   einpassen();
 }
 

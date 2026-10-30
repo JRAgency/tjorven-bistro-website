@@ -1,26 +1,24 @@
-/* Monitor 3 – Getränkekarte: drei Spalten mit Trennlinie, oben in jeder Spalte ein Bildfeld.
-   Überschriften klein und fett in der Beerenfarbe der Original-Getränkekarte. */
-.getraenke { --beere: #9b1b4b; }
-.getraenke .spalten { flex: 1; min-height: 0; display: grid; grid-template-columns: 596px 655px 541px; }   /* Inhaltsbreite 560 · 580 · 502 */
-.getraenke .spalte { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: 0 36px; }
-.getraenke .spalte:first-child { padding-left: 0; }
-.getraenke .spalte:last-child { padding-right: 0; }
-.getraenke .spalte + .spalte { border-left: 3px solid var(--linie); }
+/* Monitor 3 – Getränkekarte: links eine ruhige Bildfolge, Mitte „kalt“, rechts „heiß“ (mit Foto oben).
+   Grüne Bistro-Typografie, Überschriften klein und fett wie auf der Original-Karte.
+   Jede Zeile: Produkt, Punktlinie, Menge, Preis. */
+.getraenke .spalten { flex: 1; min-height: 0; display: grid; grid-template-columns: 444px minmax(0, 1fr) 532px; }
+.getraenke .spalte { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.getraenke .spalte.bilder { padding-right: 44px; }
+.getraenke .spalte.gruppe { padding: 0 40px 0 0; }
+.getraenke .spalte.gruppe + .spalte.gruppe { padding: 0 0 0 40px; border-left: 3px solid var(--linie); }
 
-.getraenke .bildfeld { flex: none; height: 162px; margin-bottom: 20px; }
-.getraenke .bildfeld.ohne-foto { display: flex; align-items: center; justify-content: center; border-radius: 18px; background: var(--beere); color: #fff; font-size: 46px; font-weight: 600; }
-.bild-eistee { object-position: 50% 55%; }
-.bild-cappuccino { object-position: 50% 74%; }
+/* Bildfolge: Fotos liegen übereinander, nur das aktive ist sichtbar; einzige erlaubte Bewegung (langsames Überblenden) */
+.getraenke .diashow { position: relative; flex: 1; min-height: 0; border-radius: 18px; overflow: hidden; background: var(--sand-hell); }
+.getraenke .diashow .dia { position: absolute; inset: 0; opacity: 0; transition: opacity 1.5s ease-in-out !important; }
+.getraenke .diashow .dia.aktiv { opacity: 1; }
 
-.getraenke .gruppe h2 { color: var(--beere); font-size: 48px; margin: 0 0 8px; }
-.getraenke .gruppe h3 { margin: 12px 0 0; font-size: 36px; line-height: 1.1; font-weight: 600; color: var(--beere); }
-.getraenke .gruppe h2 + h3 { margin-top: 2px; }
-.getraenke .gruppe .zeile { font-size: 36px; line-height: 1.22; padding: 2px 0; }
-.getraenke .zeile .preis { color: var(--tinte); }
-.getraenke .zeile .menge { font-size: 32px; color: var(--grau); }
+.getraenke .bildfeld { flex: none; height: 232px; margin-bottom: 20px; }
+
+.getraenke .gruppe h2 { font-size: 52px; margin: 0 0 8px; }
+.getraenke .gruppe h3 { margin: 10px 0 0; font-size: 36px; line-height: 1.1; font-weight: 600; color: var(--gruen); }
+.getraenke .gruppe .zeile { font-size: 34px; line-height: 1.2; padding: 1px 0; }
+.getraenke .zeile .menge { font-size: 30px; color: var(--grau); }
 .getraenke .zeile .fuell { transform: translateY(-8px); }
-
-/* Wasser: Name in einer Zeile, darunter beide Größen mit beiden Preisen */
-.getraenke .zeile.groessen { padding-top: 0; }
+.getraenke .abstand { height: 14px; flex: none; }
+.getraenke .leerzeile { height: 34px; flex: none; }
 .getraenke .zusatz { font-size: 28px; line-height: 1.2; color: var(--grau); margin-top: -2px; }
-.getraenke .leerzeile { height: 36px; flex: none; }

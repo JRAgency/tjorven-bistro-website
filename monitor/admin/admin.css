@@ -89,7 +89,32 @@ textarea { font-size: 1.05rem; line-height: 1.4; resize: vertical; min-height: 7
 .liste li.frei .schalter { border-style: solid; }
 .liste li.frei .feld { margin: 2px 4px 4px; }
 .vorschau.frei-symbol { background: var(--sand); color: var(--gruen-tief); border: 2px solid var(--gold); }
+.vorschau.frei-symbol.rot { background: #f6dde2; border-color: #b8173a; color: #8e1430; }
 .zaehler { font-size: .85rem; color: var(--grau); justify-self: end; }
+
+/* Farbe der freien Kachel: zwei große Auswahlfelder */
+.farben { border: 0; margin: 0 4px; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.farben legend { padding: 0; margin-bottom: 6px; }
+.farbe { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 14px 4px 6px; border: 2px solid var(--linie); border-radius: 10px; cursor: pointer; font-weight: 600; }
+.farbe input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.farbe .farbfeld { width: 30px; height: 30px; border-radius: 7px; background: var(--gruen); }
+.farbe-rot .farbfeld { background: #b8173a; }
+.farbe:has(input:checked) { border-color: var(--gruen); background: var(--gruen-hell); }
+.farbe-rot:has(input:checked) { border-color: #b8173a; background: #fbeef0; }
+.farbe:has(input:focus-visible) { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* Foto der freien Kachel */
+.bild-bereich { margin: 4px 4px 2px; display: grid; gap: 6px; }
+.bild-reihe { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.bild-vorschau { width: 120px; height: 90px; object-fit: cover; border-radius: 8px; background: var(--sand); }
+.bild-reihe label.knopf { position: relative; }
+.bild-reihe .datei { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.bild-reihe label.knopf:has(.datei:focus-visible) { outline: 3px solid var(--gold); outline-offset: 2px; }
+.bild-hinweis { font-size: .85rem; margin: 0; }
+.bild-status { font-size: .9rem; margin: 0; color: var(--grau); }
+.bild-status:empty { display: none; }
+.bild-status.gut { color: var(--gruen-tief); font-weight: 600; }
+.bild-status.fehler { color: var(--rot); font-weight: 600; }
 .zaehler.zu-viel { color: var(--rot); font-weight: 600; }
 
 .leiste { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--linie); display: grid; gap: 10px; }

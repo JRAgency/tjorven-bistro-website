@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <!-- Monitor 2 – Speisekarte (Display-Seite für 32-Zoll-Full-HD, 1920 × 1080).
-     Statisch: keine Animation, kein Bildwechsel. Einzige Logik: Lasagne (Menüeintrag + Bildkachel) nur an
+     Statisch: keine Animation, kein Bildwechsel. Logik: Lasagne (Menüeintrag + Bildkachel) nur an
      Tagen, an denen sie angeboten wird – entschieden zentral in /monitor/lasagne.js. -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -23,24 +23,24 @@
   <div class="trenner"></div>
 
   <div class="inhalt">
-    <!-- Bildkacheln: Foto füllt die Kachel, Name und Preis im grünen Schild im Bild.
-         Ohne Lasagne 5 Kacheln (Bowl groß), mit Lasagne 6 Kacheln (2 × 3). -->
+    <!-- Bildkacheln: Foto oben, darunter eine eigene grüne Beschriftungsfläche mit Name und Preis
+         (wie beim Abholmonitor). Ohne Lasagne 5 Kacheln (Bowl groß), mit Lasagne 6 Kacheln (2 × 3). -->
     <div class="kacheln" id="bilder">
-      <figure class="kachel k-bowl"><img class="foto" src="/images/abholmonitor/13-saisonale-bowl-quer.jpeg" alt="Tjorvens saisonale Bowl"><figcaption class="schild"><span class="k-name">Bowl</span><span class="k-preis" data-artikel="Bowl">13.5</span></figcaption></figure>
-      <figure class="kachel k-lasagne" data-nur-mit-lasagne hidden><img class="foto" src="/images/abholmonitor/35-lasagne-neu-quer.jpeg" alt="Hausgemachte Lasagne mit Beilagensalat"><figcaption class="schild"><span class="k-name">Lasagne</span><span class="k-preis" data-artikel="Lasagne">12.5</span></figcaption></figure>
-      <figure class="kachel k-focaccia"><img class="foto" src="/images/abholmonitor/12-focaccia-quer.jpeg" alt="Saisonales Focaccia"><figcaption class="schild"><span class="k-name">Focaccia</span><span class="k-preis" data-artikel="Focaccia">5.5</span></figcaption></figure>
-      <figure class="kachel k-wrap"><img class="foto" src="/images/abholmonitor/09-wrap-gemuese-quer.jpeg" alt="Getoasteter Wrap"><figcaption class="schild"><span class="k-name">Wrap</span><span class="k-preis" data-artikel="Wrap">8.0</span></figcaption></figure>
-      <figure class="kachel k-pommes"><img class="foto" src="/images/abholmonitor/23-pommes-service-hochkant.jpeg" alt="Knusprige Pommes mit Dips"><figcaption class="schild"><span class="k-name">Pommes</span><span class="k-preis" data-artikel="Pommes">4.5</span></figcaption></figure>
-      <figure class="kachel k-waffel"><img class="foto" src="/images/abholmonitor/18-waffel-puderzucker-quer.jpeg" alt="Hausgemachte Belgische Waffel mit Puderzucker"><figcaption class="schild"><span class="k-name">Belgische Waffel</span><span class="k-preis" data-artikel="Belgische Waffel">4.5</span></figcaption></figure>
+      <figure class="kachel k-bowl"><div class="bild"><img class="foto" src="/images/abholmonitor/13-saisonale-bowl-quer.jpeg" alt="Tjorvens saisonale Bowl"></div><figcaption class="beschriftung"><span class="k-name">Bowl</span><span class="k-preis" data-artikel="Bowl">13.5</span></figcaption></figure>
+      <figure class="kachel k-lasagne" data-nur-mit-lasagne hidden><div class="bild"><img class="foto" src="/images/abholmonitor/35-lasagne-neu-quer.jpeg" alt="Hausgemachte Lasagne mit Beilagensalat"></div><figcaption class="beschriftung"><span class="k-name">Lasagne</span><span class="k-preis" data-artikel="Lasagne">12.5</span></figcaption></figure>
+      <figure class="kachel k-focaccia"><div class="bild"><img class="foto" src="/images/abholmonitor/12-focaccia-quer.jpeg" alt="Saisonales Focaccia"></div><figcaption class="beschriftung"><span class="k-name">Focaccia</span><span class="k-preis" data-artikel="Focaccia">5.5</span></figcaption></figure>
+      <figure class="kachel k-wrap"><div class="bild"><img class="foto" src="/images/abholmonitor/09-wrap-gemuese-quer.jpeg" alt="Getoasteter Wrap"></div><figcaption class="beschriftung"><span class="k-name">Wrap</span><span class="k-preis" data-artikel="Wrap">8.0</span></figcaption></figure>
+      <figure class="kachel k-pommes"><div class="bild"><img class="foto" src="/images/abholmonitor/23-pommes-service-hochkant.jpeg" alt="Knusprige Pommes mit Dips"></div><figcaption class="beschriftung"><span class="k-name">Pommes</span><span class="k-preis" data-artikel="Pommes">4.5</span></figcaption></figure>
+      <figure class="kachel k-waffel"><div class="bild"><img class="foto" src="/images/abholmonitor/18-waffel-puderzucker-quer.jpeg" alt="Hausgemachte Belgische Waffel mit Puderzucker"></div><figcaption class="beschriftung"><span class="k-name">Belgische Waffel</span><span class="k-preis" data-artikel="Belgische Waffel">4.5</span></figcaption></figure>
     </div>
 
     <div class="karte">
       <section class="gruppe">
         <h2>herzhaft</h2>
         <div class="zeile"><span class="name">Tjorvens saisonale Bowl</span><span class="fuell"></span><span class="preis" data-artikel="Tjorvens saisonale Bowl">13.5</span></div>
-        <div class="zeile" data-nur-mit-lasagne hidden><span class="name">Hausgemachte Lasagne &amp; Beilagensalat</span><span class="fuell"></span><span class="preis" data-artikel="Hausgemachte Lasagne &amp; Beilagensalat">12.5</span></div>
+        <div class="zeile lasagne" data-nur-mit-lasagne hidden><span class="name">Hausgemachte Lasagne &amp; Beilagensalat</span><span class="fuell"></span><span class="preis" data-artikel="Hausgemachte Lasagne &amp; Beilagensalat">12.5</span></div>
         <div class="zeile"><span class="name">Knusprige Pommes</span><span class="fuell"></span><span class="preis" data-artikel="Knusprige Pommes">4.5</span></div>
-        <div class="zeile"><span class="name">Loaded Pommes</span><span class="fuell"></span><span class="preis" data-artikel="Loaded Pommes">9.0</span></div>
+        <div class="zeile"><span class="name">Loaded Pommes – Veggie oder BBQ</span><span class="fuell"></span><span class="preis" data-artikel="Loaded Pommes – Veggie oder BBQ">9.0</span></div>
         <div class="zeile"><span class="name">Saisonales Focaccia</span><span class="fuell"></span><span class="preis" data-artikel="Saisonales Focaccia">5.5</span></div>
         <div class="zeile"><span class="name">Bunter Blattsalat</span><span class="fuell"></span><span class="preis" data-artikel="Bunter Blattsalat">4.5</span></div>
         <div class="zeile"><span class="name">Getoasteter Wrap</span><span class="fuell"></span><span class="preis" data-artikel="Getoasteter Wrap">8.0</span></div>

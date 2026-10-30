@@ -2,9 +2,11 @@
 //
 // Eigene, klar getrennte Datei im privaten Vercel-Blob-Store des Projekts:
 //
-//   monitore/specials.json   { format: 2, aktiv: { <id>: true|false }, frei: { <id>: Text }, geaendert: ISO-Zeit }
+//   monitore/specials.json   { format: 3, aktiv: { <id>: true|false },
+//                              frei: { <id>: { text, farbe: 'gruen'|'rot', bild: null|<Bild-Kennung> } }, geaendert: ISO-Zeit }
+//   monitore/bilder/<sha256>.jpg|png|webp   hochgeladene Bilder der freien Kacheln
 //
-// (format 1 hatte noch kein „frei“ – wird weiter gelesen, die freien Kacheln sind dann leer und aus.)
+// (format 1 hatte noch kein „frei“, format 2 nur den Text als Zeichenkette – beides wird weiter gelesen.)
 //
 // Sonst nichts – kein Zugriff auf tagesabschluss/… und keinerlei Verbindung zu den Daten des
 // Abholmonitors (der liegt in Firebase und wird hier nie angesprochen).
@@ -13,11 +15,12 @@
 // Geschrieben wird nur, wenn die Datei seitdem unverändert ist (ifMatch) – sonst Hinweis statt
 // stillem Überschreiben.
 
-import { get, put, BlobError, BlobPreconditionFailedError } from '@vercel/blob';
+import { get, put, list, del, BlobError, BlobPreconditionFailedError } from '@vercel/blob';
 
 process.env.VERCEL_BLOB_RETRIES ??= '2';
 
 const PFAD = 'monitore/specials.json';
+const BILDER = 'monitore/bilder/';
 /** Cache-Tag der öffentlichen Antwort /api/monitore/specials/ (wird beim Speichern gelöscht) */
 export const CACHE_TAG = 'monitor-specials';
 
@@ -66,4 +69,45 @@ export async function schreibeSpecials(daten, stand) {
     if (stand === null && f instanceof BlobError && /exist/i.test(f.message || '')) return null;
     throw alsSpeicherFehler(f);
   }
+}
+
+// ---- Bilder der freien Kacheln -------------------------------------------------------------------
+// Kennung = SHA-256 des Inhalts + Endung: gleicher Inhalt → gleiche Datei, Adresse ändert sich nie
+// (darf deshalb lange im CDN liegen). Nur unter monitore/bilder/ – sonst wird nichts gelesen oder gelöscht.
+
+/** Bild speichern (Inhalt bereits geprüft) */
+export async function speichereBild(id, inhalt, typ) {
+  try {
+    await put(BILDER + id, inhalt, { access: 'private', contentType: typ, addRandomSuffix: false, allowOverwrite: true, cacheControlMaxAge: 60 });
+  } catch (f) { throw alsSpeicherFehler(f); }
+}
+
+/** → { stream, typ } oder null (gibt es nicht) */
+export async function liesBild(id) {
+  if (!istEingerichtet()) throw new SpeicherFehler('Der Speicher ist noch nicht eingerichtet.', 503, 'nicht_eingerichtet');
+  let r;
+  try { r = await get(BILDER + id, { access: 'private', useCache: false }); } catch (f) { throw alsSpeicherFehler(f); }
+  if (!r || r.statusCode !== 200 || !r.stream) return null;
+  return { stream: r.stream, typ: r.blob.contentType || 'application/octet-stream' };
+}
+
+/** alle gespeicherten Bilder → [{ id, hochgeladen: Date }] */
+export async function listeBilder() {
+  const bilder = [];
+  let cursor;
+  try {
+    do {
+      const r = await list({ prefix: BILDER, limit: 100, cursor });
+      for (const b of r.blobs) bilder.push({ id: b.pathname.slice(BILDER.length), hochgeladen: b.uploadedAt });
+      cursor = r.hasMore ? r.cursor : undefined;
+    } while (cursor);
+  } catch (f) { throw alsSpeicherFehler(f); }
+  return bilder;
+}
+
+/** Bilder löschen (nur Kennungen, nie fremde Pfade) */
+export async function loescheBilder(ids) {
+  const sicher = ids.filter(id => /^[0-9a-f]{64}\.(jpg|png|webp)$/.test(id));
+  if (!sicher.length) return;
+  try { await del(sicher.map(id => BILDER + id)); } catch (f) { throw alsSpeicherFehler(f); }
 }
