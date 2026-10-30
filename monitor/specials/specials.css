@@ -1,13 +1,17 @@
 /* Monitor 4 – „Heute bei uns“. Fläche unter dem Kopf: 1792 × 814 px.
-   Raster nach Anzahl aktiver Angebote (Klasse r-SpaltenxZeilen an .angebote, gesetzt in specials.js):
-   1, 2, 3 nebeneinander · 5–6 = 3 × 2 · 7–8 = 4 × 2 · 9 = 3 × 3 · 10–12 = 4 × 3 · 13–15 = 5 × 3.
-   GENAU 4 (Klasse „vier“): links ruhige Bildfolge der vier Angebote, rechts feste Liste mit Preisen.
-   Eine unvollständige letzte Reihe steht mittig (jede Kachel belegt zwei halbe Spalten).
-   Kachel mit Foto: Foto füllt die ganze Kachel, Name und Preis stehen in einem grünen Schild im Bild.
+   1–3 Einträge: Kacheln nebeneinander (Klasse r-SpaltenxZeilen an .angebote, gesetzt in specials.js).
+   AB 4 Einträgen (Klasse „geteilt“): links ruhige Bildfolge, rechts feste Liste aller Angebote mit Preisen.
+   Nur falls ab 4 nichts in die Liste gehört (lauter Freitexte), bleibt es beim Raster:
+   4 = 2 × 2 · 5–6 = 3 × 2 · 7–8 = 4 × 2 · 9 = 3 × 3 · 10–12 = 4 × 3; die letzte Reihe steht mittig.
+   Kachel mit Foto: Foto füllt die ganze Kachel. Produkt/Feier: Name und Preis im grünen (freies Produkt
+   wahlweise roten) Schild unten. Freitext: eigene grüne oder rote Tafel über dem Foto.
    Kachel ohne Foto: Bistro-Grün (freie Kachel wahlweise Markenrot), weiße Schrift so groß wie möglich
-   (Schriftgröße berechnet specials.js). */
+   (Schriftgröße berechnet specials.js). Öffnungszeiten: grüne Infokachel, oben groß, darunter klein. */
 
 .specials .angebote, .specials .willkommen { flex: 1; min-height: 0; }
+/* Überschrift aus der Verwaltung: immer eine Zeile, notfalls verkleinert (specials.js) */
+.specials .kopf { gap: 40px; }
+.specials .kopf h1 { min-width: 0; white-space: nowrap; }   /* nicht abschneiden: Unterlängen (g, p, y) ragen unter die Zeile */
 .specials .willkommen .foto { object-position: 50% 35%; }
 
 .angebote {
@@ -73,38 +77,63 @@
   display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
   color: #fff; line-height: 1.1;
 }
-.textflaeche > * { max-width: 100%; margin: 0; overflow-wrap: normal; }
+.textflaeche > * { max-width: 100%; margin: 0; overflow-wrap: normal; text-wrap: balance; }
 .textflaeche.umbrechen > * { overflow-wrap: anywhere; }
 .textflaeche .k-titel { font-size: 1em; font-weight: 600; color: #fff; }
 .textflaeche .k-preis { font-size: 0.78em; font-weight: 600; margin-top: 0.28em; font-variant-numeric: tabular-nums; }
 .textflaeche .k-titel + .k-preis::before { content: ''; display: block; width: 1.4em; height: 0.07em; min-height: 3px; margin: 0 auto 0.3em; border-radius: 2px; background: var(--gold); }
 .textflaeche .unter { font-size: 0.55em; margin-top: 0.4em; color: rgba(255, 255, 255, 0.88); line-height: 1.25; }
 
-/* Freie Kachel (Text aus der Verwaltung): Bistro-Grün oder – in der Verwaltung wählbar – Markenrot */
+/* Freie Kachel (aus der Verwaltung): Bistro-Grün oder – in der Verwaltung wählbar – Markenrot */
 .art-frei .textflaeche { line-height: 1.16; }
 .art-frei .frei-zeile { font-weight: 600; margin: 0; }
 .art-frei .frei-luecke { height: 0.45em; }
 .kachel.farbe-rot.ohne-bild { background: var(--rot); }
 .kachel.farbe-rot .schild { background: rgba(184, 23, 58, 0.95); }
-.art-frei .schild .frei-zeile { font-size: 1em; line-height: 1.15; }
-.art-frei .schild .frei-zeile + .frei-zeile { font-weight: 400; font-size: 0.8em; }
 
-/* GENAU 4 Angebote: links Bildfolge, rechts feste Liste (wie die Karte auf Monitor 2) */
-.angebote.vier { grid-template-columns: minmax(0, 1.22fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 56px;
+/* Freitext mit Foto: eigene Tafel über dem Foto – mittig im unteren Bereich, mit Abstand zum Rand,
+   erste Zeile groß und fett, weitere Zeilen etwas kleiner */
+.frei-tafel {
+  position: absolute; left: 0; right: 0; bottom: 7%; margin: 0 auto;
+  width: fit-content; max-width: 86%; max-height: 46%; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: 0.42em 0.8em 0.48em; border-radius: 22px;
+  background: rgba(24, 97, 24, 0.95); color: #fff; line-height: 1.15;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28); border-top: 6px solid var(--gold);
+}
+.frei-tafel > * { max-width: 100%; overflow-wrap: normal; text-wrap: balance; }
+.frei-tafel.umbrechen > * { overflow-wrap: anywhere; }
+.frei-tafel .frei-zeile { margin: 0; font-weight: 400; font-size: 0.8em; }
+.frei-tafel .frei-zeile:first-child { font-weight: 600; font-size: 1em; }
+.farbe-rot .frei-tafel { background: rgba(184, 23, 58, 0.95); }
+
+/* Öffnungszeiten: Infokachel (nie in der Preisliste) */
+.textflaeche.info { line-height: 1.2; }
+.info .info-haupt { font-size: 1em; font-weight: 600; }
+.info .info-zeile { font-size: 0.66em; margin-top: 0.3em; }
+.info .info-trenner { width: 2.2em; height: 0.08em; min-height: 3px; border-radius: 2px; background: var(--gold); margin: 0.55em auto 0.45em; flex: none; }
+.info .info-klein { font-size: 0.48em; color: rgba(255, 255, 255, 0.9); margin-top: 0.15em; }
+
+/* AB 4 Einträgen: links Bildfolge, rechts feste Liste (wie die Karte auf Monitor 2) */
+.angebote.geteilt { grid-template-columns: minmax(0, 1.22fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 56px;
   --t: 50px; --qr: 132px; --rand: 0px; --text-max: 150; --liste-max: 62; }
-.vier-dias { position: relative; min-width: 0; min-height: 0; border-radius: 22px; overflow: hidden; background: var(--sand-hell); }
-/* einzige Bewegung dieser Seite: langsames Überblenden der Folien */
-.vier-dias .dia { position: absolute; inset: 0; border-radius: 0; opacity: 0; transition: opacity 1.5s ease-in-out !important; }
-.vier-dias .dia.aktiv { opacity: 1; }
+.folien { position: relative; min-width: 0; min-height: 0; border-radius: 22px; overflow: hidden; background: var(--sand-hell); }
+/* einzige Bewegung dieser Seite: langsames Überblenden – die neue Folie über der alten, die bis dahin stehen bleibt */
+.folien .dia { position: absolute; inset: 0; border-radius: 0; opacity: 0; transition: opacity 1.5s ease-in-out !important; }
+.folien .dia.aktiv { opacity: 1; z-index: 2; }
+.folien .dia.vorher { opacity: 1; z-index: 1; }
 /* Beschriftung der Folie wie auf Monitor 2: eigene grüne Leiste am unteren Rand, Name links, Preis rechts */
-.vier-dias .schild { left: 0; right: 0; bottom: 0; max-width: none; max-height: 45%; border-radius: 0; border-left: none; padding: 0.32em 0.6em 0.36em; }
-.vier-dias .titelzeile { justify-content: space-between; flex-wrap: nowrap; }
-.vier-dias .schild .unter { font-size: 0.52em; }
-.vier-dias .art-event .schild { max-height: 45%; }
-.vier-dias .kachel .qr { top: 24px; right: 24px; }
-.vier-dias .textflaeche { padding: 48px 56px; }
-.vier-liste { min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 0.62em; font-size: 56px; }
-.vier-liste .eintrag { min-width: 0; }
-.vier-liste .zeile { font-size: 1em; line-height: 1.2; }
-.vier-liste .zeile .name { font-weight: 600; color: var(--gruen-tief); }
-.vier-liste .unter { margin: 0.12em 0 0; font-size: 0.55em; line-height: 1.25; color: var(--grau); }
+.folien .schild { left: 0; right: 0; bottom: 0; max-width: none; max-height: 45%; border-radius: 0; border-left: none; padding: 0.32em 0.6em 0.36em; }
+.folien .titelzeile { justify-content: space-between; flex-wrap: nowrap; }
+.folien .schild .unter { font-size: 0.52em; }
+.folien .art-event .schild { max-height: 45%; }
+.folien .kachel .qr { top: 24px; right: 24px; }
+.folien .textflaeche { padding: 48px 56px; }
+.preisliste { min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 0.62em; font-size: 56px; }
+.preisliste .eintrag { min-width: 0; }
+.preisliste .zeile { font-size: 1em; line-height: 1.2; }
+.preisliste .zeile .name { font-weight: 600; color: var(--gruen-tief); }
+.preisliste .unter { margin: 0.12em 0 0; font-size: 0.55em; line-height: 1.25; color: var(--grau); }
+/* lange Liste: ohne Zusatzzeilen, etwas enger – die Namen und Preise bleiben groß */
+.preisliste.knapp { gap: 0.42em; }
+.preisliste.knapp .unter { display: none; }

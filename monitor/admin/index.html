@@ -2,7 +2,9 @@
 <html lang="de">
 <head>
 <!--
-  Verwaltung Monitor 4 „Heute bei uns“ – interner Bereich (nur auf Vercel lauffähig, braucht /api/monitore/*).
+  Verwaltung der Monitore 2–4 – interner Bereich (nur auf Vercel lauffähig, braucht /api/monitore/*).
+  Monitor 4 „Heute bei uns“: Überschrift, Angebote, Öffnungszeiten, vier freie Kacheln.
+  Monitore 2 und 3: Schalter „Kleines Bistro / reduziertes Angebot“.
   Anmeldung mit dem Passwort des Tagesabschlusses. Diese Seite enthält keine Daten: Die Auswahl
   wird erst nach der Anmeldung vom Server geladen und nur dort gespeichert.
 -->
@@ -10,7 +12,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<title>Monitor 4 verwalten – Tjorven Bistro (intern)</title>
+<title>Monitore verwalten – Tjorven Bistro (intern)</title>
 <link rel="icon" href="/favicon.ico">
 <link rel="stylesheet" href="/monitor/admin/admin.css">
 <script src="/monitor/admin/admin.js" defer></script>
@@ -20,7 +22,7 @@
 <header class="kopf">
   <div class="kopf-innen">
     <img src="/images/tjorven-logo-gruen.png" alt="" class="kopf-logo" width="44" height="44">
-    <div class="kopf-titel">Monitor 4 <span class="etikett">intern</span></div>
+    <div class="kopf-titel">Monitore <span class="etikett">intern</span></div>
     <button type="button" id="abmelden" class="knopf leise klein" hidden>Abmelden</button>
   </div>
 </header>
@@ -29,7 +31,7 @@
 
   <section id="anmeldung" class="karte schmal" hidden>
     <h1>Anmelden</h1>
-    <p class="leise">Verwaltung für Monitor 4 „Heute bei uns“. Passwort wie beim Tagesabschluss.</p>
+    <p class="leise">Verwaltung der Monitore („Heute bei uns“ und „Kleines Bistro“). Passwort wie beim Tagesabschluss.</p>
     <form id="anmeldeForm" autocomplete="on">
       <label class="feld">
         <span class="feld-name">Passwort</span>
@@ -43,25 +45,52 @@
   <p class="meldung zentriert" id="startMeldung" role="alert"></p>
 
   <section id="verwaltung" class="karte" hidden>
-    <h1>Heute bei uns</h1>
-    <p class="leise">Eingeschaltete Angebote zeigt Monitor 4 alle gleichzeitig. Bei genau 4 Angeboten: links eine ruhige Bildfolge, rechts die Liste mit Preisen. Nach „Speichern“ übernimmt der Monitor die Auswahl innerhalb einer Minute.</p>
+    <h1>Monitore verwalten</h1>
+    <p class="leise">Monitor 4 zeigt alles, was hier eingeschaltet ist: bis zu 3 Einträge als Kacheln nebeneinander, ab 4 links eine ruhige Bildfolge und rechts die Preisliste. Nach „Speichern“ übernehmen die Monitore die Änderung innerhalb einer Minute.</p>
+
+    <h2>Allgemein</h2>
+    <label class="feld">
+      <span class="feld-name">Überschrift Monitor 4</span>
+      <input type="text" id="ueberschrift" maxlength="60" autocomplete="off" spellcheck="true" placeholder="Heute bei uns">
+      <span class="zaehler" id="ueberschriftZaehler"></span>
+    </label>
+    <p class="leise klein hinweis-feld">Leer lassen = „Heute bei uns“. Zum Beispiel „Sonderöffnung“, „Heutige Specials“ oder „Nur heute hier im Bistro exklusiv“.</p>
+    <ul class="liste">
+      <li>
+        <label class="schalter">
+          <span class="vorschau ohne klein-symbol" aria-hidden="true">K</span>
+          <span class="name"><span class="titel">Kleines Bistro / reduziertes Angebot</span><span class="art">Monitore 2 und 3 – nur von Hand, nie automatisch</span></span>
+          <input type="checkbox" role="switch" id="kleinesBistro">
+          <span class="regler"></span>
+        </label>
+      </li>
+    </ul>
+    <p class="leise klein hinweis-unter">Eingeschaltet zeigt Monitor 2 nur Brezel 2.0, Butterbrezel 3.0, Gemüse Wrap 6.0, Homemade Cookies und Eiscreme. Monitor 3 zeigt alle Kaltgetränke außer dem Hagebutten-Eistee und als Heißgetränk nur Filterkaffee 2.5. Monitor 4 bleibt, wie er ist.</p>
+
+    <h2>Feste Angebote</h2>
+    <h3>Speisen &amp; Kuchen</h3>
+    <ul class="liste" id="listeProdukt"></ul>
+    <h3>Feiern</h3>
+    <ul class="liste" id="listeEvent"></ul>
+
+    <h2>Informationen</h2>
+    <ul class="liste" id="listeInfo"></ul>
 
     <h2>Freie Kacheln</h2>
-    <p class="leise klein">Für kurzfristige Hinweise wie Reservierungen, Begrüßungen oder Tagesangebote. Jede Zeile erscheint auf dem Monitor als eigene Zeile. Hintergrund Bistro-Grün oder Rot, wahlweise mit eigenem Foto.</p>
+    <p class="leise klein">Je Kachel: <strong>Freitext</strong> für Begrüßungen, Reservierungen oder kurze Tagesinfos – erscheint nie in der Preisliste. Oder <strong>Produkt mit Preis</strong> – erscheint wie die festen Produkte in der Preisliste. Hintergrund Bistro-Grün oder Rot, wahlweise mit eigenem Foto.</p>
     <ul class="liste" id="listeFrei"></ul>
-
-    <h2>Speisen &amp; Kuchen</h2>
-    <ul class="liste" id="listeProdukt"></ul>
-    <h2>Feiern</h2>
-    <ul class="liste" id="listeEvent"></ul>
 
     <div class="leiste">
       <p class="status" id="status" aria-live="polite"></p>
       <p class="meldung" id="meldung" role="alert"></p>
       <div class="knopfreihe">
         <button type="button" id="speichern" class="knopf haupt" disabled>Speichern</button>
-        <a class="knopf" href="/monitor/specials/" target="_blank" rel="noopener">Monitor 4 öffnen</a>
       </div>
+    </div>
+    <div class="knopfreihe monitore-links">
+      <a class="knopf klein" href="/monitor/specials/" target="_blank" rel="noopener">Monitor 4 öffnen</a>
+      <a class="knopf klein leise" href="/monitor/speisen/" target="_blank" rel="noopener">Monitor 2</a>
+      <a class="knopf klein leise" href="/monitor/getraenke/" target="_blank" rel="noopener">Monitor 3</a>
     </div>
   </section>
 

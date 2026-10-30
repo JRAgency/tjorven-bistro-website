@@ -2,7 +2,8 @@
    Eigenständig: nutzt weder css/style.css der Website noch Dateien des Abholmonitors.
    Gestaltet für 32-Zoll-Full-HD (1920 × 1080). Die „Bühne“ hat immer genau 1920 × 1080 px und wird
    auf anderen Bildschirmgrößen nur proportional verkleinert (buehne.js) – nie gescrollt, nie abgeschnitten.
-   Keine Animationen, keine Übergänge. */
+   Keine Animationen, keine Übergänge – einzige Ausnahme: das langsame Überblenden der Bildfolgen
+   (Monitore 2 und 3 unten, Monitor 4 in specials.css). */
 
 /* Schrift: Fontin Sans wie Website und Abholmonitor (Link im HTML). Ist der Schriftdienst nicht
    erreichbar, greift die lokale Nunito der Website. */
@@ -52,6 +53,28 @@ body { font-family: var(--schrift); color: var(--tinte); -webkit-font-smoothing:
 
 /* Bilder */
 .foto { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 18px; background: var(--sand-hell); }
+
+/* Monitore 2 und 3 schalten zwischen Normalbetrieb und „Kleines Bistro“ um (modus.js): bis zur ersten
+   Antwort (höchstens 3 s) bleibt der Inhalt unsichtbar, damit nicht kurz das falsche Sortiment erscheint. */
+[data-modus="laedt"] .modus { visibility: hidden; }
+
+/* Ruhige Bildfolge (diashow.js): Folien übereinander, nur die aktive ist sichtbar, langsames Überblenden –
+   die neue Folie blendet ÜBER der alten ein, die bis dahin voll sichtbar bleibt (kein Durchscheinen).
+   Jede Folie: Foto, darunter eine eigene grüne Leiste mit Name und Preis (wie beim Abholmonitor) –
+   die Schrift steht nie über dem Essen. Bildausschnitt je Folie: --fokus (Mitte), --nah (Vergrößerung). */
+.diashow { position: relative; min-width: 0; min-height: 0; border-radius: 18px; overflow: hidden; background: var(--gruen); }
+.diashow .dia { position: absolute; inset: 0; margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; opacity: 0; transition: opacity 1.5s ease-in-out !important; }
+.diashow .dia.aktiv { opacity: 1; z-index: 2; }
+.diashow .dia.vorher { opacity: 1; z-index: 1; }
+.dia .bild { position: relative; min-height: 0; overflow: hidden; background: var(--sand-hell); }
+.dia .bild .foto { position: absolute; inset: 0; border-radius: 0; object-position: var(--fokus, 50% 50%); transform-origin: var(--fokus, 50% 50%); transform: scale(var(--nah, 1)); }
+.dia .beschriftung { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6em; padding: 0.3em 0.66em 0.34em;
+  background: var(--gruen); color: #fff; font-size: 42px; line-height: 1.2; }
+.beschriftung .k-name { font-weight: 400; min-width: 0; }
+.beschriftung .k-preis { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* freigestellte Produktfotos auf hellgrauem Grund (fritz): nie beschneiden, Rand in derselben Farbe */
+.dia.freigestellt .bild { background: #f7f7f7; }
+.dia.freigestellt .bild .foto { object-fit: contain; background: #f7f7f7; }
 
 /* Abschnittsüberschriften wie auf der Original-Karte: klein geschrieben, fett. Produktzeilen mit Punktlinie. */
 .gruppe h2 { margin: 0 0 10px; font-size: 52px; line-height: 1.05; font-weight: 600; color: var(--gruen); text-transform: none; letter-spacing: 0; }

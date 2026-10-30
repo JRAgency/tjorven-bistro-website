@@ -2,11 +2,14 @@
 //
 // Eigene, klar getrennte Datei im privaten Vercel-Blob-Store des Projekts:
 //
-//   monitore/specials.json   { format: 3, aktiv: { <id>: true|false },
-//                              frei: { <id>: { text, farbe: 'gruen'|'rot', bild: null|<Bild-Kennung> } }, geaendert: ISO-Zeit }
+//   monitore/specials.json   { format: 4, aktiv: { <id>: true|false },
+//                              frei: { <id>: { typ: 'text'|'produkt', text, name, preis, farbe: 'gruen'|'rot', bild: null|<Bild-Kennung> } },
+//                              ueberschrift: Text ('' = „Heute bei uns“), kleinesBistro: true|false, geaendert: ISO-Zeit }
 //   monitore/bilder/<sha256>.jpg|png|webp   hochgeladene Bilder der freien Kacheln
 //
-// (format 1 hatte noch kein „frei“, format 2 nur den Text als Zeichenkette – beides wird weiter gelesen.)
+// Ältere Stände werden weiter gelesen und erst beim nächsten Speichern umgeschrieben: format 1 hatte
+// noch kein „frei“, format 2 nur den Text als Zeichenkette, format 3 zwei freie Kacheln mit
+// { text, farbe, bild } und weder Überschrift noch „Kleines Bistro“ (siehe katalog.js).
 //
 // Sonst nichts – kein Zugriff auf tagesabschluss/… und keinerlei Verbindung zu den Daten des
 // Abholmonitors (der liegt in Firebase und wird hier nie angesprochen).

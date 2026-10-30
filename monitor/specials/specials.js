@@ -1,13 +1,22 @@
-// Monitor 4: aktive Angebote laden und alle gleichzeitig zeigen.
+// Monitor 4: aktive Angebote laden und zeigen.
 // Fragt einmal pro Minute nach (Antwort kommt meist aus dem Vercel-CDN) und baut die Seite nur
-// neu, wenn sich die Auswahl geändert hat. Bei einem Fehler bleibt der letzte Stand stehen.
-// Alle Texte (auch die frei eingegebenen) werden nur als reiner Text gesetzt (textContent).
+// neu, wenn sich etwas geändert hat. Bei einem Fehler bleibt der letzte Stand stehen.
+// Alle Texte (auch die frei eingegebenen und die Überschrift) werden nur als reiner Text gesetzt (textContent).
 //
-// Sonderfall GENAU 4 Angebote: zwei Spalten – links eine ruhige Bildfolge der vier Angebote (alle 7 s
-// langsam überblenden, die einzige Bewegung auf dieser Seite), rechts dieselben vier als feste Liste mit Preis.
+// Aufteilung nach Anzahl der aktiven Einträge:
+//   0      „Herzlich Willkommen“ mit Foto
+//   1–3    Kacheln nebeneinander
+//   ab 4   zwei Spalten – links eine ruhige Bildfolge (alle 7 s langsam überblenden, die einzige Bewegung
+//          auf dieser Seite), rechts eine feste Liste ALLER aktiven Angebote mit Preis.
+//          In die Liste kommen nur Produkte (feste und freie Kacheln vom Typ „Produkt“) und Feiern –
+//          Freitexte und die Öffnungszeiten nie. Die Bildfolge zeigt alles mit Foto und zusätzlich alles,
+//          was nicht in der Liste steht (Freitext, Öffnungszeiten); Produkte ohne Foto stehen nur in der Liste.
+//          Steht nichts in der Liste (z. B. nur Freitexte), bleibt es bei Kacheln.
+import { wechseln } from '/monitor/diashow.js';
 
 const API = '/api/monitore/specials/';
 const DIA_SEKUNDEN = 7;
+const STANDARD_TITEL = 'Heute bei uns';
 const angebote = document.getElementById('angebote');
 const willkommen = document.getElementById('willkommen');
 const titel = document.getElementById('titel');
@@ -22,6 +31,8 @@ function el(tag, klasse, text) {
 }
 const eigenesBild = s => typeof s === 'string' && s.startsWith('/') && !s.startsWith('//');
 const text = s => (typeof s === 'string' ? s : '');
+const zeilenVon = a => (Array.isArray(a.zeilen) ? a.zeilen.map(text) : []);
+const inListe = a => a.art === 'produkt' || a.art === 'event';
 
 function qrBild(qr) {
   const img = el('img');
@@ -30,9 +41,13 @@ function qrBild(qr) {
   return img;
 }
 
-const zeilenVon = a => (Array.isArray(a.zeilen) ? a.zeilen.map(text) : []);
+/** Freitext zeilenweise; leere Zeile = kleiner Abstand */
+function freiZeilen(ziel, a) {
+  for (const z of zeilenVon(a)) ziel.append(z ? el('p', 'frei-zeile', z) : el('div', 'frei-luecke'));
+}
 
-/** Kachel mit Foto: Foto füllt die Kachel, Name (+ Preis) bzw. der freie Text im grünen (oder roten) Schild im Bild */
+/** Kachel mit Foto: Foto füllt die Kachel. Produkt/Feier: Name (+ Preis) im grünen (oder roten) Schild unten.
+    Freitext: als eigene, gut lesbare Tafel in Grün oder Rot über dem Foto. */
 function fotoKachel(a, k) {
   const img = el('img', 'kachel-foto');
   img.src = a.bild;
@@ -41,12 +56,11 @@ function fotoKachel(a, k) {
   if (typeof a.zoom === 'number' && a.zoom > 1 && a.zoom <= 4) img.style.height = a.zoom * 100 + '%';   // nur oberer Bildteil
   k.append(img);
 
-  if (a.art === 'frei') {   // freie Kachel mit Bild: Text (falls vorhanden) zeilenweise im Schild
-    const zeilen = zeilenVon(a);
-    if (!zeilen.some(Boolean)) return;
-    const schild = el('div', 'schild');
-    for (const z of zeilen) schild.append(z ? el('p', 'frei-zeile', z) : el('div', 'frei-luecke'));
-    k.append(schild);
+  if (a.art === 'frei') {
+    if (!zeilenVon(a).some(Boolean)) return;   // nur Foto
+    const tafel = el('div', 'frei-tafel');
+    freiZeilen(tafel, a);
+    k.append(tafel);
     return;
   }
 
@@ -76,7 +90,12 @@ function fotoKachel(a, k) {
 function textKachel(a, k) {
   const f = el('div', 'textflaeche');
   if (a.art === 'frei') {
-    for (const z of zeilenVon(a)) f.append(z ? el('p', 'frei-zeile', z) : el('div', 'frei-luecke'));
+    freiZeilen(f, a);
+  } else if (a.art === 'info') {   // Öffnungszeiten: oben groß, darunter klein
+    f.classList.add('info');
+    zeilenVon(a).forEach((z, i) => f.append(el('p', i === 0 ? 'info-haupt' : 'info-zeile', z)));
+    const klein = Array.isArray(a.klein) ? a.klein.map(text) : [];
+    if (klein.length) { f.append(el('div', 'info-trenner')); for (const z of klein) f.append(el('p', 'info-klein', z)); }
   } else {
     f.append(el('h2', 'k-titel', text(a.titel)));
     if (a.preis) f.append(el('p', 'k-preis', text(a.preis)));
@@ -86,17 +105,16 @@ function textKachel(a, k) {
 }
 
 function kachel(a) {
-  const art = a.art === 'event' ? 'event' : a.art === 'frei' ? 'frei' : 'produkt';
-  const mitBild = eigenesBild(a.bild);
-  const farbe = art === 'frei' && a.farbe === 'rot' ? ' farbe-rot' : '';
+  const art = ['event', 'frei', 'info'].includes(a.art) ? a.art : 'produkt';
+  const mitBild = eigenesBild(a.bild) && art !== 'info';
+  const farbe = a.farbe === 'rot' ? ' farbe-rot' : '';
   const k = el('article', `kachel art-${art} ${mitBild ? 'mit-bild' : 'ohne-bild'}${farbe}`);
   k.dataset.id = text(a.id);
   if (mitBild) fotoKachel(a, k); else textKachel(a, k);
   return k;
 }
 
-// Raster nach Anzahl: [Spalten, Zeilen]. Mehr als 15 kommt mit dem heutigen Katalog (14) nicht vor,
-// würde aber auch gezeigt (6 Spalten) – es wird nie etwas weggelassen.
+// Raster nach Anzahl: [Spalten, Zeilen]. Ab 4 Einträgen nur, wenn nichts in die Liste gehört.
 function raster(n) {
   if (n <= 3) return [Math.max(n, 1), 1];
   if (n === 4) return [2, 2];
@@ -125,7 +143,22 @@ function groesstePassende(e, min, max) {
   return passt(e);
 }
 
+/** Überschrift: eine Zeile, notfalls kleiner (nur die Breite zählt; die Länge ist in der Verwaltung begrenzt) */
+function titelEinpassen() {
+  titel.style.fontSize = '';
+  if (titel.scrollWidth <= titel.clientWidth + 1) return;
+  let lo = 24, hi = 78;
+  while (hi - lo > 0.5) {
+    const mitte = (lo + hi) / 2;
+    titel.style.fontSize = mitte + 'px';
+    if (titel.scrollWidth <= titel.clientWidth + 1) lo = mitte; else hi = mitte;
+  }
+  titel.style.fontSize = Math.floor(lo) + 'px';
+}
+
 function einpassen() {
+  titelEinpassen();
+
   const stil = getComputedStyle(angebote);
   const maxText = parseFloat(stil.getPropertyValue('--text-max')) || 120;
   for (const f of angebote.querySelectorAll('.textflaeche')) {
@@ -138,59 +171,58 @@ function einpassen() {
     s.style.fontSize = basis + 'px';
     if (!passt(s)) groesstePassende(s, basis * 0.5, basis);
   }
-  // rechte Liste bei genau 4: alle Einträge gleich groß, so groß wie möglich
-  const liste = angebote.querySelector('.vier-liste');
-  if (liste) groesstePassende(liste, 24, parseFloat(stil.getPropertyValue('--liste-max')) || 64);
+  // Freitext-Tafel auf einem Foto: gut lesbar, aber nur so groß, dass das Foto sichtbar bleibt
+  for (const t of angebote.querySelectorAll('.frei-tafel')) {
+    t.classList.remove('umbrechen');
+    if (!groesstePassende(t, 16, basis * 1.25)) { t.classList.add('umbrechen'); groesstePassende(t, 16, basis * 1.25); }
+  }
+  // rechte Liste: alle Einträge gleich groß, so groß wie möglich; wird sie lang, fallen die Zusatzzeilen weg
+  const liste = angebote.querySelector('.preisliste');
+  if (liste) {
+    const max = parseFloat(stil.getPropertyValue('--liste-max')) || 62;
+    liste.classList.remove('knapp');
+    groesstePassende(liste, 24, max);
+    if (liste.querySelector('.unter') && parseFloat(liste.style.fontSize) < 46) { liste.classList.add('knapp'); groesstePassende(liste, 24, max); }
+  }
 }
 
-/** Eintrag der rechten Liste (nur bei genau 4): Name ……… Preis, darunter klein die Zusatzzeile */
+/** Eintrag der rechten Liste: Name ……… Preis (falls vorhanden), darunter klein die Zusatzzeile */
 function listenEintrag(a) {
-  let name = text(a.titel), unter = text(a.unter);
-  if (a.art === 'frei') {   // freier Text: erste Zeile als Name, der Rest klein darunter
-    const zeilen = zeilenVon(a).filter(Boolean);
-    if (!zeilen.length) return null;   // nur Bild, kein Text → steht nur in der Bildfolge
-    name = zeilen[0]; unter = zeilen.slice(1).join(' · ');
-  }
   const e = el('div', 'eintrag');
   e.dataset.id = text(a.id);
   const z = el('div', 'zeile');
-  z.append(el('span', 'name', name));
+  z.append(el('span', 'name', text(a.titel)));
   if (a.preis) z.append(el('span', 'fuell'), el('span', 'preis', text(a.preis)));
   e.append(z);
-  if (unter) e.append(el('p', 'unter', unter));
+  if (a.unter) e.append(el('p', 'unter', text(a.unter)));
   return e;
 }
 
-function zeigeVier(liste) {
-  angebote.className = 'angebote vier';
+function zeigeGeteilt(alle, liste) {
+  angebote.className = 'angebote geteilt';
   angebote.style.removeProperty('--spuren');
   angebote.style.removeProperty('--zeilen');
-  const dias = el('div', 'vier-dias');
-  const folien = liste.map(a => { const k = kachel(a); k.classList.add('dia'); return k; });
+  let auswahl = alle.filter(a => (eigenesBild(a.bild) && a.art !== 'info') || !inListe(a));
+  if (!auswahl.length) auswahl = alle;   // nichts mit Foto: alle als Textfolien
+  const rahmen = el('div', 'folien');
+  const folien = auswahl.map(a => { const k = kachel(a); k.classList.add('dia'); return k; });
   folien[0].classList.add('aktiv');
-  dias.append(...folien);
-  const rechts = el('div', 'vier-liste');
-  rechts.append(...liste.map(listenEintrag).filter(Boolean));
-  angebote.replaceChildren(dias, rechts);
+  rahmen.append(...folien);
+  const rechts = el('div', 'preisliste');
+  rechts.append(...liste.map(listenEintrag));
+  angebote.replaceChildren(rahmen, rechts);
+  document.documentElement.dataset.dia = folien[0].dataset.id;
+  if (folien.length < 2) return;
   let i = 0;
   diaTimer = setInterval(() => {
-    folien[i].classList.remove('aktiv');
+    const alt = folien[i];
     i = (i + 1) % folien.length;
-    folien[i].classList.add('aktiv');
+    wechseln(rahmen, alt, folien[i]);
     document.documentElement.dataset.dia = folien[i].dataset.id;
   }, DIA_SEKUNDEN * 1000);
-  document.documentElement.dataset.dia = folien[0].dataset.id;
 }
 
-function zeigen(liste) {
-  const leer = liste.length === 0;
-  willkommen.hidden = !leer;
-  angebote.hidden = leer;
-  titel.textContent = leer ? 'Herzlich Willkommen im Tjorven Bistro' : 'Heute bei uns';
-  clearInterval(diaTimer);
-  diaTimer = null;
-  document.documentElement.dataset.anzahl = String(liste.length);
-  if (liste.length === 4) { zeigeVier(liste); einpassen(); return; }
+function zeigeRaster(liste) {
   const [spalten, zeilen] = raster(liste.length);
   angebote.className = 'angebote r-' + spalten + 'x' + zeilen;
   angebote.style.setProperty('--spuren', String(spalten * 2));   // zwei halbe Spalten je Kachel
@@ -200,6 +232,23 @@ function zeigen(liste) {
   const rest = liste.length - spalten * (zeilen - 1);
   if (zeilen > 1 && rest > 0 && rest < spalten) karten[spalten * (zeilen - 1)].style.gridColumn = `${spalten - rest + 1} / span 2`;
   angebote.replaceChildren(...karten);
+}
+
+function zeigen(d) {
+  const liste = d.angebote;
+  const leer = liste.length === 0;
+  willkommen.hidden = !leer;
+  angebote.hidden = leer;
+  titel.textContent = leer ? 'Herzlich Willkommen im Tjorven Bistro' : (text(d.ueberschrift).trim() || STANDARD_TITEL);
+  clearInterval(diaTimer);
+  diaTimer = null;
+  delete document.documentElement.dataset.dia;
+  document.documentElement.dataset.anzahl = String(liste.length);
+  const preisliste = liste.filter(inListe);
+  const ansicht = leer ? 'leer' : liste.length >= 4 && preisliste.length ? 'geteilt' : 'raster';
+  document.documentElement.dataset.ansicht = ansicht;
+  if (ansicht === 'geteilt') zeigeGeteilt(liste, preisliste);
+  else if (!leer) zeigeRaster(liste);
   einpassen();
 }
 
@@ -213,9 +262,9 @@ async function laden() {
     if (!d || !Array.isArray(d.angebote)) throw new Error('Format');
     if (d.stand === stand) return;
     stand = d.stand;
-    zeigen(d.angebote);
+    zeigen(d);
   } catch {
-    if (stand === null && willkommen.hidden && !angebote.childElementCount) zeigen([]);   // noch nie geladen
+    if (stand === null && willkommen.hidden && !angebote.childElementCount) zeigen({ angebote: [] });   // noch nie geladen
   }
 }
 

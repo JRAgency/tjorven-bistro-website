@@ -1,16 +1,17 @@
-/* Monitor 3 – Getränkekarte: links eine ruhige Bildfolge, Mitte „kalt“, rechts „heiß“ (mit Foto oben).
-   Grüne Bistro-Typografie, Überschriften klein und fett wie auf der Original-Karte.
-   Jede Zeile: Produkt, Punktlinie, Menge, Preis. */
-.getraenke .spalten { flex: 1; min-height: 0; display: grid; grid-template-columns: 444px minmax(0, 1fr) 532px; }
+/* Monitor 3 – Getränkekarte: links eine ruhige Bildfolge (Grundgestaltung in monitor.css), Mitte „kalt“,
+   rechts „heiß“ (mit Foto oben). Grüne Bistro-Typografie, Überschriften klein und fett wie auf der
+   Original-Karte. Jede Zeile: Produkt, Punktlinie, Menge, Preis.
+   „Kleines Bistro“: zwei Spalten – größere Bildfolge links, die kürzere Liste rechts in größerer Schrift. */
+.getraenke .spalten { flex: 1; min-height: 0; display: grid; grid-template-columns: 592px minmax(0, 1fr) 508px; }
 .getraenke .spalte { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
-.getraenke .spalte.bilder { padding-right: 44px; }
-.getraenke .spalte.gruppe { padding: 0 40px 0 0; }
-.getraenke .spalte.gruppe + .spalte.gruppe { padding: 0 0 0 40px; border-left: 3px solid var(--linie); }
+.getraenke .spalte.bilder { padding-right: 40px; }
+.getraenke .spalte.gruppe { padding: 0 36px 0 0; }
+.getraenke .spalte.gruppe + .spalte.gruppe { padding: 0 0 0 36px; border-left: 3px solid var(--linie); }
 
-/* Bildfolge: Fotos liegen übereinander, nur das aktive ist sichtbar; einzige erlaubte Bewegung (langsames Überblenden) */
-.getraenke .diashow { position: relative; flex: 1; min-height: 0; border-radius: 18px; overflow: hidden; background: var(--sand-hell); }
-.getraenke .diashow .dia { position: absolute; inset: 0; opacity: 0; transition: opacity 1.5s ease-in-out !important; }
-.getraenke .diashow .dia.aktiv { opacity: 1; }
+.getraenke .diashow { flex: 1; }
+.getraenke .dia .beschriftung { font-size: 36px; }
+.d-eistee { --fokus: 50% 56%; }
+.d-cappuccino { --fokus: 50% 72%; }
 
 .getraenke .bildfeld { flex: none; height: 232px; margin-bottom: 20px; }
 
@@ -22,3 +23,16 @@
 .getraenke .abstand { height: 14px; flex: none; }
 .getraenke .leerzeile { height: 34px; flex: none; }
 .getraenke .zusatz { font-size: 28px; line-height: 1.2; color: var(--grau); margin-top: -2px; }
+
+/* Kleines Bistro */
+.getraenke .spalten.klein { grid-template-columns: 780px minmax(0, 1fr); }
+.getraenke .klein .spalte.bilder { padding-right: 56px; }
+.getraenke .klein .spalte.gruppe { padding: 0; justify-content: center; }
+.getraenke .klein .dia .beschriftung { font-size: 44px; }
+.getraenke .klein .gruppe h2 { font-size: 50px; margin-bottom: 4px; }
+.getraenke .klein .gruppe h3 { font-size: 38px; margin-top: 6px; }
+.getraenke .klein .gruppe .zeile { font-size: 38px; line-height: 1.12; }
+.getraenke .klein .zeile .menge { font-size: 32px; }
+.getraenke .klein .zeile .fuell { transform: translateY(-9px); }
+.getraenke .klein .abstand { height: 8px; }
+.getraenke .klein .h-heiss { margin-top: 10px; }

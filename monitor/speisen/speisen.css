@@ -1,36 +1,17 @@
-/* Monitor 2 – Speisekarte: links die Bildkacheln, rechts die vollständige Karte.
-   Kachel: Foto oben, darunter eine eigene grüne Beschriftungsfläche mit Name und Preis (wie beim Abholmonitor).
-   Ohne Lasagne 5 Kacheln (Bowl über zwei Reihen), mit Lasagne 6 Kacheln (2 × 3) – nie eine leere Kachel.
-   Karte: jeder zweite sichtbare Eintrag fett (speisen.js), Lasagne mit hellgrünem „Pinselstrich“ wie auf der Original-Karte. */
+/* Monitor 2 – Speisekarte: links eine ruhige Bildfolge (ein großes Foto, darunter die grüne Leiste mit Name
+   und Preis – Grundgestaltung in monitor.css), rechts die vollständige Karte.
+   Karte: jeder zweite sichtbare Eintrag fett (speisen.js), Lasagne mit hellgrünem „Pinselstrich“ wie auf der
+   Original-Karte. „Kleines Bistro“: dasselbe Prinzip, die Karte mit nur fünf Speisen größer und luftiger. */
 .speisen .inhalt { flex: 1; min-height: 0; display: flex; gap: 48px; }
+.speisen .diashow { flex: none; width: 848px; }
 
-.speisen .kacheln { flex: none; width: 848px; display: grid; gap: 20px; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, minmax(0, 1fr)); }
-.speisen .kacheln .k-bowl { grid-column: 1; grid-row: 1 / span 2; }
-.speisen .kacheln .k-focaccia { grid-column: 2; grid-row: 1; }
-.speisen .kacheln .k-wrap { grid-column: 2; grid-row: 2; }
-.speisen .kacheln .k-pommes { grid-column: 1; grid-row: 3; }
-.speisen .kacheln .k-waffel { grid-column: 2; grid-row: 3; }
-.speisen .kacheln.mit-lasagne .k-bowl { grid-row: 1; }
-.speisen .kacheln.mit-lasagne .k-lasagne { grid-column: 2; grid-row: 1; }
-.speisen .kacheln.mit-lasagne .k-focaccia { grid-column: 1; grid-row: 2; }
-
-.kachel { margin: 0; min-width: 0; min-height: 0; overflow: hidden; border-radius: 18px; background: var(--gruen);
-  display: grid; grid-template-rows: minmax(0, 1fr) auto; }
-.kachel .bild { position: relative; min-height: 0; overflow: hidden; background: var(--sand-hell); }
-.kachel .foto { position: absolute; inset: 0; border-radius: 0; transform-origin: var(--fokus, 50% 50%); transform: scale(var(--nah, 1)); object-position: var(--fokus, 50% 50%); }
-/* Bildausschnitt je Gericht (--fokus = Mitte des Gerichts, --nah = Vergrößerung) */
-.k-bowl { --fokus: 42% 62%; --nah: 1.2; }
-.k-lasagne { --fokus: 46% 55%; --nah: 1.1; }
-.k-focaccia { --fokus: 50% 66%; --nah: 1.25; }
-.k-wrap { --fokus: 52% 66%; --nah: 1.25; }
-.k-pommes { --fokus: 44% 80%; --nah: 1.05; }
-.k-waffel { --fokus: 47% 62%; --nah: 1.35; }
-
-/* Beschriftung: eigene Fläche am unteren Rand, Bistro-Grün, weiße Schrift, ruhig und klein */
-.kachel .beschriftung { display: flex; align-items: baseline; justify-content: space-between; gap: 14px;
-  padding: 7px 18px 8px; background: var(--gruen); color: #fff; font-size: 30px; line-height: 1.2; }
-.kachel .k-name { font-weight: 400; min-width: 0; }
-.kachel .k-preis { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* Bildausschnitt je Gericht (--fokus = Mitte des Gerichts, --nah = Vergrößerung) – möglichst vollständig sichtbar */
+.d-bowl { --fokus: 42% 60%; --nah: 1.04; }
+.d-lasagne { --fokus: 36% 55%; --nah: 1; }
+.d-focaccia { --fokus: 50% 64%; --nah: 1.1; }
+.d-wrap, .d-wrap-klein { --fokus: 52% 64%; --nah: 1.08; }
+.d-pommes { --fokus: 46% 88%; --nah: 1.12; }
+.d-waffel { --fokus: 47% 60%; --nah: 1.15; }
 
 /* Karte */
 .speisen .karte { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 30px; }
@@ -46,3 +27,9 @@
   clip-path: polygon(1.2% 6%, 18% 0, 47% 5%, 76% 1%, 99% 4%, 98.2% 30%, 100% 58%, 98.6% 96%, 72% 100%, 41% 95%, 14% 100%, 0.4% 94%, 1.6% 62%, 0 33%);
 }
 .speisen .zeile.lasagne .fuell { border-bottom-color: #8fbf92; }
+
+/* Kleines Bistro: wenige Einträge – bewusst größer, mit mehr Luft */
+.speisen .klein .karte { gap: 64px; padding-left: 24px; }
+.speisen .klein .gruppe h2 { font-size: 62px; margin-bottom: 18px; }
+.speisen .klein .gruppe .zeile { font-size: 54px; line-height: 1.3; padding: 8px 0; }
+.speisen .klein .zeile .fuell { transform: translateY(-12px); }

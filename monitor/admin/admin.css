@@ -1,4 +1,4 @@
-/* Verwaltung Monitor 4 – intern. Gestaltung wie der Tagesabschluss (Nunito, Grün/Sand), fürs Handy gedacht. */
+/* Verwaltung der Monitore – intern. Gestaltung wie der Tagesabschluss (Nunito, Grün/Sand), fürs Handy gedacht. */
 @font-face { font-family: 'Nunito'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/nunito-400-normal-latin.woff2') format('woff2'); }
 @font-face { font-family: 'Nunito'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/nunito-600-normal-latin.woff2') format('woff2'); }
 
@@ -23,9 +23,10 @@
 html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; font-family: 'Nunito', system-ui, sans-serif; font-size: 16px; line-height: 1.45; color: var(--tinte); background: var(--hintergrund); }
 [hidden] { display: none !important; }
-h1, h2 { margin: 0 0 .4rem; font-weight: 600; color: var(--gruen-tief); }
+h1, h2, h3 { margin: 0 0 .4rem; font-weight: 600; color: var(--gruen-tief); }
 h1 { font-size: 1.5rem; }
-h2 { font-size: 1.1rem; margin-top: 1.2rem; }
+h2 { font-size: 1.2rem; margin-top: 1.6rem; padding-top: 1rem; border-top: 1px solid var(--linie); }
+h3 { font-size: 1rem; margin-top: 1rem; color: var(--grau); }
 p { margin: .3rem 0; }
 .leise { color: var(--grau); }
 p.klein { font-size: .9rem; }
@@ -48,6 +49,7 @@ p.klein { font-size: .9rem; }
 .knopf { font: inherit; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; padding: 0 18px; border-radius: 10px; border: 2px solid var(--gruen); background: var(--weiss); color: var(--gruen-tief); cursor: pointer; text-decoration: none; }
 .knopf:hover { background: var(--gruen-hell); }
 .knopf:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+a.knopf.klein { min-height: 38px; }
 .knopf.haupt { background: var(--gruen); color: var(--weiss); }
 .knopf.haupt:hover { background: var(--gruen-tief); }
 .knopf.leise { border-color: var(--linie); color: var(--grau); }
@@ -58,7 +60,10 @@ p.klein { font-size: .9rem; }
 /* Felder */
 .feld { display: grid; gap: 4px; margin: 12px 0; }
 .feld-name { font-weight: 600; font-size: .95rem; }
-input[type=password], textarea { font: inherit; width: 100%; min-height: 46px; padding: 8px 12px; border: 2px solid var(--linie); border-radius: 10px; background: var(--weiss); color: var(--tinte); }
+input[type=password], input[type=text], textarea { font: inherit; width: 100%; min-height: 46px; padding: 8px 12px; border: 2px solid var(--linie); border-radius: 10px; background: var(--weiss); color: var(--tinte); }
+input.falsch { border-color: var(--rot); }
+.hinweis-feld { margin: -6px 0 10px; }
+.hinweis-unter { margin: 8px 2px 0; }
 textarea { font-size: 1.05rem; line-height: 1.4; resize: vertical; min-height: 7.2em; }
 
 /* Meldungen */
@@ -84,24 +89,55 @@ textarea { font-size: 1.05rem; line-height: 1.4; resize: vertical; min-height: 7
 .schalter input:checked + .regler { background: var(--gruen); }
 .schalter input:checked + .regler::after { left: 25px; }
 
-/* Freie Kachel: Schalter, darunter das Textfeld */
-.liste li.frei { display: grid; gap: 6px; padding: 8px; border: 2px dashed var(--linie); border-radius: 14px; }
+/* Kleines Bistro und Öffnungszeiten */
+.vorschau.klein-symbol { background: var(--gold); color: var(--gruen-tief); }
+.liste li.info { display: grid; gap: 4px; }
+.info-text { margin: 0 4px 2px 84px; font-size: .9rem; color: var(--grau); line-height: 1.35; }
+.info-text p { margin: 0; }
+.info-text p.klein { font-size: .82rem; }
+.info-text p.klein:first-of-type { margin-top: 4px; }
+
+/* Freie Kachel: Schalter, darunter Art, Text bzw. Name + Preis, Farbe, Foto und Vorschau */
+.liste li.frei { display: grid; gap: 10px; padding: 8px 8px 12px; border: 2px dashed var(--linie); border-radius: 14px; }
 .liste li.frei .schalter { border-style: solid; }
-.liste li.frei .feld { margin: 2px 4px 4px; }
+.liste li.frei .feld { margin: 0 4px; }
+li.frei[data-typ="text"] .nur-produkt, li.frei[data-typ="produkt"] .nur-text { display: none; }
+.produkt-felder { display: grid; grid-template-columns: minmax(0, 1fr) 8.5rem; gap: 6px 10px; margin: 0 4px; }
+.produkt-felder .feld { margin: 0; align-content: start; }
+.produkt-felder .hinweis-feld { grid-column: 1 / -1; margin: 0; }
 .vorschau.frei-symbol { background: var(--sand); color: var(--gruen-tief); border: 2px solid var(--gold); }
 .vorschau.frei-symbol.rot { background: #f6dde2; border-color: #b8173a; color: #8e1430; }
 .zaehler { font-size: .85rem; color: var(--grau); justify-self: end; }
 
-/* Farbe der freien Kachel: zwei große Auswahlfelder */
-.farben { border: 0; margin: 0 4px; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.farben legend { padding: 0; margin-bottom: 6px; }
-.farbe { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 14px 4px 6px; border: 2px solid var(--linie); border-radius: 10px; cursor: pointer; font-weight: 600; }
-.farbe input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.farbe .farbfeld { width: 30px; height: 30px; border-radius: 7px; background: var(--gruen); }
-.farbe-rot .farbfeld { background: #b8173a; }
-.farbe:has(input:checked) { border-color: var(--gruen); background: var(--gruen-hell); }
-.farbe-rot:has(input:checked) { border-color: #b8173a; background: #fbeef0; }
-.farbe:has(input:focus-visible) { outline: 3px solid var(--gold); outline-offset: 2px; }
+/* Auswahl (Art der Kachel, Farbe): große Felder zum Antippen */
+.wahl { border: 0; margin: 0 4px; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.wahl legend { padding: 0; margin-bottom: 6px; }
+.option { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 14px 4px 6px; border: 2px solid var(--linie); border-radius: 10px; cursor: pointer; font-weight: 600; }
+.typen .option { padding-left: 14px; }
+.typen .farbfeld { display: none; }
+.option input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.option .farbfeld { width: 30px; height: 30px; border-radius: 7px; background: var(--gruen); }
+.option-rot .farbfeld { background: #b8173a; }
+.option:has(input:checked) { border-color: var(--gruen); background: var(--gruen-hell); }
+.option-rot:has(input:checked) { border-color: #b8173a; background: #fbeef0; }
+.option:has(input:focus-visible) { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* Vorschau: ungefähr wie auf Monitor 4 */
+.mini-bereich { margin: 0 4px; display: grid; gap: 6px; }
+.mini { position: relative; width: 240px; max-width: 100%; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; background: var(--gruen); color: #fff;
+  display: flex; align-items: center; justify-content: center; text-align: center; }
+.mini.rot { background: #b8173a; }
+.mini-foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.mini-inhalt { position: relative; padding: 8px 12px; font-weight: 600; line-height: 1.2; font-size: .95rem; overflow-wrap: anywhere; }
+.mini-inhalt p { margin: 0; }
+.mini-inhalt p + p { font-weight: 400; font-size: .85em; }
+.mini-leer { opacity: .7; font-style: italic; font-weight: 400; }
+.mini.produkt .mini-inhalt { display: grid; gap: 4px; }
+.mini.produkt .mini-preis { font-size: 1.15em; }
+.mini.mit-bild { align-items: flex-end; }
+.mini.mit-bild .mini-inhalt { margin-bottom: 8%; max-width: 86%; border-radius: 8px; background: rgba(24, 97, 24, .95); border-top: 3px solid var(--gold); font-size: .8rem; }
+.mini.mit-bild.rot .mini-inhalt { background: rgba(184, 23, 58, .95); }
+.mini.mit-bild.produkt .mini-inhalt { margin: 0; max-width: none; width: 100%; border-radius: 0; border-top: 0; display: flex; justify-content: space-between; gap: 8px; text-align: left; padding: 6px 10px; }
 
 /* Foto der freien Kachel */
 .bild-bereich { margin: 4px 4px 2px; display: grid; gap: 6px; }
@@ -117,4 +153,9 @@ textarea { font-size: 1.05rem; line-height: 1.4; resize: vertical; min-height: 7
 .bild-status.fehler { color: var(--rot); font-weight: 600; }
 .zaehler.zu-viel { color: var(--rot); font-weight: 600; }
 
-.leiste { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--linie); display: grid; gap: 10px; }
+/* Speichern bleibt beim Scrollen unten erreichbar */
+.leiste { position: sticky; bottom: 0; z-index: 4; margin: 18px -18px -18px; padding: 12px 18px 14px; border-top: 1px solid var(--linie);
+  background: var(--weiss); border-radius: 0 0 var(--radius) var(--radius); display: grid; gap: 8px; box-shadow: 0 -6px 16px rgba(0, 0, 0, .05); }
+.leiste .status, .leiste .meldung { margin: 0; }
+.leiste .status { font-size: .9rem; line-height: 1.35; }
+.monitore-links { margin-top: 30px; }
