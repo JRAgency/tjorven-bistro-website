@@ -9,7 +9,9 @@
 
   Zwei Modi, umgeschaltet allein durch Firebase:
   – keine Bestellung in „orders“  → Werbung im Vollbild (Querformat-Bilder)
-  – mindestens eine Bestellung    → In Vorbereitung | Abholbereit | Werbung hochkant (rechte Spalte)
+  – mindestens eine Bestellung    → In Vorbereitung | Abholbereit | Werbung hochkant (rechte Spalte),
+                                    darüber die Kopfzeile „Nur kurz warten. Dann genießen“ auf der
+                                    Creme-Fläche der Monitore 2–4
   Beide Darstellungen zeigen dieselbe Slide-Liste (unten „slides“) im selben Takt.
 -->
 <meta charset="UTF-8">
@@ -54,6 +56,11 @@ header, footer, .site-header, .site-footer, #header, #footer {
     --rot: #af2f3d;
     --gruen: #186118;
     --gold: #e9ba5f;
+    /* wie auf den Monitoren 2–4 (monitor/monitor.css) – nur für die Ansicht mit Bestellungen */
+    --creme: #faf6ee;
+    --gruen-tief: #124a12;
+    --grau: #5e564c;
+    --linie: #e4d9c6;
 }
 
 html, body {
@@ -664,6 +671,73 @@ body[data-modus="bestellung"] #container {
     100% { background-color: #c8f7c5; }
 }
 
+/* ================= Ansicht mit Bestellungen: Kopfzeile und Fläche wie Monitore 2–4 =================
+   Nur im Modus „bestellung“ (ohne Bestellung bleibt alles wie bisher). Creme-Fläche, Überschrift in
+   Dunkelgrün, darunter die goldene Linie – Werte wie in monitor/monitor.css. Die Werbespalte rechts
+   behält Größe und Lage. Die Nummern haben Vorrang: kopfEinpassen() (Skript unten) nimmt die erste
+   Stufe, bei der alle Nummern ganz in ihre Spalte passen:
+   „voll“ (Überschrift + Dank) → „ohne-dank“ → „kompakt“ (Überschrift klein im bisher leeren
+   oberen Rand – die Spalten sind dann genau so hoch wie vor der Kopfzeile). */
+.abhol-kopf { display: none; }
+body[data-modus="bestellung"] { background: var(--creme); }
+body[data-modus="bestellung"] .abhol-kopf {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 32px 15px 20px;   /* links/rechts bündig mit den Bestellkarten */
+}
+.abhol-kopf h1 {
+    margin: 0;
+    font-size: clamp(26px, min(3.33vw, 5.93vh), 64px);
+    line-height: 1;
+    font-weight: 600;
+    color: var(--gruen-tief);
+    letter-spacing: -0.5px;
+    text-wrap: balance;
+}
+.abhol-kopf .dank {
+    margin: 8px 0 0;
+    font-size: clamp(18px, min(1.67vw, 2.96vh), 32px);
+    line-height: 1.2;
+    color: var(--grau);
+}
+.abhol-kopf .linie {
+    flex: none;
+    height: 4px;
+    margin-top: 18px;
+    border-radius: 2px;
+    background: var(--gold);
+}
+body[data-kopf="ohne-dank"] .abhol-kopf .dank,
+body[data-kopf="kompakt"] .abhol-kopf .dank { display: none; }
+
+/* Spalten ohne weiße Karte direkt auf der Creme-Fläche (nebeneinander getrennt durch eine feine Linie wie auf Monitor 3) */
+body[data-modus="bestellung"] .column:not(#werbung) {
+    background: transparent;
+    border-radius: 0;
+}
+
+/* Fernseher / Querformat: Kopfzeile über den beiden Bestellspalten, Werbespalte wie bisher
+   60 px unter dem oberen Rand bis 20 px über dem unteren Rand. */
+@media (min-width: 601px) and (orientation: landscape), (min-width: 901px) {
+    body[data-modus="bestellung"] #container {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-rows: auto minmax(0, 1fr);
+        column-gap: 20px;
+        row-gap: 0;
+        padding-top: 0;
+    }
+    body[data-modus="bestellung"] .abhol-kopf { grid-column: 1 / 3; grid-row: 1; }
+    body[data-modus="bestellung"] #container > .column:not(#werbung) { grid-row: 2; }
+    body[data-modus="bestellung"] .column + .column:not(#werbung) { border-left: 3px solid var(--linie); }
+    body[data-modus="bestellung"] #werbung { grid-column: 3; grid-row: 1 / 3; margin-top: 60px; }
+    body[data-kopf="kompakt"] .abhol-kopf { height: 60px; padding: 8px 15px 0; }
+    body[data-kopf="kompakt"] .abhol-kopf h1 { font-size: 34px; }
+    body[data-kopf="kompakt"] .abhol-kopf .linie { margin-top: 8px; }
+}
+
 /* Handy */
 @media (max-width: 600px) {
     #container {
@@ -730,13 +804,20 @@ body[data-modus="bestellung"] #container {
 }
 </style>
 </head>
-<body data-modus="werbung">
+<body data-modus="werbung" data-kopf="voll">
 
 <!-- Modus „keine Bestellung“: Werbung im Vollbild (Querformat) -->
 <div id="vollbild" aria-hidden="true"></div>
 
 <!-- Modus „Bestellung vorhanden“ -->
 <div id="container">
+
+    <!-- Kopfzeile (kein <header>: der ist für die WordPress-Einbettung oben ausgeblendet) -->
+    <div class="abhol-kopf">
+        <h1>Nur kurz warten. Dann genießen</h1>
+        <p class="dank">Vielen Dank für deinen Besuch</p>
+        <div class="linie" aria-hidden="true"></div>
+    </div>
 
     <!-- Spalte 1 -->
     <div class="column">
@@ -1097,6 +1178,21 @@ function setzeModus(anzahl) {
   if (document.body.dataset.modus !== modus) document.body.dataset.modus = modus;
 }
 
+/* Kopfzeile: die Nummern haben Vorrang. Von der vollen Kopfzeile abwärts die erste Stufe nehmen,
+   bei der beide Bestellspalten alles ohne Scrollen zeigen. Passt nicht einmal „kompakt“, bleibt
+   „kompakt“ – die Spalten haben dann so viel Platz wie vor der Kopfzeile. */
+const KOPF_STUFEN = ["voll", "ohne-dank", "kompakt"];
+function kopfEinpassen() {
+  if (document.body.dataset.modus !== "bestellung") return;
+  const spalten = [document.getElementById("prepList").parentElement, document.getElementById("readyList").parentElement];
+  for (const stufe of KOPF_STUFEN) {
+    document.body.dataset.kopf = stufe;
+    if (spalten.every(s => s.scrollHeight <= s.clientHeight)) return;
+  }
+}
+window.addEventListener("resize", kopfEinpassen);
+if (document.fonts) document.fonts.ready.then(kopfEinpassen);   /* Schrift geladen → Höhen neu messen */
+
 /* Nur LESEN
    Nummer und Tier werden als Text eingesetzt (textContent), nie als HTML –
    so kann ein Eintrag in der Datenbank keinen Code auf dem Fernseher ausführen. */
@@ -1133,6 +1229,7 @@ db.ref("orders").on("value", snapshot => {
 
   const gueltig = Object.values(data).filter(o => o && o.number !== undefined && o.number !== null && String(o.number).trim() !== "");
   setzeModus(gueltig.length);
+  kopfEinpassen();
 });
 </script>
 </body>
