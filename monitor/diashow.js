@@ -27,3 +27,41 @@ export function diashow(rahmen, sekunden) {
   }, sekunden * 1000);
   return { pruefen };
 }
+
+/** eine Folie für Monitor 2/3: Foto, darunter die grüne Leiste „Name Preis“ (alles als reiner Text) */
+export function folie({ klasse, datei, alt, name, preis, artikel, fokus, nah }) {
+  const el = (tag, cls) => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
+  const fig = el('figure', 'dia ' + klasse), bild = el('div', 'bild'), img = el('img', 'foto');
+  if (fokus) fig.style.setProperty('--fokus', fokus);   // Bildausschnitt aus den gemeinsamen Daten (/daten/)
+  if (nah) fig.style.setProperty('--nah', String(nah));
+  img.src = datei; img.alt = alt;
+  bild.append(img);
+  const leiste = el('figcaption', 'beschriftung'), n = el('span', 'k-name'), p = el('span', 'k-preis');
+  n.textContent = name; p.textContent = preis;
+  if (artikel) p.dataset.artikel = artikel;
+  leiste.append(n, p);
+  fig.append(bild, leiste);
+  return fig;
+}
+
+/**
+ * Leisten einer Bildfolge einheitlich so groß wie möglich setzen: höchstens die CSS-Größe, nur so weit
+ * verkleinern, bis der längste sichtbare Name in einer Zeile neben den Preis passt (nie abgeschnitten).
+ * Ausgeblendete Folien (z. B. Lasagne an Schultagen) zählen nicht mit. Nur für sichtbare Bildfolgen.
+ */
+export function leistenEinpassen(rahmen, min = 28) {
+  if (!rahmen || !rahmen.offsetParent) return;
+  const leisten = [...rahmen.querySelectorAll(':scope > .dia:not([hidden]) .beschriftung')];
+  if (!leisten.length) return;
+  for (const l of leisten) { l.style.fontSize = ''; l.classList.remove('zweizeilig'); }
+  const max = parseFloat(getComputedStyle(leisten[0]).fontSize);
+  // passt: Name + Abstand + Preis + Innenabstand der Leiste ≤ Leistenbreite (Breiten ohne Umbruch gemessen)
+  const passt = () => leisten.every(l => {
+    const cs = getComputedStyle(l), n = l.querySelector('.k-name'), p = l.querySelector('.k-preis');
+    const noetig = n.scrollWidth + p.scrollWidth + parseFloat(cs.columnGap || 0) + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    return noetig <= l.clientWidth + 0.5;
+  });
+  let g = max;
+  while (!passt() && g > min) { g -= 1; for (const l of leisten) l.style.fontSize = g + 'px'; }
+  if (!passt()) for (const l of leisten) l.classList.add('zweizeilig');   // Notlösung: Name darf umbrechen
+}

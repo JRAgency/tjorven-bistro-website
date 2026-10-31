@@ -5,13 +5,13 @@
 .speisen .inhalt { flex: 1; min-height: 0; display: flex; gap: 48px; }
 .speisen .diashow { flex: none; width: 848px; }
 
-/* Bildausschnitt je Gericht (--fokus = Mitte des Gerichts, --nah = Vergrößerung) – möglichst vollständig sichtbar */
-.d-bowl { --fokus: 42% 60%; --nah: 1.04; }
-.d-lasagne { --fokus: 36% 55%; --nah: 1; }
-.d-focaccia { --fokus: 50% 64%; --nah: 1.1; }
-.d-wrap, .d-wrap-klein { --fokus: 52% 64%; --nah: 1.08; }
-.d-pommes { --fokus: 46% 88%; --nah: 1.12; }
-.d-waffel { --fokus: 47% 60%; --nah: 1.15; }
+/* Bildausschnitt je Gericht (--fokus = Mitte des Gerichts, --nah = Vergrößerung) steht bei den Fotos in
+   /daten/speisen.js und wird beim Aufbau je Folie gesetzt – dieselben Werte nutzt die Startseite. */
+
+/* Leiste unter dem Foto: vollständiger Name wie in der Karte, immer einzeilig – zu lange Namen verkleinert
+   speisen.js für alle Folien gleich (leistenEinpassen), nie abgeschnitten */
+.speisen .dia .k-name { white-space: nowrap; }
+.speisen .dia .beschriftung.zweizeilig .k-name { white-space: normal; }
 
 /* Karte */
 .speisen .karte { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 30px; }

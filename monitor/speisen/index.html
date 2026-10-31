@@ -6,7 +6,8 @@
      rechts die Karte. Lasagne (Menüeintrag UND Foto) nur an Tagen, an denen sie angeboten wird – entschieden
      zentral in /monitor/lasagne.js.
      „Kleines Bistro“ (Schalter in der Verwaltung von Monitor 4): eigenes, ruhiges Layout mit dem reduzierten
-     Sortiment. Ein Foto von Brezel, Cookies oder Eis gibt es noch nicht – deshalb nur das Wrap-Foto. -->
+     Sortiment. Ein Foto von Brezel, Cookies oder Eis gibt es noch nicht – deshalb nur das Wrap-Foto.
+     Namen, Preise, Kategorien und Fotos stehen nur in /daten/speisen.js (dieselben Daten wie die Startseite). -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
@@ -25,57 +26,16 @@
   </header>
   <div class="trenner"></div>
 
-  <!-- Normalbetrieb -->
+  <!-- Normalbetrieb: Bildfolge und Karte – Inhalt kommt aus /daten/speisen.js (speisen.js baut sie auf) -->
   <div class="inhalt modus" id="normal">
-    <div class="diashow" id="diashow">
-      <figure class="dia d-bowl aktiv"><div class="bild"><img class="foto" src="/images/abholmonitor/13-saisonale-bowl-quer.jpeg" alt="Tjorvens saisonale Bowl"></div><figcaption class="beschriftung"><span class="k-name">Bowl</span><span class="k-preis" data-artikel="Bowl">13.5</span></figcaption></figure>
-      <figure class="dia d-lasagne" data-nur-mit-lasagne hidden><div class="bild"><img class="foto" src="/images/abholmonitor/35-lasagne-neu-quer.jpeg" alt="Hausgemachte Lasagne mit Beilagensalat"></div><figcaption class="beschriftung"><span class="k-name">Lasagne</span><span class="k-preis" data-artikel="Lasagne">12.5</span></figcaption></figure>
-      <figure class="dia d-focaccia"><div class="bild"><img class="foto" src="/images/abholmonitor/12-focaccia-quer.jpeg" alt="Saisonales Focaccia"></div><figcaption class="beschriftung"><span class="k-name">Focaccia</span><span class="k-preis" data-artikel="Focaccia">5.5</span></figcaption></figure>
-      <figure class="dia d-wrap"><div class="bild"><img class="foto" src="/images/abholmonitor/09-wrap-gemuese-quer.jpeg" alt="Getoasteter Wrap"></div><figcaption class="beschriftung"><span class="k-name">Wrap</span><span class="k-preis" data-artikel="Wrap">8.0</span></figcaption></figure>
-      <figure class="dia d-pommes"><div class="bild"><img class="foto" src="/images/abholmonitor/23-pommes-service-hochkant.jpeg" alt="Knusprige Pommes mit Dips"></div><figcaption class="beschriftung"><span class="k-name">Pommes</span><span class="k-preis" data-artikel="Pommes">4.5</span></figcaption></figure>
-      <figure class="dia d-waffel"><div class="bild"><img class="foto" src="/images/abholmonitor/18-waffel-puderzucker-quer.jpeg" alt="Hausgemachte Belgische Waffel mit Puderzucker"></div><figcaption class="beschriftung"><span class="k-name">Belgische Waffel</span><span class="k-preis" data-artikel="Belgische Waffel">4.5</span></figcaption></figure>
-    </div>
-
-    <div class="karte">
-      <section class="gruppe">
-        <h2>herzhaft</h2>
-        <div class="zeile"><span class="name">Tjorvens saisonale Bowl</span><span class="fuell"></span><span class="preis" data-artikel="Tjorvens saisonale Bowl">13.5</span></div>
-        <div class="zeile lasagne" data-nur-mit-lasagne hidden><span class="name">Hausgemachte Lasagne &amp; Beilagensalat</span><span class="fuell"></span><span class="preis" data-artikel="Hausgemachte Lasagne &amp; Beilagensalat">12.5</span></div>
-        <div class="zeile"><span class="name">Knusprige Pommes</span><span class="fuell"></span><span class="preis" data-artikel="Knusprige Pommes">4.5</span></div>
-        <div class="zeile"><span class="name">Loaded Pommes – Veggie oder BBQ</span><span class="fuell"></span><span class="preis" data-artikel="Loaded Pommes – Veggie oder BBQ">9.0</span></div>
-        <div class="zeile"><span class="name">Saisonales Focaccia</span><span class="fuell"></span><span class="preis" data-artikel="Saisonales Focaccia">5.5</span></div>
-        <div class="zeile"><span class="name">Bunter Blattsalat</span><span class="fuell"></span><span class="preis" data-artikel="Bunter Blattsalat">4.5</span></div>
-        <div class="zeile"><span class="name">Getoasteter Wrap</span><span class="fuell"></span><span class="preis" data-artikel="Getoasteter Wrap">8.0</span></div>
-      </section>
-      <section class="gruppe">
-        <h2>süß</h2>
-        <div class="zeile"><span class="name">Hausgemachte Belgische Waffel</span><span class="fuell"></span><span class="preis" data-artikel="Hausgemachte Belgische Waffel">4.5</span></div>
-        <div class="zeile"><span class="name">Homemade Cookies</span><span class="fuell"></span><span class="preis" data-artikel="Homemade Cookies">2.0</span></div>
-        <div class="zeile"><span class="name">Eiscreme</span><span class="fuell"></span><span class="preis" data-artikel="Eiscreme">2.2 | 3.0</span></div>
-      </section>
-    </div>
+    <div class="diashow" id="diashow"></div>
+    <div class="karte" id="karte"></div>
   </div>
 
-  <!-- Kleines Bistro / reduziertes Angebot: nur diese fünf Speisen, größer und luftiger.
-       Der Gemüse Wrap kostet hier 6.0 (im Normalbetrieb 8.0). -->
+  <!-- Kleines Bistro / reduziertes Angebot: eigene, größere Karte (ebenfalls aus /daten/speisen.js) -->
   <div class="inhalt klein modus" id="klein" hidden>
-    <div class="diashow">
-      <figure class="dia d-wrap-klein aktiv"><div class="bild"><img class="foto" src="/images/abholmonitor/09-wrap-gemuese-quer.jpeg" alt="Gemüse Wrap"></div><figcaption class="beschriftung"><span class="k-name">Gemüse Wrap</span><span class="k-preis" data-artikel="Gemüse Wrap (kleines Bistro)">6.0</span></figcaption></figure>
-    </div>
-
-    <div class="karte">
-      <section class="gruppe">
-        <h2>herzhaft</h2>
-        <div class="zeile"><span class="name">Brezel</span><span class="fuell"></span><span class="preis" data-artikel="Brezel">2.0</span></div>
-        <div class="zeile"><span class="name">Butterbrezel</span><span class="fuell"></span><span class="preis" data-artikel="Butterbrezel">3.0</span></div>
-        <div class="zeile"><span class="name">Gemüse Wrap</span><span class="fuell"></span><span class="preis" data-artikel="Gemüse Wrap (kleines Bistro)">6.0</span></div>
-      </section>
-      <section class="gruppe">
-        <h2>süß</h2>
-        <div class="zeile"><span class="name">Homemade Cookies</span><span class="fuell"></span><span class="preis" data-artikel="Homemade Cookies">2.0</span></div>
-        <div class="zeile"><span class="name">Eiscreme</span><span class="fuell"></span><span class="preis" data-artikel="Eiscreme">2.2 | 3.0</span></div>
-      </section>
-    </div>
+    <div class="diashow" id="diashowKlein"></div>
+    <div class="karte" id="karteKlein"></div>
   </div>
 </main>
 </body>

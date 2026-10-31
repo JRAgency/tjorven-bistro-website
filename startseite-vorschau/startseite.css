@@ -1,0 +1,218 @@
+/* Neue Startseite (Vorschau) – nur die neuen, datengetriebenen Bereiche. Alles Übrige (Navigation, Typografie,
+   Knöpfe, Vorteile, Über uns, Bewertungen, Instagram, Karriere, Fußzeile) kommt unverändert aus /css/style.css.
+   Farben der Hervorhebungen wie auf den Monitoren: Lasagne-Band #c4ecc6 (Monitor 2), Eistee-Band #ecd1d0
+   (Monitor 3, aus der Original-Getränkekarte), Bistro-Grün #186118 und Markenrot #b8173a (Monitor 4). */
+
+:root {
+  --bistro-gruen: var(--accent-ink);   /* #186118 – dasselbe Grün wie die Monitore */
+  --band-lasagne: #c4ecc6;
+  --band-eistee: #ecd1d0;
+  --band-kante: polygon(1.2% 6%, 18% 0, 47% 5%, 76% 1%, 99% 4%, 98.2% 30%, 100% 58%, 98.6% 96%, 72% 100%, 41% 95%, 14% 100%, 0.4% 94%, 1.6% 62%, 0 33%);
+}
+
+/* ═══════════════ Heute geöffnet ═══════════════ */
+.jetzt {
+  padding-top: calc(var(--nav-h) + var(--s-8));
+  padding-bottom: var(--s-20);
+  background: linear-gradient(180deg, #faf6f0 0%, var(--bg) 100%);
+  overflow: hidden;
+}
+.jetzt__raster { display: grid; gap: var(--s-12); align-items: center; }
+@media (min-width: 960px) {
+  .jetzt { padding-bottom: var(--s-24); }
+  .jetzt__raster { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: var(--s-16); }
+}
+.jetzt__live {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-bottom: var(--s-5); padding: 7px 18px 7px 13px;
+  border-radius: var(--r-full); background: var(--green-50);
+  color: var(--green-deep); font-size: var(--t-sm); font-weight: 500;
+}
+.jetzt__live[hidden] { display: none; }
+.jetzt__punkt { width: 10px; height: 10px; border-radius: 50%; background: #2f9e44; box-shadow: 0 0 0 4px rgba(47, 158, 68, .18); }
+.jetzt__live[data-phase="vorher"] { background: var(--sand-50); color: #6b4f1d; }
+.jetzt__live[data-phase="vorher"] .jetzt__punkt { background: var(--gold); box-shadow: 0 0 0 4px rgba(233, 186, 95, .28); }
+.jetzt__live[data-phase="danach"], .jetzt__live[data-phase="zu"] { background: var(--warm-100); color: var(--ink-60); }
+.jetzt__live[data-phase="danach"] .jetzt__punkt, .jetzt__live[data-phase="zu"] .jetzt__punkt { background: var(--stone-light); box-shadow: 0 0 0 4px rgba(138, 127, 116, .18); }
+.jetzt__titel { margin-bottom: var(--s-3); }
+.jetzt__zeit {
+  font-family: var(--f-display); font-size: clamp(34px, 5vw, 58px); font-weight: 500; line-height: 1.1;
+  letter-spacing: -.02em; color: var(--bistro-gruen); font-variant-numeric: tabular-nums;
+}
+.jetzt__zeit[hidden] { display: none; }
+.jetzt__details { display: flex; flex-wrap: wrap; gap: 10px; margin-top: var(--s-6); }
+.jetzt__details li {
+  padding: 8px 16px; border: 1px solid var(--sand-light); border-radius: var(--r-full);
+  background: var(--sand-30); font-size: var(--t-sm); line-height: 1.4; color: var(--ink-60);
+}
+.jetzt__regel { margin-top: var(--s-4); font-size: var(--t-sm); color: var(--stone); }
+.jetzt__aktionen { display: flex; flex-wrap: wrap; gap: 12px; margin-top: var(--s-8); }
+.jetzt__link { display: inline-flex; gap: 8px; margin-top: var(--s-5); font-size: var(--t-sm); color: var(--stone); }
+.jetzt__link:hover { color: var(--bistro-gruen); }
+
+.jetzt__bild { position: relative; }
+.jetzt__bild > img {
+  width: 100%; aspect-ratio: 5 / 4; object-fit: cover;
+  border-radius: var(--r-2xl); box-shadow: var(--sh-lg);
+}
+.jetzt__woche {
+  position: absolute; left: -28px; bottom: -32px; width: min(380px, 88%);
+  padding: 18px 22px 12px; border-radius: var(--r-lg);
+  background: var(--surface); box-shadow: var(--sh-lg);
+}
+.jetzt__woche-titel { font-size: var(--t-xs); font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--stone); margin-bottom: 4px; }
+@media (max-width: 959px) {
+  .jetzt__bild > img { aspect-ratio: 16 / 10; border-radius: var(--r-xl); }
+  .jetzt__woche { position: relative; left: auto; bottom: auto; width: auto; margin: -36px var(--s-4) 0; }
+}
+
+/* Öffnungszeiten als Zeilen (Wochenübersicht und Fußzeile) */
+.zeiten__zeile { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--warm-150); font-size: var(--t-sm); line-height: 1.45; }
+.zeiten__zeile:last-child { border-bottom: 0; }
+.zeiten__tage { color: var(--ink-80); }
+.zeiten__zeit { color: var(--stone); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.zeiten--fuss .zeiten__zeile { display: block; padding: 0 0 10px; border: 0; }
+.zeiten--fuss .zeiten__tage { display: block; color: rgba(255, 255, 255, .72); }
+.zeiten--fuss .zeiten__zeit { display: block; color: rgba(255, 255, 255, .45); font-size: 12px; }
+
+/* ═══════════════ Heute zusätzlich (Monitor 4) ═══════════════ */
+.heute__gruss { margin-bottom: var(--s-12); }
+.heute__eyebrow { margin-bottom: var(--s-2); }
+.heute__titel { margin-bottom: var(--s-8); }
+.heute__liste { display: grid; gap: 24px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+.heute__liste[data-anzahl="1"] { grid-template-columns: minmax(0, 520px); }
+.heute__liste[data-anzahl="2"] { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 520px)); }
+
+.tag-karte {
+  display: flex; flex-direction: column; overflow: hidden;
+  border: 1px solid var(--warm-200); border-radius: var(--r-xl);
+  background: var(--surface); box-shadow: var(--sh-sm);
+}
+.tag-karte__bild { aspect-ratio: 4 / 3; overflow: hidden; background: var(--sand-50); }
+.tag-karte__bild img { width: 100%; height: 100%; object-fit: cover; }
+.tag-karte__text { padding: 20px 24px 22px; }
+.tag-karte__kopf { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.tag-karte__titel { font-size: var(--t-xl); font-weight: 500; line-height: 1.25; color: var(--ink); overflow-wrap: anywhere; }
+.tag-karte__preis {
+  flex: none; padding: 3px 14px; border-radius: var(--r-full);
+  background: var(--bistro-gruen); color: #fff; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.tag-karte--rot .tag-karte__preis { background: var(--red); }
+/* ohne Foto: farbige Fläche wie die Textkacheln auf Monitor 4 */
+.tag-karte--flaeche { justify-content: center; min-height: 220px; border-color: transparent; background: var(--bistro-gruen); color: #fff; }
+.tag-karte--flaeche.tag-karte--rot { background: var(--red); }
+.tag-karte--flaeche .tag-karte__text { padding: 32px 28px; text-align: center; }
+.tag-karte--flaeche .tag-karte__kopf { flex-direction: column; align-items: center; gap: 12px; }
+.tag-karte--flaeche .tag-karte__titel { color: #fff; font-size: var(--t-2xl); }
+.tag-karte--flaeche .tag-karte__preis { background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .35); }
+@media (max-width: 599px) {
+  .heute__liste { gap: 16px; }
+  .tag-karte__bild { aspect-ratio: 16 / 10; }
+  .tag-karte--flaeche { min-height: 0; }
+}
+/* feste Angebote ohne Foto (z. B. Apfelkuchen): ruhige helle Karte */
+.tag-karte--schlicht { justify-content: center; min-height: 180px; background: var(--sand-50); border-color: var(--sand-light); }
+.tag-karte--schlicht .tag-karte__text { padding: 28px 26px; }
+.tag-karte--schlicht .tag-karte__titel { font-size: var(--t-2xl); color: var(--green-deep); }
+@media (max-width: 599px) { .tag-karte--schlicht { min-height: 0; } .tag-karte--schlicht .tag-karte__text { padding: 22px; } }
+/* Freitext (Begrüßung, Reservierung …): Zeilen mittig, erste Zeile betont; mit Foto als farbige Fläche darunter */
+.tag-karte--freitext .tag-karte__text { text-align: center; }
+.tag-karte--freitext:not(.tag-karte--flaeche) .tag-karte__text { flex: 1; background: var(--bistro-gruen); color: #fff; }
+.tag-karte--freitext.tag-karte--rot:not(.tag-karte--flaeche) .tag-karte__text { background: var(--red); }
+.tag-karte__zeile { font-size: var(--t-lg); line-height: 1.4; overflow-wrap: anywhere; }
+.tag-karte__zeile:first-child { font-size: var(--t-xl); font-weight: 600; }
+.tag-karte__leer { display: block; height: .7em; }
+
+/* ═══════════════ Unsere Speisen / Unsere Getränke ═══════════════ */
+.karte-abschnitt__kopf { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; }
+.karte-hinweis {
+  padding: 8px 18px; border: 1px solid var(--sand-light); border-radius: var(--r-full);
+  background: var(--sand-50); font-size: var(--t-sm); color: #6b4f1d;
+}
+.karte-hinweis[hidden] { display: none; }
+
+.foto-raster { display: grid; gap: 20px; margin: var(--s-10) 0 var(--s-14); grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.foto-raster--hoch { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.foto-karte { display: flex; flex-direction: column; margin: 0; overflow: hidden; border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--sh-sm); }
+.foto-karte__bild { aspect-ratio: 4 / 3; overflow: hidden; background: var(--sand-50); }
+.foto-raster--hoch .foto-karte__bild { aspect-ratio: 3 / 4; }
+.foto-karte__bild img { width: 100%; height: 100%; object-fit: cover; }
+.foto-karte--freigestellt .foto-karte__bild { background: #f7f7f7; }
+.foto-karte--freigestellt .foto-karte__bild img { object-fit: contain; }
+/* grüne Leiste mit Name und Preis – wie unter den Fotos der Monitore */
+.foto-karte__text {
+  flex: 1; display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 12px 16px 13px; background: var(--bistro-gruen); color: #fff;
+}
+.foto-karte__name { font-size: var(--t-base); line-height: 1.35; }
+.foto-karte__preis { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (max-width: 1100px) { .foto-raster--hoch { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 860px) { .foto-raster { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Handy: Fotos als waagerechte Reihe zum Wischen statt einer langen Bildstrecke */
+@media (max-width: 599px) {
+  .foto-raster, .foto-raster--hoch {
+    display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+    margin-inline: calc(var(--s-6) * -1); padding: 2px var(--s-6) 10px; scroll-padding-inline: var(--s-6); scrollbar-width: none;
+  }
+  .foto-raster::-webkit-scrollbar { display: none; }
+  .foto-karte { flex: 0 0 74%; scroll-snap-align: start; }
+  .foto-raster--hoch .foto-karte { flex-basis: 52%; }
+}
+
+.karte-spalten { display: grid; gap: var(--s-10) var(--s-16); }
+/* nur ein oder zwei Fotos (z. B. Kleines Bistro): Foto links neben der Karte statt allein in einer Reihe */
+@media (min-width: 860px) {
+  .karte-inhalt--wenig { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--s-16); align-items: start; margin-top: var(--s-10); }
+  .karte-inhalt--wenig .foto-raster { grid-template-columns: minmax(0, 1fr); margin: 0; }
+  .karte-inhalt--wenig .karte-spalten { grid-template-columns: minmax(0, 1fr); gap: var(--s-8); }
+}
+@media (min-width: 860px) { .karte-spalten { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.karte-gruppe__titel { font-family: var(--f-display); font-size: var(--t-2xl); font-weight: 600; line-height: 1.2; color: var(--bistro-gruen); margin-bottom: var(--s-2); }
+.karte-gruppe__unter { font-size: var(--t-lg); font-weight: 600; color: var(--bistro-gruen); margin: var(--s-6) 0 var(--s-1); }
+.karte-zeile { display: flex; align-items: baseline; gap: 12px; padding: 6px 0; font-size: var(--t-md); line-height: 1.45; }
+.karte-zeile__name { color: var(--ink); }
+.karte-zeile__fuell { flex: 1; min-width: 18px; border-bottom: 2px dotted var(--warm-300); transform: translateY(-5px); }
+.karte-zeile__menge { flex: none; font-size: var(--t-sm); color: var(--stone); white-space: nowrap; }
+.karte-zeile__preis { flex: none; font-weight: 600; color: var(--bistro-gruen); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.karte-block--abstand { margin-top: var(--s-3); }
+.karte-block--luft { margin-top: var(--s-6); }
+.karte-zusatz { font-size: var(--t-sm); color: var(--stone); }
+/* Hervorhebung mit „Pinselstrich“ wie auf der Original-Karte und den Monitoren */
+.karte-band { position: relative; z-index: 0; margin: 6px 0; padding: 2px 0; }
+.karte-band::before { content: ''; position: absolute; z-index: -1; inset: 0 -14px 0 -12px; transform: rotate(-.5deg); clip-path: var(--band-kante); }
+.karte-band--lasagne::before { background: var(--band-lasagne); }
+.karte-band--eistee::before { background: var(--band-eistee); }
+.karte-band--lasagne .karte-zeile__fuell { border-bottom-color: #8fbf92; }
+.karte-band--eistee .karte-zeile__fuell { border-bottom-color: #c99b9a; }
+.karte-band__hinweis { padding-bottom: 6px; font-size: var(--t-sm); line-height: 1.5; color: var(--ink-60); }
+
+.karte-abschnitt__links { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; margin-top: var(--s-12); }
+.karte-abschnitt__pdf { font-size: var(--t-sm); color: var(--bistro-gruen); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ═══════════════ Feiern & Catering ═══════════════ */
+.feiern__titel { margin-bottom: var(--s-10); }
+.feiern__liste { display: grid; gap: 20px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1100px) { .feiern__liste { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 599px) { .feiern__liste { grid-template-columns: minmax(0, 1fr); } }
+.feier-karte { display: flex; flex-direction: column; overflow: hidden; border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--sh-sm); }
+.feier-karte__bild { aspect-ratio: 4 / 3; overflow: hidden; background: var(--sand-50); }
+.feier-karte__bild img { width: 100%; height: 100%; object-fit: cover; }
+/* Titelseiten der Broschüren: nur den Fototeil oben zeigen, nicht die aufgedruckte Schrift (wie Monitor 4) */
+.feier-karte[data-id="kindergeburtstag"] .feier-karte__bild img { transform: scale(2.15); transform-origin: 45% 0; }
+.feier-karte[data-id="catering"] .feier-karte__bild img { transform: scale(2.6); transform-origin: 50% 0; }
+.feier-karte__text { flex: 1; display: flex; flex-direction: column; padding: 22px 24px 24px; }
+.feier-karte__titel { font-size: var(--t-xl); font-weight: 500; line-height: 1.25; color: var(--ink); }
+.feier-karte__unter { margin-top: 4px; font-size: var(--t-sm); line-height: 1.55; color: var(--stone); }
+.feier-karte__punkte { display: grid; gap: 6px; margin-top: var(--s-4); font-size: var(--t-sm); line-height: 1.45; color: var(--ink-60); }
+.feier-karte__punkte li { position: relative; padding-left: 16px; }
+.feier-karte__punkte li::before { content: ''; position: absolute; left: 0; top: .55em; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+.feier-karte__link { margin-top: auto; padding-top: var(--s-5); font-size: var(--t-sm); font-weight: 500; color: var(--bistro-gruen); }
+.feier-karte__link::after { content: ' →'; }
+.feier-karte__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* kleiner Hinweis, dass dies die Vorschau ist (nicht anklickbar) */
+.vorschau-hinweis {
+  position: fixed; left: 16px; bottom: 16px; z-index: 150; pointer-events: none;
+  padding: 6px 14px; border-radius: var(--r-full); background: rgba(26, 24, 22, .82);
+  color: var(--warm-50); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+}

@@ -7,7 +7,9 @@
      „Kleines Bistro“ (Schalter in der Verwaltung von Monitor 4): zwei Spalten – links die Bildfolge,
      rechts die reduzierte Liste (kalt ohne Hagebutten-Eistee, heiß nur Filterkaffee), größer gesetzt.
      Überschriften klein und fett wie auf der Original-Karte, Preise mit einer Nachkommastelle.
-     Die fritz-Bilder sind aus den Produktfotos des Herstellers zusammengesetzt (images/monitore/). -->
+     Die fritz-Bilder sind aus den Produktfotos des Herstellers zusammengesetzt (images/monitore/).
+     Hagebutten-Eistee mit blassrotem Band wie auf der Original-Getränkekarte.
+     Namen, Mengen, Preise und Fotos stehen nur in /daten/getraenke.js (dieselben Daten wie die Startseite). -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
@@ -26,86 +28,17 @@
   </header>
   <div class="trenner"></div>
 
-  <!-- Normalbetrieb -->
+  <!-- Normalbetrieb: Bildfolge, „kalt“, „heiß“ – Inhalt kommt aus /daten/getraenke.js (getraenke.js baut ihn auf) -->
   <div class="spalten modus" id="normal">
     <section class="spalte bilder">
-      <div class="diashow" id="diashow">
-        <figure class="dia d-eistee aktiv"><div class="bild"><img class="foto" src="/images/abholmonitor/30-hagebutten-eistee-hochkant.jpeg" alt="Hausgemachter Hagebutten-Eistee"></div><figcaption class="beschriftung"><span class="k-name">Hagebutten-Eistee</span><span class="k-preis">3.5</span></figcaption></figure>
-        <figure class="dia freigestellt"><div class="bild"><img class="foto" src="/images/monitore/fritz-kola-original-superzero-mischmasch.jpg" alt="fritz-kola Super Zero, Original und Mischmasch"></div><figcaption class="beschriftung"><span class="k-name">fritz-kola</span><span class="k-preis">3.5</span></figcaption></figure>
-        <figure class="dia d-cappuccino"><div class="bild"><img class="foto" src="/images/abholmonitor/27-herzlich-willkommen-tjorven-bistro.jpeg" alt="Cappuccino"></div><figcaption class="beschriftung"><span class="k-name">Cappuccino</span><span class="k-preis">4.0</span></figcaption></figure>
-        <figure class="dia freigestellt"><div class="bild"><img class="foto" src="/images/monitore/fritz-limo-zitrone-orange.jpg" alt="fritz-limo Zitrone und Orange"></div><figcaption class="beschriftung"><span class="k-name">fritz-limo</span><span class="k-preis">3.5</span></figcaption></figure>
-        <figure class="dia freigestellt"><div class="bild"><img class="foto" src="/images/monitore/fritz-spritz-bio-schorlen-apfel-rhabarber-traube.jpg" alt="fritz-spritz Bio-Schorlen Apfel, Rhabarber und Traube"></div><figcaption class="beschriftung"><span class="k-name">fritz-spritz Bio-Schorlen</span><span class="k-preis">3.5</span></figcaption></figure>
-      </div>
-    </section>
-
-    <section class="spalte gruppe">
-      <h2>kalt</h2>
-      <div class="zeile"><span class="name">Fritz Kola Original</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Fritz Kola Original">3.5</span></div>
-      <div class="zeile"><span class="name">Fritz Kola Superzero</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Fritz Kola Superzero">3.5</span></div>
-      <div class="zeile"><span class="name">Fritz Mischmasch</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Fritz Mischmasch">3.5</span></div>
-      <div class="zeile"><span class="name">Fritz Zitrone</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Fritz Zitrone">3.5</span></div>
-      <div class="zeile"><span class="name">Fritz Orange</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Fritz Orange">3.5</span></div>
-      <div class="zeile"><span class="name">Bio Rhabarberschorle</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Bio Rhabarberschorle">3.5</span></div>
-      <div class="zeile"><span class="name">Bio Traubenschorle</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Bio Traubenschorle">3.5</span></div>
-      <div class="zeile"><span class="name">Bio Apfelschorle</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Bio Apfelschorle">3.5</span></div>
-      <div class="abstand"></div>
-      <div class="zeile"><span class="name">Hagebutten-Eistee gesüßt</span><span class="fuell"></span><span class="menge">0.40l</span><span class="preis" data-artikel="Hagebutten-Eistee gesüßt">3.5</span></div>
-      <div class="zeile"><span class="name">Hagebutten-Eistee ungesüßt</span><span class="fuell"></span><span class="menge">0.40l</span><span class="preis" data-artikel="Hagebutten-Eistee ungesüßt">3.5</span></div>
-      <div class="abstand"></div>
-      <div class="zeile"><span class="name">Black Forest Still</span><span class="fuell"></span><span class="menge">0.25l | 0.75l</span><span class="preis" data-artikel="Black Forest Still">2.5 | 4.5</span></div>
-      <div class="zeile"><span class="name">Peterstaler Classic</span><span class="fuell"></span><span class="menge">0.25l | 0.75l</span><span class="preis" data-artikel="Peterstaler Classic">2.5 | 4.5</span></div>
-      <h3>alkoholisch</h3>
-      <div class="zeile"><span class="name">Lammsbräu Bio Pils</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Lammsbräu Bio Pils">4.0</span></div>
-      <div class="zeile"><span class="name">Lammsbräu Bio Radler</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Lammsbräu Bio Radler">4.0</span></div>
-      <div class="zeile"><span class="name">Lammsbräu Bio alkoholfrei</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Lammsbräu Bio alkoholfrei">4.0</span></div>
-    </section>
-
-    <section class="spalte gruppe">
-      <img class="foto bildfeld" src="/images/abholmonitor/24-kaffee-cappuccino-barista-hochkant.jpeg" alt="Espressomaschine" style="object-position: 50% 58%">
-      <h2>heiß</h2>
-      <div class="zeile"><span class="name">Espresso | Doppio</span><span class="fuell"></span><span class="preis" data-artikel="Espresso | Doppio">2.5 | 3.5</span></div>
-      <div class="zeile"><span class="name">Espresso Macchiato</span><span class="fuell"></span><span class="preis" data-artikel="Espresso Macchiato">3.0</span></div>
-      <div class="zeile"><span class="name">Cortado</span><span class="fuell"></span><span class="preis" data-artikel="Cortado">3.2</span></div>
-      <div class="zeile"><span class="name">Americano</span><span class="fuell"></span><span class="preis" data-artikel="Americano">3.5</span></div>
-      <div class="zeile"><span class="name">Cappuccino</span><span class="fuell"></span><span class="preis" data-artikel="Cappuccino">4.0</span></div>
-      <div class="zeile"><span class="name">Milchkaffee</span><span class="fuell"></span><span class="preis" data-artikel="Milchkaffee">4.0</span></div>
-      <div class="zeile"><span class="name">Latte Macchiato</span><span class="fuell"></span><span class="preis" data-artikel="Latte Macchiato">4.5</span></div>
-      <div class="leerzeile"></div>
-      <div class="zeile"><span class="name">Heiße Schokolade</span><span class="fuell"></span><span class="preis" data-artikel="Heiße Schokolade">3.5</span></div>
-      <div class="zeile"><span class="name">Bio Tee</span><span class="fuell"></span><span class="preis" data-artikel="Bio Tee">3.5</span></div>
-      <div class="zusatz">Kräuter | Früchte | Grün | Schwarz</div>
+      <div class="diashow" id="diashow"></div>
     </section>
   </div>
 
   <!-- Kleines Bistro / reduziertes Angebot: kalt ohne Hagebutten-Eistee, heiß nur Filterkaffee -->
   <div class="spalten klein modus" id="klein" hidden>
     <section class="spalte bilder">
-      <div class="diashow" id="diashowKlein">
-        <figure class="dia freigestellt aktiv"><div class="bild"><img class="foto" src="/images/monitore/fritz-kola-original-superzero-mischmasch.jpg" alt="fritz-kola Super Zero, Original und Mischmasch"></div><figcaption class="beschriftung"><span class="k-name">fritz-kola</span><span class="k-preis">3.5</span></figcaption></figure>
-        <figure class="dia freigestellt"><div class="bild"><img class="foto" src="/images/monitore/fritz-limo-zitrone-orange.jpg" alt="fritz-limo Zitrone und Orange"></div><figcaption class="beschriftung"><span class="k-name">fritz-limo</span><span class="k-preis">3.5</span></figcaption></figure>
-        <figure class="dia freigestellt"><div class="bild"><img class="foto" src="/images/monitore/fritz-spritz-bio-schorlen-apfel-rhabarber-traube.jpg" alt="fritz-spritz Bio-Schorlen Apfel, Rhabarber und Traube"></div><figcaption class="beschriftung"><span class="k-name">fritz-spritz Bio-Schorlen</span><span class="k-preis">3.5</span></figcaption></figure>
-      </div>
-    </section>
-
-    <section class="spalte gruppe">
-      <h2>kalt</h2>
-      <div class="zeile"><span class="name">Fritz Kola Original</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Fritz Kola Original">3.5</span></div>
-      <div class="zeile"><span class="name">Fritz Kola Superzero</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Fritz Kola Superzero">3.5</span></div>
-      <div class="zeile"><span class="name">Fritz Mischmasch</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Fritz Mischmasch">3.5</span></div>
-      <div class="zeile"><span class="name">Fritz Zitrone</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Fritz Zitrone">3.5</span></div>
-      <div class="zeile"><span class="name">Fritz Orange</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Fritz Orange">3.5</span></div>
-      <div class="zeile"><span class="name">Bio Rhabarberschorle</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Bio Rhabarberschorle">3.5</span></div>
-      <div class="zeile"><span class="name">Bio Traubenschorle</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Bio Traubenschorle">3.5</span></div>
-      <div class="zeile"><span class="name">Bio Apfelschorle</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Bio Apfelschorle">3.5</span></div>
-      <div class="abstand"></div>
-      <div class="zeile"><span class="name">Black Forest Still</span><span class="fuell"></span><span class="menge">0.25l | 0.75l</span><span class="preis" data-artikel="Black Forest Still">2.5 | 4.5</span></div>
-      <div class="zeile"><span class="name">Peterstaler Classic</span><span class="fuell"></span><span class="menge">0.25l | 0.75l</span><span class="preis" data-artikel="Peterstaler Classic">2.5 | 4.5</span></div>
-      <h3>alkoholisch</h3>
-      <div class="zeile"><span class="name">Lammsbräu Bio Pils</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Lammsbräu Bio Pils">4.0</span></div>
-      <div class="zeile"><span class="name">Lammsbräu Bio Radler</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Lammsbräu Bio Radler">4.0</span></div>
-      <div class="zeile"><span class="name">Lammsbräu Bio alkoholfrei</span><span class="fuell"></span><span class="menge">0.33l</span><span class="preis" data-artikel="Lammsbräu Bio alkoholfrei">4.0</span></div>
-      <h2 class="h-heiss">heiß</h2>
-      <div class="zeile"><span class="name">Filterkaffee</span><span class="fuell"></span><span class="preis" data-artikel="Filterkaffee">2.5</span></div>
+      <div class="diashow" id="diashowKlein"></div>
     </section>
   </div>
 </main>

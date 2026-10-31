@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <!--
+    NEUE STARTSEITE – VORSCHAU (nur auf der Vercel-Testadresse, ersetzt die öffentliche Startseite noch nicht).
+    Alles, was sich ändert, kommt aus denselben Daten wie die Monitore (siehe startseite.js):
+    Öffnungszeiten /daten/oeffnungszeiten.js · „Heute zusätzlich“ = gespeicherter Stand von Monitor 4
+    (/api/monitore/specials/) · Speisen /daten/speisen.js · Getränke /daten/getraenke.js · Feiern /daten/feiern.js.
+    Hier steht bewusst KEIN Preis, kein Produktname und keine Öffnungszeit fest im HTML.
+    Die übrigen Abschnitte (Vorteile, Über uns, Bewertungen, Instagram, Karriere, Fußzeile) sind 1:1 von der
+    bisherigen Startseite übernommen.
+  -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Tjorven Bistro – Startseite (Vorschau)</title>
+  <meta name="description" content="Vorschau der neuen Startseite des Tjorven Bistro: heutige Öffnungszeit, heutiges Angebot, Speisen und Getränke – aus denselben Daten wie die Monitore im Bistro.">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/nunito-400-normal-latin.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/nunito-500-normal-latin.woff2">
+  <link rel="icon" href="/images/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/startseite-vorschau/startseite.css">
+  <script type="module" src="/startseite-vorschau/startseite.js"></script>
+</head>
+<body class="page-start page-vorschau">
+  <nav class="nav" id="nav" aria-label="Hauptnavigation">
+    <div class="nav__inner">
+      <a href="/startseite-vorschau/" class="nav__logo">
+        <img decoding="async" width="500" height="364" src="/images/tjorven-logo-gruen.png" alt="Tjorven Bistro"
+             class="nav__logo-img"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <span class="nav__logo-fallback" style="display:none">Tjorven</span>
+      </a>
+      <ul class="nav__links">
+        <li><a href="/startseite-vorschau/" class="nav__link active" aria-current="page">Start</a></li>
+        <li><a href="/speisekarte/" class="nav__link">Speisekarte</a></li>
+        <li><a href="/catering/"    class="nav__link">Catering</a></li>
+        <li><a href="/ueber-uns/"   class="nav__link">Über uns</a></li>
+        <li><a href="/kontakt/"     class="nav__link">Kontakt</a></li>
+      </ul>
+      <a href="/kontakt/" class="btn btn--outline btn--sm nav__cta">Kontakt</a>
+      <button class="nav__burger" id="navBurger" aria-label="Menü öffnen" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav__drawer" id="navDrawer">
+      <a href="/startseite-vorschau/" class="nav__link active" aria-current="page">Start</a>
+      <a href="/speisekarte/" class="nav__link">Speisekarte</a>
+      <a href="/catering/"    class="nav__link">Catering</a>
+      <a href="/ueber-uns/"   class="nav__link">Über uns</a>
+      <a href="/kontakt/"     class="nav__link">Kontakt</a>
+      <div class="nav__drawer-cta">
+        <a href="/kontakt/" class="btn btn--primary" style="width:100%;justify-content:center">Kontakt aufnehmen</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ═══════════════════════════════════════
+         HEUTE GEÖFFNET – aus /daten/oeffnungszeiten.js
+    ═══════════════════════════════════════ -->
+    <section class="jetzt" aria-labelledby="heuteTitel">
+      <div class="container jetzt__raster">
+        <div class="jetzt__text">
+          <p class="eyebrow">Bistro in der Klima Arena Sinsheim</p>
+          <p class="jetzt__live" id="statusLive" hidden><span class="jetzt__punkt" aria-hidden="true"></span><span id="statusText"></span></p>
+          <h1 class="display-xl jetzt__titel" id="heuteTitel">Öffnungszeiten</h1>
+          <p class="jetzt__zeit" id="heuteZeit"></p>
+          <ul class="jetzt__details" id="heuteDetails"></ul>
+          <p class="jetzt__regel" id="regel"></p>
+          <noscript><p class="jetzt__regel">Unsere aktuellen Öffnungszeiten findest du auf der Seite <a href="/kontakt/">Kontakt</a>.</p></noscript>
+          <div class="jetzt__aktionen">
+            <a href="#heute" class="btn btn--primary">Was es heute gibt</a>
+            <a href="#speisen" class="btn btn--outline">Speisen &amp; Getränke</a>
+          </div>
+          <a href="/kontakt/" class="jetzt__link">Kontakt &amp; Anfahrt <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="jetzt__bild">
+          <img src="/images/bistro-essbereich.jpg" width="1672" height="941" alt="Heller Essbereich des Tjorven Bistro in der Klima Arena Sinsheim" fetchpriority="high">
+          <div class="jetzt__woche">
+            <p class="jetzt__woche-titel">Öffnungszeiten</p>
+            <div class="zeiten" id="wochenZeiten"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         HEUTE ZUSÄTZLICH – gespeicherter Stand von Monitor 4
+    ═══════════════════════════════════════ -->
+    <section class="section heute" id="heute">
+      <div class="container">
+        <h2 class="display-lg heute__gruss">Schön, dass <em>Du</em> da bist!</h2>
+        <div id="heuteZusatz" hidden>
+          <p class="eyebrow heute__eyebrow">Frisch aus dem Bistro</p>
+          <h3 class="display-md heute__titel">Heute zusätzlich für Dich</h3>
+          <div class="heute__liste" id="heuteListe"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         UNSERE SPEISEN – /daten/speisen.js (wie Monitor 2)
+    ═══════════════════════════════════════ -->
+    <section class="section section--surface karte-abschnitt" id="speisen">
+      <div class="container">
+        <div class="karte-abschnitt__kopf">
+          <div>
+            <p class="eyebrow">Speisekarte</p>
+            <h2 class="display-lg">Unsere <em>Speisen</em></h2>
+          </div>
+          <p class="karte-hinweis" id="kleinHinweisSpeisen" hidden>Heute mit kleinem Angebot</p>
+        </div>
+        <div class="karte-inhalt" id="speisenInhalt">
+          <div class="foto-raster" id="speisenBilder"></div>
+          <div class="karte-spalten" id="speisenListe"></div>
+        </div>
+        <div class="karte-abschnitt__links">
+          <a href="/speisekarte/" class="btn btn--outline btn--sm">Speisekarte mit Beschreibungen</a>
+          <a href="/downloads/speisekarte-getraenkekarte.pdf" class="karte-abschnitt__pdf" target="_blank" rel="noopener">Karte als PDF</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         UNSERE GETRÄNKE – /daten/getraenke.js (wie Monitor 3)
+    ═══════════════════════════════════════ -->
+    <section class="section karte-abschnitt" id="getraenke">
+      <div class="container">
+        <div class="karte-abschnitt__kopf">
+          <div>
+            <p class="eyebrow">Getränkekarte</p>
+            <h2 class="display-lg">Unsere <em>Getränke</em></h2>
+          </div>
+          <p class="karte-hinweis" id="kleinHinweisGetraenke" hidden>Heute mit kleinem Angebot</p>
+        </div>
+        <div class="karte-inhalt" id="getraenkeInhalt">
+          <div class="foto-raster foto-raster--hoch" id="getraenkeBilder"></div>
+          <div class="karte-spalten" id="getraenkeListe"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         FEIERN & CATERING – /daten/feiern.js (die Feiern auch auf Monitor 4)
+    ═══════════════════════════════════════ -->
+    <section class="section section--warm feiern" id="feiern">
+      <div class="container">
+        <p class="eyebrow">Feiern &amp; Catering</p>
+        <h2 class="display-lg feiern__titel">Für besondere <em>Anlässe</em></h2>
+        <div class="feiern__liste" id="feiernListe"></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         BISHERIGE INHALTE DER STARTSEITE (unverändert übernommen)
+    ═══════════════════════════════════════ -->
+    <section class="section">
+      <div class="container">
+        <div class="features">
+
+          <div class="feature-card reveal">
+            <div class="feature-card__icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <h3 class="feature-card__title">Regional & saisonal</h3>
+            <p class="feature-card__text">Wir arbeiten mit lokalen Erzeugern aus der Region – was gerade wächst und schmeckt, landet auf dem Teller.</p>
+          </div>
+
+          <div class="feature-card reveal reveal-delay-1">
+            <div class="feature-card__icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/>
+                <path d="M12 8v4l3 3"/>
+              </svg>
+            </div>
+            <h3 class="feature-card__title">100 % vegan</h3>
+            <p class="feature-card__text">Unser gesamtes Angebot ist vollständig vegan – frisch, ehrlich und ohne Kompromisse beim Geschmack.</p>
+          </div>
+
+          <div class="feature-card reveal reveal-delay-2">
+            <div class="feature-card__icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+              </svg>
+            </div>
+            <h3 class="feature-card__title">Offen für alle</h3>
+            <p class="feature-card__text">Barrierefreier Zugang, kostenloses WLAN und herzlicher Service – ganz ohne Ausstellungsticket.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--warm">
+      <div class="container">
+        <div class="split">
+
+          <div class="split__image-pane reveal">
+            <div class="split__image-frame split__image-frame--team">
+              <img decoding="async" width="1800" height="1151" src="/images/tjorven-anton.jpg"
+                   alt="Tjorven und Anton – Inhaber des Tjorven Bistro"
+                   loading="lazy"
+                   onerror="this.parentElement.innerHTML='<div class=\'img-placeholder\'><img src=\'images/tjorven-logo-gruen.png\' alt=\'Tjorven Bistro\'></div>'">
+            </div>
+            <div class="split__image-accent split__image-accent--br"></div>
+          </div>
+
+          <div class="split__content reveal reveal-delay-1">
+            <p class="eyebrow">Über uns</p>
+            <h2 class="display-lg" style="margin-bottom:16px">Ein Bistro mit <em>Herz</em><br>und Haltung</h2>
+            <span class="divider"></span>
+            <p>Wir sind Tjorven und Anton – und wir kochen mit echter Leidenschaft für frische, ehrliche Küche. Im Tjorven Bistro in der Klima Arena Sinsheim findest du saisonale Gerichte, regionale Zutaten und eine Atmosphäre, in der du gerne sitzenbleibst.</p>
+            <p>Ob du kurz auf einen Kaffee reinschaust, das Mittagessen genießt oder mit der Familie einen besonderen Ausflug planst – hier bist du herzlich willkommen.</p>
+            <a href="/ueber-uns/" class="btn btn--outline">Mehr über uns</a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+
+        <div class="reviews-intro reveal">
+          <div>
+            <p class="eyebrow">Google Rezensionen</p>
+            <h2 class="display-md" style="margin-top:8px">Was unsere Gäste <em>sagen</em></h2>
+          </div>
+          <div class="reviews-score-badge">
+            <span class="reviews-score-badge__num">4,8</span>
+            <div class="reviews-score-badge__stars" aria-label="4,8 von 5 Sternen">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <span class="reviews-score-badge__label">auf Google</span>
+          </div>
+        </div>
+
+        <div class="reviews-grid">
+
+          <!-- Tilman Lichdi -->
+          <div class="review-card reveal">
+            <div class="review-card__head">
+              <div class="review-card__avatar">T</div>
+              <div>
+                <p class="review-card__author">Tilman Lichdi</p>
+                <p class="review-card__date">vor 3 Monaten</p>
+              </div>
+            </div>
+            <div class="review-card__stars" aria-label="5 Sterne">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <p class="review-card__text">„Sehr leckeres Essen und wirklich sehr nette Pächter. Ein Besuch lohnt sich auch ohne die Ausstellung."</p>
+          </div>
+
+          <!-- Jens Remus -->
+          <div class="review-card reveal reveal-delay-1">
+            <div class="review-card__head">
+              <div class="review-card__avatar">J</div>
+              <div>
+                <p class="review-card__author">Jens Remus</p>
+                <p class="review-card__date">vor 3 Monaten</p>
+              </div>
+            </div>
+            <div class="review-card__stars" aria-label="5 Sterne">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <p class="review-card__text">„Klein aber fein! Sehr leckeres und schön angerichtetes Essen, super freundliches Personal. Schönes Ambiente."</p>
+          </div>
+
+          <!-- Roman Kress -->
+          <div class="review-card reveal reveal-delay-2">
+            <div class="review-card__head">
+              <div class="review-card__avatar">R</div>
+              <div>
+                <p class="review-card__author">Roman Kress</p>
+                <p class="review-card__date">vor 6 Monaten</p>
+              </div>
+            </div>
+            <div class="review-card__stars" aria-label="5 Sterne">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <p class="review-card__text">„Charmante Betreiber, die das Konzept mit Herz betreiben. Leckeres Essen zu einem fairen Preis, regionales Gemüse von der Bio-Gärtnerei LAMA. Nachhaltigkeit wird hier wirklich gelebt. Absolute Empfehlung."</p>
+          </div>
+
+          <!-- Amy Papendorf -->
+          <div class="review-card reveal">
+            <div class="review-card__head">
+              <div class="review-card__avatar">A</div>
+              <div>
+                <p class="review-card__author">Amy Papendorf</p>
+                <p class="review-card__date">vor 5 Monaten</p>
+              </div>
+            </div>
+            <div class="review-card__stars" aria-label="5 Sterne">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <p class="review-card__text">„Super nettes Bistro! Leckerer Kaffee &amp; Kuchen – besonders die Zimtschnecken sind klasse."</p>
+          </div>
+
+          <!-- Flo M -->
+          <div class="review-card reveal reveal-delay-1">
+            <div class="review-card__head">
+              <div class="review-card__avatar">F</div>
+              <div>
+                <p class="review-card__author">Flo M</p>
+                <p class="review-card__date">vor 3 Monaten</p>
+              </div>
+            </div>
+            <div class="review-card__stars" aria-label="5 Sterne">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <p class="review-card__text">„Netter und kompetenter Service, tolle Auswahl an veganen Gerichten. Das Ambiente ist sehr angenehm und die Sofa-Sitzecken laden zum Verweilen ein. Gerne wieder!"</p>
+          </div>
+
+        </div>
+
+        <div class="reviews-cta reveal">
+          <a href="https://www.google.com/maps/place/Tjorven+-+Bistro/@49.2392901,8.8777729,17z/data=!4m8!3m7!1s0x479791ca0ce37729:0x7178c2c856c85df5!8m2!3d49.2391357!4d8.8792788!9m1!1b1!16s%2Fg%2F11mm5wgj1d?entry=ttu&amp;g_ep=EgoyMDI2MDUyNi4wIKXMDSoASAFQAw%3D%3D"
+             target="_blank" rel="noopener" class="btn btn--outline">
+            Alle Rezensionen auf Google ansehen →
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="ig-section-layout">
+
+          <div class="ig-visual reveal">
+            <a href="https://www.instagram.com/tjorvenbistro/" target="_blank" rel="noopener">
+              <div class="ig-circle">
+                <img decoding="async" width="500" height="364" src="/images/tjorven-logo-gruen.png" alt="Tjorven Bistro auf Instagram"
+                     onerror="this.parentElement.innerHTML='<span style=\'font-family:var(--f-display);font-size:52px;font-style:italic;font-weight:500;color:var(--green);letter-spacing:-.03em\'>t</span>'">
+              </div>
+            </a>
+          </div>
+
+          <div class="reveal reveal-delay-1">
+            <p class="eyebrow">Folg uns</p>
+            <h2 class="display-md" style="margin-bottom:16px">Aktuelle Einblicke<br>auf <em>Instagram</em></h2>
+            <span class="divider"></span>
+            <p class="body-md body-sub" style="max-width:380px">
+              Einblicke aus der Küche, hausgemachte Kuchen und Momente hinter den Kulissen –
+              folg uns für frische Updates direkt aus dem Bistro.
+            </p>
+            <div style="margin-top:28px">
+              <a href="https://www.instagram.com/tjorvenbistro/" target="_blank" rel="noopener"
+                 class="btn btn--primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                @tjorvenbistro auf Instagram
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--sm" aria-labelledby="careers-title">
+      <div class="container">
+        <div class="careers-card reveal">
+
+          <div class="careers-card__intro">
+            <p class="eyebrow">Karriere</p>
+            <h2 id="careers-title" class="display-sm" style="margin-top:8px">Arbeiten im Tjorven</h2>
+            <p class="careers-card__text">
+              Du hast Freude am Umgang mit Menschen und möchtest in einem herzlichen Team
+              arbeiten? Wir freuen uns jederzeit über Bewerbungen – ob Minijob, Teilzeit
+              oder Werkstudententätigkeit.
+            </p>
+
+            <!-- Erweiterbar: offene Stellen einfach als <li> ergänzen. Ohne Einträge bleibt die Liste unsichtbar.
+                 Vorlage:
+                 <li class="careers-list__item">
+                   <span class="careers-list__role">Mitarbeiter Bistro <span class="careers-list__mfd">(m/w/d)</span></span>
+                   <span class="careers-list__type">Teilzeit</span>
+                 </li>
+            -->
+            <ul class="careers-list"></ul>
+          </div>
+
+          <div class="careers-card__action">
+            <a href="mailto:kontakt@tjorven-bistro.de?subject=Initiativbewerbung%20Tjorven%20Bistro&amp;body=Hallo%20Tjorven-Team%2C%0A%0Aich%20interessiere%20mich%20f%C3%BCr%20eine%20Mitarbeit%20in%20eurem%20Bistro.%0A%0AViele%20Gr%C3%BC%C3%9Fe"
+               class="btn btn--primary">Initiativ bewerben</a>
+            <p class="careers-card__note">
+              Auch wenn aktuell keine passende Stelle ausgeschrieben ist, freuen wir uns
+              jederzeit über Initiativbewerbungen.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- WhatsApp Floating Button -->
+  <a href="https://wa.me/4915159181021?text=Hallo%20Tjorven%20Bistro%2C%20ich%20habe%20eine%20Frage%3A"
+     target="_blank" rel="noopener"
+     class="whatsapp-fab"
+     aria-label="WhatsApp schreiben">
+    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+  </a>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+
+        <div class="footer__brand">
+          <img decoding="async" width="500" height="364" src="/images/tjorven-logo-gruen.png" alt="Tjorven Bistro"
+               class="footer__logo"
+               onerror="this.style.display='none'">
+          <p class="footer__tagline">pflanzlich, herzlich &amp; lecker</p>
+          <div class="footer__social">
+            <a href="https://www.instagram.com/tjorvenbistro/" target="_blank" rel="noopener" aria-label="Instagram"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          </div>
+        </div>
+
+        <div class="footer__col">
+          <h4 class="footer__col-title">Navigation</h4>
+          <ul>
+            <li><a href="/startseite-vorschau/">Start</a></li>
+            <li><a href="/speisekarte/">Speisekarte</a></li>
+            <li><a href="/catering/">Catering</a></li>
+            <li><a href="/ueber-uns/">Über uns</a></li>
+            <li><a href="/kontakt/">Kontakt</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h4 class="footer__col-title">Kontakt</h4>
+          <address>
+            <a href="https://www.google.com/maps/place/Tjorven+-+Bistro/@49.2392901,8.8777729,17z/data=!4m6!3m5!1s0x479791ca0ce37729:0x7178c2c856c85df5!8m2!3d49.2391357!4d8.8792788!16s%2Fg%2F11mm5wgj1d?entry=ttu&amp;g_ep=EgoyMDI2MDUyNS4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener" style="color:rgba(255,255,255,.7)">Dietmar-Hopp-Str. 6<br>74889 Sinsheim</a><br>
+            <a href="tel:+4972611441199">07261 1441199</a><br>
+            <a href="mailto:kontakt@tjorven-bistro.de">kontakt@tjorven-bistro.de</a>
+          </address>
+        </div>
+
+        <div class="footer__col">
+          <h4 class="footer__col-title">Öffnungszeiten</h4>
+          <div class="zeiten zeiten--fuss" id="fussZeiten"></div>
+        </div>
+
+      </div>
+      <div class="footer__bottom">
+        <p>&copy; <span class="footer-year">2025</span> Tjorven Food GmbH</p>
+        <div class="footer__bottom-right">
+          <span class="footer__credit">Erstellt von <a href="https://www.jragencyservices.com/" target="_blank" rel="noopener">JR Agency Services</a></span>
+          <div class="footer__legal">
+            <a href="/impressum/">Impressum</a>
+            <a href="/datenschutz/">Datenschutz</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <p class="vorschau-hinweis" aria-hidden="true">Vorschau</p>
+  <script src="/js/main.js"></script>
+</body>
+</html>

@@ -22,8 +22,25 @@
 // Preise nur dort, wo sie bestätigt sind. Stichpunkte der Feiern 1:1 wie auf Monitor 1 (Abholmonitor).
 // Lasagne ist hier ein normales, von Hand schaltbares Angebot – unabhängig von der Lasagne-Regel
 // auf Monitor 2.
+//
+// Gemeinsame Daten (dieselben wie Monitore 2/3 und Startseite, Ordner daten/): Preis und Foto der Lasagne
+// kommen aus daten/speisen.js, Texte und Fotos der Feiern aus daten/feiern.js, der Text der Kachel
+// „Öffnungszeiten“ wird bei jeder Anfrage aus daten/oeffnungszeiten.js erzeugt. Hier stehen nur die
+// Monitor-4-Angebote selbst (Zimtschnecke, Apfelkuchen, Mousse) und die Darstellung (Bildausschnitt, QR).
+
+import { speise } from '../../../daten/speisen.js';
+import { feier } from '../../../daten/feiern.js';
+import { monitorKachel } from '../../../daten/oeffnungszeiten.js';
+import { heuteInBerlin } from '../../../monitor/kalender-bw.js';
 
 const BILD = '/images/abholmonitor/';
+const LASAGNE = speise('lasagne');
+
+/** eine Feier aus daten/feiern.js als Monitor-4-Angebot (mit Bildausschnitt, Zoom und QR-Code) */
+function feierAngebot(id, darstellung, qr) {
+  const f = feier(id);
+  return { id, titel: f.titel, art: 'event', bild: f.bild.datei, ...darstellung, unter: f.unter, punkte: f.punkte, qr, standard: true };
+}
 
 export const QRS = {
   catering: { bild: '/monitor/qr/qr-catering-broschuere.svg', text: 'tjorven-bistro.de/catering/broschuere' },
@@ -38,22 +55,14 @@ export const KATALOG = [
   { id: 'zimtschnecke', titel: 'Zimtschnecke', art: 'produkt', bild: BILD + '06-zimtschnecken-quer.jpeg', pos: '50% 60%', preis: '3.5', standard: false },
   { id: 'apfelkuchen', titel: 'Apfelkuchen', art: 'produkt', standard: false },
   { id: 'mousse-au-chocolat', titel: 'Mousse au Chocolat', art: 'produkt', preis: '2.0', standard: false },
-  { id: 'lasagne', titel: 'Lasagne', art: 'produkt', bild: BILD + '35-lasagne-neu-quer.jpeg', pos: '45% 55%', preis: '12.5', standard: false },
-  { id: 'kindergeburtstag', titel: 'Kindergeburtstage', art: 'event', bild: '/images/kindergeburtstag-broschuere/seite-1-2400.webp', pos: '45% 0%', zoom: 2.3,
-    unter: 'Das Tjorven Bistro als Dein fester Treffpunkt',
-    punkte: ['Eigener Tischbereich für Eure Gruppe', 'Mehrfaches Kommen und Gehen möglich', 'Kuchen darf mitgebracht werden', 'Kindergeburtstags-Menüs auf Wunsch'],
-    qr: 'kindergeburtstag', standard: true },
-  { id: 'familienfeiern', titel: 'Familienfeiern', art: 'event', bild: BILD + '32-tjorven-anton-eventflaeche-hochkant.jpeg', pos: '50% 30%',
-    unter: 'Tagsüber in der KLIMA ARENA',
-    punkte: ['Eigener Raum', 'Kinder können die Ausstellung erkunden', 'Catering vom Tjorven Bistro', 'Brunch, Kaffee & Kuchen oder individuelles Catering'],
-    qr: 'catering', standard: true },
-  { id: 'feiern-im-bistro', titel: 'Feiern im Bistro', art: 'event', bild: BILD + '31-tjorven-anton-bistro-quer.jpeg', pos: '50% 40%',
-    unter: 'Abends ab 17 Uhr als geschlossene Gesellschaft',
-    punkte: ['Eigener Bistrobereich', 'À-la-carte oder Buffet', 'Wein- und Getränkeservice', 'Auf Wunsch mit vorheriger Führung durch die KLIMA ARENA'],
-    qr: 'catering', standard: true },
+  { id: 'lasagne', titel: LASAGNE.kurz, art: 'produkt', bild: LASAGNE.bild.datei, pos: '45% 55%', preis: LASAGNE.preis, standard: false },
+  feierAngebot('kindergeburtstag', { pos: '45% 0%', zoom: 2.3 }, 'kindergeburtstag'),
+  feierAngebot('familienfeiern', { pos: '50% 30%' }, 'catering'),
+  feierAngebot('feiern-im-bistro', { pos: '50% 40%' }, 'catering'),
+  // Text immer für den heutigen Tag (deutsche Zeit) aus den zentralen Öffnungszeiten
   { id: 'oeffnungszeiten', titel: 'Öffnungszeiten', art: 'info',
-    zeilen: ['Heute geöffnet bis 17 Uhr', 'Warme Küche bis 16 Uhr', 'Kalte Getränke, Cookies und Eis bis 17 Uhr'],
-    klein: ['Täglich geöffnet 10–17 Uhr', 'In der Schulwoche Mo–Fr ab 9 Uhr'],
+    get zeilen() { return monitorKachel(heuteInBerlin()).zeilen; },
+    get klein() { return monitorKachel(heuteInBerlin()).klein; },
     standard: false },
 ];
 

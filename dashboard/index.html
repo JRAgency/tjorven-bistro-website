@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<!--
+  Dashboard – interne Kontrollansicht: Monitor 2, 3 und 4 gleichzeitig, so wie sie gerade im Bistro laufen.
+  Gezeigt werden die ECHTEN Monitorseiten (Einbettung von derselben Adresse, keine nachgebauten Bilder) –
+  sie holen sich ihre Daten selbst und aktualisieren sich wie auf den Fernsehern.
+  Nur lesen: Bearbeitet wird ausschließlich in der Verwaltung (/monitor/admin/).
+  Anmeldung wie Verwaltung und Tagesabschluss (dasselbe Passwort, dieselbe Sitzung) – kein eigenes Login.
+-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Dashboard – Monitore – Tjorven Bistro (intern)</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/dashboard/dashboard.css">
+<script src="/dashboard/dashboard.js" defer></script>
+</head>
+<body>
+
+<header class="kopf">
+  <div class="kopf-innen">
+    <img src="/images/tjorven-logo-gruen.png" alt="" class="kopf-logo" width="44" height="44">
+    <div class="kopf-titel">Dashboard <span class="etikett">intern</span></div>
+    <a class="knopf leise klein" id="zurVerwaltung" href="/monitor/admin/" hidden>Verwaltung</a>
+    <button type="button" id="neuLaden" class="knopf leise klein" hidden>Neu laden</button>
+    <button type="button" id="abmelden" class="knopf leise klein" hidden>Abmelden</button>
+  </div>
+</header>
+
+<main class="inhalt">
+
+  <section id="anmeldung" class="karte schmal" hidden>
+    <h1>Anmelden</h1>
+    <p class="leise">Übersicht der Monitore im Bistro. Passwort wie bei der Verwaltung und beim Tagesabschluss.</p>
+    <form id="anmeldeForm" autocomplete="on">
+      <label class="feld">
+        <span class="feld-name">Passwort</span>
+        <input type="password" id="passwort" name="passwort" autocomplete="current-password" required>
+      </label>
+      <p class="meldung" id="anmeldeMeldung" role="alert"></p>
+      <button type="submit" class="knopf haupt breit">Anmelden</button>
+    </form>
+  </section>
+
+  <p class="meldung zentriert" id="startMeldung" role="alert"></p>
+
+  <section id="uebersicht" hidden>
+    <div class="titelzeile">
+      <h1>Was die Monitore gerade zeigen</h1>
+      <p class="leise" id="stand"></p>
+    </div>
+    <div class="monitore" id="monitore"></div>
+    <p class="leise klein hinweis">Die Vorschauen sind die echten Monitorseiten in klein. Sie fragen wie die Fernseher jede Minute nach Änderungen aus der Verwaltung; nach „Speichern“ in der Verwaltung ist der neue Stand also spätestens nach einer Minute hier zu sehen. Ein Klick auf eine Vorschau öffnet den Monitor groß in einem neuen Tab.</p>
+  </section>
+
+</main>
+</body>
+</html>

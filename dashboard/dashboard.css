@@ -1,0 +1,80 @@
+/* Dashboard – intern. Gestaltung wie Verwaltung und Tagesabschluss (Nunito, Grün/Sand), aber breit für den
+   Desktop: die drei Monitore nebeneinander, jeweils im Seitenverhältnis 16:9. Auf dem Handy untereinander. */
+@font-face { font-family: 'Nunito'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/nunito-400-normal-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Nunito'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/nunito-600-normal-latin.woff2') format('woff2'); }
+
+:root {
+  --gruen: #186118;
+  --gruen-tief: #124a12;
+  --gruen-hell: #eaf3eb;
+  --sand: #f5edd8;
+  --rot: #b8173a;
+  --tinte: #1a1816;
+  --grau: #726859;
+  --linie: #e0d8cd;
+  --hintergrund: #f7f4ef;
+  --weiss: #fff;
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; font-family: 'Nunito', system-ui, sans-serif; font-size: 16px; line-height: 1.45; color: var(--tinte); background: var(--hintergrund); }
+[hidden] { display: none !important; }
+h1, h2 { margin: 0; font-weight: 600; color: var(--gruen-tief); }
+h1 { font-size: 1.45rem; }
+h2 { font-size: 1.05rem; }
+p { margin: .3rem 0; }
+.leise { color: var(--grau); }
+.klein { font-size: .9rem; }
+.zentriert { text-align: center; }
+
+/* Kopf */
+.kopf { position: sticky; top: 0; z-index: 5; background: var(--weiss); border-bottom: 3px solid var(--gruen); }
+.kopf-innen { max-width: 1680px; margin: 0 auto; padding: 8px 24px; display: flex; align-items: center; gap: 12px; }
+.kopf-logo { width: 44px; height: 44px; }
+.kopf-titel { flex: 1; font-weight: 600; font-size: 1.15rem; color: var(--gruen-tief); }
+.etikett { font-size: .75rem; font-weight: 600; color: var(--weiss); background: var(--gruen); border-radius: 99px; padding: 2px 8px; vertical-align: middle; }
+
+/* Knöpfe (wie Verwaltung) */
+.knopf { white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 10px 18px; border: 1px solid var(--gruen); border-radius: 99px; background: var(--weiss); color: var(--gruen); font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; }
+.knopf.haupt { background: var(--gruen); color: var(--weiss); }
+.knopf.leise { border-color: var(--linie); color: var(--grau); }
+.knopf.klein { min-height: 36px; padding: 6px 14px; font-size: .9rem; }
+.knopf.breit { width: 100%; }
+.knopf:disabled { opacity: .6; cursor: default; }
+.knopf:focus-visible, .monitor-link:focus-visible, .bildschirm-klick:focus-visible { outline: 3px solid var(--gruen); outline-offset: 2px; }
+
+/* Anmeldung */
+.inhalt { max-width: 1680px; margin: 0 auto; padding: 24px; }
+.karte { background: var(--weiss); border-radius: var(--radius); padding: 22px; box-shadow: 0 1px 3px rgba(26, 24, 22, .08); }
+.karte.schmal { max-width: 420px; margin: 40px auto; }
+.feld { display: block; margin: 16px 0 8px; }
+.feld-name { display: block; font-weight: 600; margin-bottom: 4px; }
+.feld input { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid var(--linie); border-radius: 10px; font: inherit; }
+.feld input:focus { outline: 2px solid var(--gruen); border-color: var(--gruen); }
+.meldung { min-height: 1.4em; color: var(--rot); font-weight: 600; }
+
+/* Übersicht */
+.titelzeile { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 24px; margin-bottom: 18px; }
+.monitore { display: grid; gap: 24px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 1100px) { .monitore { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) {
+  .monitore { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .inhalt { padding: 16px; }
+  .kopf-innen { flex-wrap: wrap; padding: 8px 12px; gap: 6px 8px; }
+  .kopf-logo { width: 36px; height: 36px; }
+  .kopf-titel { flex: 1 0 60%; }
+  .kopf .knopf.klein { min-height: 34px; padding: 4px 12px; font-size: .85rem; }
+}
+.monitor { min-width: 0; padding: 14px; border-radius: var(--radius); background: var(--weiss); box-shadow: 0 1px 3px rgba(26, 24, 22, .08); }
+.monitor-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.monitor-link { flex: none; font-size: .9rem; font-weight: 600; color: var(--gruen); text-decoration: none; }
+.monitor-link::after { content: ' ↗'; }
+.monitor-link:hover { text-decoration: underline; }
+/* Bildschirm: immer 16:9 – die Monitorseite passt ihre 1920 × 1080-Bühne selbst unverzerrt hinein */
+.bildschirm { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 8px; background: #1a1816; box-shadow: 0 0 0 6px #2a2724, 0 6px 18px rgba(26, 24, 22, .18); margin: 6px; }
+.bildschirm iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+.bildschirm-klick { position: absolute; inset: 0; z-index: 1; cursor: zoom-in; }
+.bildschirm-klick:hover { box-shadow: inset 0 0 0 3px var(--gruen); }
+.hinweis { max-width: 900px; margin-top: 20px; }
