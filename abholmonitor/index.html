@@ -10,8 +10,8 @@
   Zwei Modi, umgeschaltet allein durch Firebase:
   – keine Bestellung in „orders“  → Werbung im Vollbild (Querformat-Bilder)
   – mindestens eine Bestellung    → In Vorbereitung | Abholbereit | Werbung hochkant (rechte Spalte),
-                                    darüber die Kopfzeile „Nur kurz warten. Dann genießen“ auf der
-                                    Creme-Fläche der Monitore 2–4
+                                    darüber die Kopfzeile „Deine Bestellung wird gerade frisch
+                                    zubereitet“ auf der Creme-Fläche der Monitore 2–4
   Beide Darstellungen zeigen dieselbe Slide-Liste (unten „slides“) im selben Takt.
 -->
 <meta charset="UTF-8">
@@ -698,7 +698,7 @@ body[data-modus="bestellung"] .abhol-kopf {
 }
 .abhol-kopf .dank {
     margin: 8px 0 0;
-    font-size: clamp(18px, min(1.67vw, 2.96vh), 32px);
+    font-size: clamp(16px, min(1.67vw, 2.96vh), 32px);
     line-height: 1.2;
     color: var(--grau);
 }
@@ -733,6 +733,12 @@ body[data-modus="bestellung"] .column:not(#werbung) {
     body[data-modus="bestellung"] #container > .column:not(#werbung) { grid-row: 2; }
     body[data-modus="bestellung"] .column + .column:not(#werbung) { border-left: 3px solid var(--linie); }
     body[data-modus="bestellung"] #werbung { grid-column: 3; grid-row: 1 / 3; margin-top: 60px; }
+    /* Wie Monitor 2/3: Überschrift in EINER Zeile (titelEinpassen() verkleinert sie, falls sie breiter als
+       die beiden Bestellspalten wäre), Oberkante der Schrift auf Höhe der Werbespalte, 18 px bis zur
+       goldenen Linie und 30 px von der Linie bis zu den Spaltenüberschriften. Untertitel halb so groß. */
+    body[data-modus="bestellung"] .abhol-kopf { padding: 53px 15px 15px; }
+    .abhol-kopf h1 { white-space: nowrap; }
+    .abhol-kopf .dank { margin-top: 10px; font-size: clamp(16px, min(1.46vw, 2.6vh), 28px); }
     body[data-kopf="kompakt"] .abhol-kopf { height: 60px; padding: 8px 15px 0; }
     body[data-kopf="kompakt"] .abhol-kopf h1 { font-size: 34px; }
     body[data-kopf="kompakt"] .abhol-kopf .linie { margin-top: 8px; }
@@ -814,7 +820,7 @@ body[data-modus="bestellung"] .column:not(#werbung) {
 
     <!-- Kopfzeile (kein <header>: der ist für die WordPress-Einbettung oben ausgeblendet) -->
     <div class="abhol-kopf">
-        <h1>Nur kurz warten. Dann genießen</h1>
+        <h1>Deine Bestellung wird gerade frisch zubereitet</h1>
         <p class="dank">Vielen Dank für deinen Besuch</p>
         <div class="linie" aria-hidden="true"></div>
     </div>
@@ -1187,11 +1193,26 @@ function kopfEinpassen() {
   const spalten = [document.getElementById("prepList").parentElement, document.getElementById("readyList").parentElement];
   for (const stufe of KOPF_STUFEN) {
     document.body.dataset.kopf = stufe;
+    titelEinpassen();
     if (spalten.every(s => s.scrollHeight <= s.clientHeight)) return;
   }
 }
+/* Einzeilige Überschrift (Fernseher, white-space: nowrap im CSS): ist sie breiter als ihr Platz,
+   wird sie verkleinert statt abgeschnitten. Hochkant bricht sie um – dann bleibt die CSS-Größe. */
+function titelEinpassen() {
+  const h1 = document.querySelector(".abhol-kopf h1");
+  h1.style.fontSize = "";
+  if (getComputedStyle(h1).whiteSpace !== "nowrap") return;
+  for (let i = 0; i < 3 && h1.scrollWidth > h1.clientWidth; i++) {
+    const groesse = parseFloat(getComputedStyle(h1).fontSize);
+    h1.style.fontSize = Math.floor(groesse * h1.clientWidth / h1.scrollWidth * 2) / 2 + "px";
+  }
+}
 window.addEventListener("resize", kopfEinpassen);
-if (document.fonts) document.fonts.ready.then(kopfEinpassen);   /* Schrift geladen → Höhen neu messen */
+if (document.fonts) {   /* Schrift geladen → Breite und Höhen neu messen */
+  document.fonts.ready.then(kopfEinpassen);
+  document.fonts.addEventListener("loadingdone", kopfEinpassen);
+}
 
 /* Nur LESEN
    Nummer und Tier werden als Text eingesetzt (textContent), nie als HTML –
