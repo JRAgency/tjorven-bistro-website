@@ -10,8 +10,9 @@
   Zwei Modi, umgeschaltet allein durch Firebase:
   – keine Bestellung in „orders“  → Werbung im Vollbild (Querformat-Bilder)
   – mindestens eine Bestellung    → In Vorbereitung | Abholbereit | Werbung hochkant (rechte Spalte),
-                                    darüber die Kopfzeile „Deine Bestellung wird gerade frisch
-                                    zubereitet“ auf der Creme-Fläche der Monitore 2–4
+                                    darüber die Kopfzeile wie auf den Monitoren 2–4 („Deine Bestellung
+                                    wird frisch zubereitet“, Logo, goldene Linie), unten mittig
+                                    „Vielen Dank für deinen Besuch“, Creme-Fläche der Monitore 2–4
   Beide Darstellungen zeigen dieselbe Slide-Liste (unten „slides“) im selben Takt.
 -->
 <meta charset="UTF-8">
@@ -672,13 +673,14 @@ body[data-modus="bestellung"] #container {
 }
 
 /* ================= Ansicht mit Bestellungen: Kopfzeile und Fläche wie Monitore 2–4 =================
-   Nur im Modus „bestellung“ (ohne Bestellung bleibt alles wie bisher). Creme-Fläche, Überschrift in
-   Dunkelgrün, darunter die goldene Linie – Werte wie in monitor/monitor.css. Die Werbespalte rechts
-   behält Größe und Lage. Die Nummern haben Vorrang: kopfEinpassen() (Skript unten) nimmt die erste
-   Stufe, bei der alle Nummern ganz in ihre Spalte passen:
-   „voll“ (Überschrift + Dank) → „ohne-dank“ → „kompakt“ (Überschrift klein im bisher leeren
-   oberen Rand – die Spalten sind dann genau so hoch wie vor der Kopfzeile). */
-.abhol-kopf { display: none; }
+   Nur im Modus „bestellung“ (ohne Bestellung bleibt alles wie bisher). Kopfzeile aufgebaut wie
+   monitor/monitor.css (.kopf/.trenner): Überschrift links in Dunkelgrün, Logo rechts, darunter die
+   goldene Linie – über den beiden Bestellspalten; die Werbespalte rechts behält Größe und Lage.
+   „Vielen Dank für deinen Besuch“ steht dezent unten mittig unter den Bestellspalten.
+   Die Nummern haben Vorrang: kopfEinpassen() (Skript unten) nimmt die erste Stufe, bei der alle
+   Nummern ganz in ihre Spalte passen: „voll“ (mit Dank unten) → „ohne-dank“ → „kompakt“ (Kopfzeile
+   klein im bisher leeren oberen Rand – die Spalten sind dann genau so hoch wie vor der Kopfzeile). */
+.abhol-kopf, .abhol-dank { display: none; }
 body[data-modus="bestellung"] { background: var(--creme); }
 body[data-modus="bestellung"] .abhol-kopf {
     display: flex;
@@ -687,7 +689,15 @@ body[data-modus="bestellung"] .abhol-kopf {
     box-sizing: border-box;
     padding: 32px 15px 20px;   /* links/rechts bündig mit den Bestellkarten */
 }
+.abhol-kopf .kopf-zeile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
 .abhol-kopf h1 {
+    flex: 1 1 auto;
+    min-width: 0;
     margin: 0;
     font-size: clamp(26px, min(3.33vw, 5.93vh), 64px);
     line-height: 1;
@@ -696,11 +706,11 @@ body[data-modus="bestellung"] .abhol-kopf {
     letter-spacing: -0.5px;
     text-wrap: balance;
 }
-.abhol-kopf .dank {
-    margin: 8px 0 0;
-    font-size: clamp(16px, min(1.67vw, 2.96vh), 32px);
-    line-height: 1.2;
-    color: var(--grau);
+.abhol-kopf .kopf-logo {
+    flex: none;
+    display: block;
+    height: 56px;
+    width: auto;
 }
 .abhol-kopf .linie {
     flex: none;
@@ -709,8 +719,16 @@ body[data-modus="bestellung"] .abhol-kopf {
     border-radius: 2px;
     background: var(--gold);
 }
-body[data-kopf="ohne-dank"] .abhol-kopf .dank,
-body[data-kopf="kompakt"] .abhol-kopf .dank { display: none; }
+body[data-modus="bestellung"] .abhol-dank {
+    display: block;
+    margin: 0 0 20px;
+    text-align: center;
+    font-size: clamp(16px, min(1.67vw, 2.96vh), 28px);
+    line-height: 1.2;
+    color: var(--grau);
+}
+body[data-kopf="ohne-dank"] .abhol-dank,
+body[data-kopf="kompakt"] .abhol-dank { display: none; }
 
 /* Spalten ohne weiße Karte direkt auf der Creme-Fläche (nebeneinander getrennt durch eine feine Linie wie auf Monitor 3) */
 body[data-modus="bestellung"] .column:not(#werbung) {
@@ -724,7 +742,7 @@ body[data-modus="bestellung"] .column:not(#werbung) {
     body[data-modus="bestellung"] #container {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        grid-template-rows: auto minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr) auto;
         column-gap: 20px;
         row-gap: 0;
         padding-top: 0;
@@ -732,15 +750,19 @@ body[data-modus="bestellung"] .column:not(#werbung) {
     body[data-modus="bestellung"] .abhol-kopf { grid-column: 1 / 3; grid-row: 1; }
     body[data-modus="bestellung"] #container > .column:not(#werbung) { grid-row: 2; }
     body[data-modus="bestellung"] .column + .column:not(#werbung) { border-left: 3px solid var(--linie); }
-    body[data-modus="bestellung"] #werbung { grid-column: 3; grid-row: 1 / 3; margin-top: 60px; }
-    /* Wie Monitor 2/3: Überschrift in EINER Zeile (titelEinpassen() verkleinert sie, falls sie breiter als
-       die beiden Bestellspalten wäre), Oberkante der Schrift auf Höhe der Werbespalte, 18 px bis zur
-       goldenen Linie und 30 px von der Linie bis zu den Spaltenüberschriften. Untertitel halb so groß. */
-    body[data-modus="bestellung"] .abhol-kopf { padding: 53px 15px 15px; }
-    .abhol-kopf h1 { white-space: nowrap; }
-    .abhol-kopf .dank { margin-top: 10px; font-size: clamp(16px, min(1.46vw, 2.6vh), 28px); }
+    body[data-modus="bestellung"] #werbung { grid-column: 3; grid-row: 1 / 4; margin-top: 60px; }
+    /* Kopfzeile wie Monitor 2/3: Überschrift in EINER Zeile links (titelEinpassen() verkleinert sie nur,
+       falls sie nicht neben das Logo passt), Logo rechts, beide mittig auf einer Höhe; 18 px darunter die
+       goldene Linie, 30 px bis zu den Spaltenüberschriften. Alle Maße bei 1920 × 1080, kleiner mitskaliert. */
+    body[data-modus="bestellung"] .abhol-kopf { padding: min(1.875vw, 3.33vh, 36px) 15px 15px; }
+    .abhol-kopf .kopf-zeile { gap: 40px; }
+    .abhol-kopf h1 { white-space: nowrap; font-size: clamp(24px, min(2.71vw, 4.81vh), 52px); }
+    .abhol-kopf .kopf-logo { height: clamp(36px, min(4.27vw, 7.6vh), 82px); }
+    /* Dank: unten mittig unter beiden Bestellspalten, Unterkante bündig mit der Werbespalte */
+    body[data-modus="bestellung"] .abhol-dank { grid-column: 1 / 3; grid-row: 3; margin: 0; padding-top: 16px; font-size: clamp(16px, min(1.46vw, 2.6vh), 28px); }
     body[data-kopf="kompakt"] .abhol-kopf { height: 60px; padding: 8px 15px 0; }
     body[data-kopf="kompakt"] .abhol-kopf h1 { font-size: 34px; }
+    body[data-kopf="kompakt"] .abhol-kopf .kopf-logo { height: 40px; }
     body[data-kopf="kompakt"] .abhol-kopf .linie { margin-top: 8px; }
 }
 
@@ -820,8 +842,10 @@ body[data-modus="bestellung"] .column:not(#werbung) {
 
     <!-- Kopfzeile (kein <header>: der ist für die WordPress-Einbettung oben ausgeblendet) -->
     <div class="abhol-kopf">
-        <h1>Deine Bestellung wird gerade frisch zubereitet</h1>
-        <p class="dank">Vielen Dank für deinen Besuch</p>
+        <div class="kopf-zeile">
+            <h1>Deine Bestellung wird frisch zubereitet</h1>
+            <img class="kopf-logo" src="/images/tjorven-logo-gruen.png" alt="Tjorven Bistro">
+        </div>
         <div class="linie" aria-hidden="true"></div>
     </div>
 
@@ -836,6 +860,9 @@ body[data-modus="bestellung"] .column:not(#werbung) {
         <h2>Abholbereit</h2>
         <div id="readyList" class="list"></div>
     </div>
+
+    <!-- Dank: unten mittig unter den Bestellspalten (entfällt, wenn die Nummern den Platz brauchen) -->
+    <p class="abhol-dank">Vielen Dank für deinen Besuch</p>
 
     <!-- Spalte 3 – Werbung hochkant -->
     <div id="werbung" class="column">
