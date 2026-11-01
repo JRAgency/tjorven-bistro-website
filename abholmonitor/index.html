@@ -9,11 +9,11 @@
 
   Zwei Modi, umgeschaltet allein durch Firebase:
   – keine Bestellung in „orders“  → Werbung im Vollbild (Querformat-Bilder)
-  – mindestens eine Bestellung    → oben über die ganze Breite die Kopfzeile wie auf den Monitoren 2–4
-                                    („Deine Bestellung wird frisch zubereitet“, Logo, goldene Linie),
-                                    darunter In Vorbereitung | Abholbereit | Werbung hochkant (rechte
-                                    Spalte), unten mittig „Vielen Dank für deinen Besuch“ (fett),
-                                    Creme-Fläche der Monitore 2–4
+  – mindestens eine Bestellung    → oben die Kopfzeile wie auf den Monitoren 2–4 („Deine Bestellung
+                                    wird frisch zubereitet“, Logo, goldene Linie, gleich eingerückt),
+                                    darunter In Vorbereitung | Abholbereit | Werbung hochkant (rechts
+                                    als abgerundete Karte auf der Creme-Fläche), unten mittig „Vielen
+                                    Dank für deinen Besuch“ (fett), Creme-Fläche der Monitore 2–4
   Beide Darstellungen zeigen dieselbe Slide-Liste (unten „slides“) im selben Takt.
 -->
 <meta charset="UTF-8">
@@ -308,9 +308,10 @@ body[data-modus="bestellung"] #container {
     flex: 0 0 auto;
     aspect-ratio: 1200 / 848;
 }
-/* Querformat-Foto ohne Hochkant-Gegenstück (Bistro-Foto): oben ganz, ohne Personen anzuschneiden */
+/* Querformat-Foto ohne Hochkant-Gegenstück (Bistro-Foto): oben ganz, ohne Personen anzuschneiden;
+   nur wenn die Karte zu kurz ist (kleine Bildschirme), wird es flacher (Zuschnitt, nicht verzerrt) */
 #slideshow .foto.quer-oben {
-    flex: 0 0 auto;
+    flex: 0 1 auto;
     aspect-ratio: 3 / 2;
 }
 #slideshow .willkommen .foto.quer-oben { aspect-ratio: 4 / 3; flex-shrink: 1; }   /* 4:3 statt 1:1, damit der Website-QR darunter Platz hat;
@@ -686,7 +687,8 @@ body[data-modus="bestellung"] #container {
 /* ================= Ansicht mit Bestellungen: Kopfzeile und Fläche wie Monitore 2–4 =================
    Nur im Modus „bestellung“ (ohne Bestellung bleibt alles wie bisher). Kopfzeile aufgebaut wie
    monitor/monitor.css (.kopf/.trenner): Überschrift links in Dunkelgrün, Logo rechts, darunter die
-   goldene Linie – über die ganze Breite; die Werbespalte rechts beginnt erst unter der Linie.
+   goldene Linie, links und rechts eingerückt wie dort; die Werbespalte rechts ist eine abgerundete
+   Karte unter der Linie, ringsum Creme-Fläche (keine Trennlinie zu den Bestellspalten).
    „Vielen Dank für deinen Besuch“ steht fett in Grau unten mittig unter den Bestellspalten.
    Die Nummern haben Vorrang: kopfEinpassen() (Skript unten) nimmt die erste Stufe, bei der alle
    Nummern ganz in ihre Spalte passen: „voll“ (mit Dank unten) → „ohne-dank“ → „kompakt“ (Kopfzeile
@@ -762,33 +764,34 @@ body[data-modus="bestellung"] .column:not(#werbung) {
     body[data-modus="bestellung"] .abhol-kopf { grid-column: 1 / 4; grid-row: 1; }
     body[data-modus="bestellung"] #container > .column:not(#werbung) { grid-row: 2; }
     body[data-modus="bestellung"] .column + .column:not(#werbung) { border-left: 3px solid var(--linie); }
-    /* Werbespalte als Seitenleiste unter der Kopfzeile: oben direkt an der goldenen Linie (−15 px =
-       unterer Innenabstand der Kopfzeile), rechts und unten bündig mit dem Bildschirmrand (negative
-       Ränder heben den 20-px-Innenabstand des Containers auf), ohne Rundung; vom goldenen Rahmen bleibt
-       nur die linke Kante zur Creme-Fläche. Die Bestellspalten behalten Breite und Lage. */
-    body[data-modus="bestellung"] #werbung { grid-column: 3; grid-row: 2 / 4; margin: -15px -20px -20px 0; border-width: 0 0 0 4px; border-radius: 0; }
+    /* Werbespalte als abgerundete Karte wie die Fotos/Bildfolgen der Monitore 2/3 (Radius 18 px, ohne
+       Rahmen): oben 30 px unter der goldenen Linie (−15 px = unterer Innenabstand der Kopfzeile), rechts
+       so weit eingerückt wie die Linie, unten wie die Bühne der Monitore 2–4 (52 px; −20 px = Innenabstand
+       des Containers). Ringsum und zu den Bestellspalten bleibt Creme-Fläche. Die Bestellspalten behalten
+       Breite und Lage; die Slides passen sich der Karte an (Bilder werden nur beschnitten, nie verzerrt). */
+    body[data-modus="bestellung"] #werbung { grid-column: 3; grid-row: 2 / 4; margin: max(0px, calc(30 * var(--px) - 15px)) calc(var(--rand) - 20px) max(0px, calc(52 * var(--px) - 20px)) 0; border: 0; border-radius: calc(18 * var(--px)); }
     /* Kopfzeile mit den Maßen von .kopf/.trenner aus monitor/monitor.css, auf anderen Bildschirmgrößen
        wie die Bühne der Monitore 2–4 mitskaliert (--px = 1 px bei 1920 × 1080): 44 px Rand oben, Zeile
        118 px hoch mit Titel links und Logo (112 px) rechts, beide mittig; 18 px darunter die 4 px hohe
        goldene Linie – bei 1920 × 1080 auf y = 180–184 px wie auf Monitor 2–4; 30 px bis zu den Spalten.
-       Titel mit Schrift, Größe (78 px), Stärke (600) und Kantenglättung von .kopf h1 – über die ganze
-       Breite passt er bei 1920 × 1080 in voller Größe in eine Zeile; nur wenn nicht, verkleinert
-       titelEinpassen() ihn. Die Linie läuft vom Titelanfang bis an den rechten Bildschirmrand
-       (−35 px = Innenabstände von Kopfzeile und Container) und schließt dort die Werbespalte oben ab. */
-    body[data-modus="bestellung"] { --px: min(calc(100vw / 1920), calc(100vh / 1080)); }
-    body[data-modus="bestellung"] .abhol-kopf { padding: calc(44 * var(--px)) 15px 15px; }
+       Titel mit Schrift, Größe (78 px), Stärke (600) und Kantenglättung von .kopf h1 – bei 1920 × 1080
+       in voller Größe in einer Zeile; nur wenn nicht, verkleinert titelEinpassen() ihn. Links und rechts
+       eingerückt wie die Bühne der Monitore 2–4 (--rand = 64 px; −20 px = Innenabstand des Containers,
+       nie weniger als die Bestellkarten): Titel, Logo und Linie bei 1920 × 1080 von x = 64 bis 1856 px. */
+    body[data-modus="bestellung"] { --px: min(calc(100vw / 1920), calc(100vh / 1080)); --rand: max(35px, calc(64 * var(--px))); }
+    body[data-modus="bestellung"] .abhol-kopf { margin: 0 -20px; padding: calc(44 * var(--px)) var(--rand) 15px; }
     .abhol-kopf .kopf-zeile { gap: calc(40 * var(--px)); height: calc(118 * var(--px)); }
     .abhol-kopf h1 { white-space: nowrap; font-family: 'Fontin Sans', 'Nunito', system-ui, sans-serif; font-size: max(24px, calc(78 * var(--px))); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
     .abhol-kopf .kopf-logo { height: max(36px, calc(112 * var(--px))); }
-    .abhol-kopf .linie { margin-top: calc(18 * var(--px)); margin-right: -35px; height: max(2px, calc(4 * var(--px))); border-radius: 2px 0 0 2px; }
-    /* Dank: unten mittig unter beiden Bestellspalten, Unterkante bündig mit der Werbespalte */
+    .abhol-kopf .linie { margin-top: calc(18 * var(--px)); height: max(2px, calc(4 * var(--px))); }
+    /* Dank: unten mittig unter beiden Bestellspalten */
     body[data-modus="bestellung"] .abhol-dank { grid-column: 1 / 3; grid-row: 3; margin: 0; padding-top: 16px; font-size: clamp(16px, min(1.46vw, 2.6vh), 28px); }
-    body[data-kopf="kompakt"] .abhol-kopf { height: 60px; padding: 8px 15px 0; }
+    body[data-kopf="kompakt"] .abhol-kopf { height: 60px; padding: 8px var(--rand) 0; }
     body[data-kopf="kompakt"] .abhol-kopf h1 { font-size: 34px; }
     body[data-kopf="kompakt"] .abhol-kopf .kopf-zeile { height: 40px; gap: 40px; }
     body[data-kopf="kompakt"] .abhol-kopf .kopf-logo { height: 40px; }
     body[data-kopf="kompakt"] .abhol-kopf .linie { margin-top: 8px; height: 4px; }
-    body[data-kopf="kompakt"] #werbung { margin-top: 0; }   /* kompakte Kopfzeile endet mit der Linie */
+    body[data-kopf="kompakt"] #werbung { margin-top: 15px; }   /* kompakte Kopfzeile endet mit der Linie; Karte oben auf Höhe der Spaltenüberschriften */
 }
 
 /* Handy */

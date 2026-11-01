@@ -112,6 +112,9 @@
     li.dataset.bild = a.freiBild || '';
     li.dataset.typ = a.typ || 'text';
     li.append(schalter(a, el('span', 'vorschau ohne frei-symbol', a.titel.slice(-1)), ''));
+    const ausHinweis = el('p', 'aus-hinweis');   // ausgefüllt, aber ausgeschaltet (siehe aktualisiere)
+    ausHinweis.setAttribute('role', 'status');
+    li.append(ausHinweis);
 
     const typen = auswahlFeld('typen', 'Art der Kachel', 'typ-' + a.id, [['text', 'Freitext'], ['produkt', 'Produkt mit Preis']], a.typ || 'text');
 
@@ -347,6 +350,9 @@
       nz.textContent = `${zeilenLaenge(k.name)} / ${NAME_MAX} Zeichen`;
       nz.classList.toggle('zu-viel', zeilenLaenge(k.name) > NAME_MAX);
       li.querySelector('.frei-preis').classList.toggle('falsch', !!preisLesen(k.preis).fehler);
+      const ausgefuellt = k.typ === 'produkt' ? !!(zeilenLaenge(k.name) || k.preis.trim() || k.bild) : !!(m.zeichen || k.bild);
+      li.querySelector('.aus-hinweis').textContent = ausgefuellt && !li.querySelector('.schalter input').checked
+        ? 'Noch ausgeschaltet – erscheint erst auf Monitor 4, wenn der Schalter oben eingeschaltet ist.' : '';
       zeichneVorschau(li, k);
     }
     const an = Object.values(auswahl()).filter(Boolean).length;

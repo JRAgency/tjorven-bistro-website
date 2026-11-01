@@ -108,6 +108,8 @@ li.frei[data-typ="text"] .nur-produkt, li.frei[data-typ="produkt"] .nur-text { d
 .vorschau.frei-symbol { background: var(--sand); color: var(--gruen-tief); border: 2px solid var(--gold); }
 .vorschau.frei-symbol.rot { background: #f6dde2; border-color: #b8173a; color: #8e1430; }
 .zaehler { font-size: .85rem; color: var(--grau); justify-self: end; }
+.aus-hinweis { margin: -4px 4px 0; font-size: .9rem; font-weight: 600; color: var(--orange); }
+.aus-hinweis:empty { display: none; }
 
 /* Auswahl (Art der Kachel, Farbe): große Felder zum Antippen */
 .wahl { border: 0; margin: 0 4px; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }

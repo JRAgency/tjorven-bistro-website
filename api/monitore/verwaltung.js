@@ -52,6 +52,9 @@ function antwort(daten, stand, extra = {}) {
 const speicherFehler = f => fehler(f.status || 503, f.message || 'Der Speicher ist gerade nicht erreichbar.', { code: 'speicher' });
 const konflikt = (daten, stand) => json(antwort(daten, stand, { fehler: 'Die Auswahl wurde inzwischen auf einem anderen Gerät geändert. Bitte prüfen und erneut speichern.', code: 'konflikt' }), 409);
 const titelVon = id => KATALOG.find(k => k.id === id).titel;
+// Eine Verwaltung, die vor der Korrektur in speicher.js geladen wurde, kann noch das „schwache“ ETag W/"…"
+// aus dem CDN mitschicken – es bezeichnet dieselbe Version wie "…".
+const gleicherStand = (aktuell, mitgeschickt) => aktuell === mitgeschickt || (typeof mitgeschickt === 'string' && mitgeschickt.replace(/^W\//, '') === aktuell);
 const genau = (o, schluessel) => o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).length === schluessel.length && schluessel.every(s => Object.hasOwn(o, s));
 
 const FREI_FELDER = ['typ', 'text', 'name', 'preis', 'farbe', 'bild'];
@@ -145,7 +148,7 @@ export default {
 
     try {
       const aktuell = await liesSpecials();
-      if (aktuell.stand !== eingabe.stand) return konflikt(aktuell.daten, aktuell.stand);
+      if (!gleicherStand(aktuell.stand, eingabe.stand)) return konflikt(aktuell.daten, aktuell.stand);
       const vorher = bilderIn(aktuell.daten);
       const nachher = new Set(Object.values(eingabe.frei).map(k => k.bild).filter(Boolean));
       // neu zugeordnete Bilder müssen tatsächlich hochgeladen sein

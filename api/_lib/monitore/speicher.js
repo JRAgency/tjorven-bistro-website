@@ -16,9 +16,12 @@
 //
 // Zwei Geräte gleichzeitig: Die Verwaltung schickt den Stand (ETag) mit, den sie geladen hat.
 // Geschrieben wird nur, wenn die Datei seitdem unverändert ist (ifMatch) – sonst Hinweis statt
-// stillem Überschreiben.
+// stillem Überschreiben. Der Stand kommt von der Blob-API (head), nicht aus der Antwort des Abrufs:
+// Ist die Datei größer als etwa ein halbes bis ein KB, liefert das Vercel-CDN sie komprimiert und mit
+// „schwachem“ ETag (W/"…") aus, das ifMatch nie erfüllt – dann scheiterte jedes Speichern mit „auf einem
+// anderen Gerät geändert“ (live am 01.11.2026 nach dem ersten Produkt mit Foto).
 
-import { get, put, list, del, BlobError, BlobPreconditionFailedError } from '@vercel/blob';
+import { get, head, put, list, del, BlobError, BlobNotFoundError, BlobPreconditionFailedError } from '@vercel/blob';
 
 process.env.VERCEL_BLOB_RETRIES ??= '2';
 
@@ -43,6 +46,13 @@ function alsSpeicherFehler(f) {
 /** → { daten: {…} | null (noch nie gespeichert), stand: ETag | null } */
 export async function liesSpecials() {
   if (!istEingerichtet()) throw new SpeicherFehler('Der Speicher ist noch nicht eingerichtet.', 503, 'nicht_eingerichtet');
+  // erst der Stand, dann der Inhalt: Ändert ein anderes Gerät dazwischen, ist der Stand älter als der
+  // Inhalt und das nächste Speichern meldet den Konflikt – nie umgekehrt
+  let kopf;
+  try { kopf = await head(PFAD); } catch (f) {
+    if (f instanceof BlobNotFoundError) return { daten: null, stand: null };
+    throw alsSpeicherFehler(f);
+  }
   let r;
   try { r = await get(PFAD, { access: 'private', useCache: false }); } catch (f) { throw alsSpeicherFehler(f); }
   if (!r) return { daten: null, stand: null };
@@ -52,7 +62,7 @@ export async function liesSpecials() {
   if (!daten || typeof daten !== 'object' || !daten.aktiv || typeof daten.aktiv !== 'object' || Array.isArray(daten.aktiv)) {
     throw new SpeicherFehler('Die gespeicherte Auswahl ist beschädigt.', 500, 'Format');
   }
-  return { daten, stand: r.blob.etag || null };
+  return { daten, stand: kopf.etag || null };
 }
 
 /** neuer Stand (ETag) = geschrieben, null = inzwischen von einem anderen Gerät geändert */
