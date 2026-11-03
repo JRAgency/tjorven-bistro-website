@@ -29,7 +29,7 @@ export const SPEISEN = {
         { id: 'lasagne', name: 'Hausgemachte Lasagne & Beilagensalat', kurz: 'Lasagne', preis: '12.5', bild: BILD.lasagne, nurMitLasagne: true,
           hinweis: 'Es gibt unsere Lasagne samstags, sonntags, feiertags und in den Schulferien.' },
         { id: 'pommes', name: 'Knusprige Pommes', preis: '4.5', bild: BILD.pommes },
-        { id: 'loaded-pommes', name: 'Loaded Pommes – Veggie oder BBQ', preis: '9.0' },
+        { id: 'loaded-pommes', name: 'Loaded Pommes – Veggie oder Bolo', preis: '9.0' },
         { id: 'focaccia', name: 'Saisonales Focaccia', preis: '5.5', bild: BILD.focaccia },
         { id: 'blattsalat', name: 'Bunter Blattsalat', preis: '4.5' },
         { id: 'wrap', name: 'Getoasteter Wrap', preis: '8.0', bild: BILD.wrap },

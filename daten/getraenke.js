@@ -23,9 +23,9 @@ export const GETRAENKE = {
           { id: 'fritz-mischmasch', name: 'Fritz Mischmasch', menge: '0.33l', preis: '3.5' },
           { id: 'fritz-zitrone', name: 'Fritz Zitrone', menge: '0.33l', preis: '3.5' },
           { id: 'fritz-orange', name: 'Fritz Orange', menge: '0.33l', preis: '3.5' },
-          { id: 'bio-rhabarberschorle', name: 'Bio Rhabarberschorle', menge: '0.33l', preis: '3.5' },
-          { id: 'bio-traubenschorle', name: 'Bio Traubenschorle', menge: '0.33l', preis: '3.5' },
-          { id: 'bio-apfelschorle', name: 'Bio Apfelschorle', menge: '0.33l', preis: '3.5' },
+          { id: 'bio-rhabarberschorle', name: 'Fritz Bio Rhabarberschorle', menge: '0.33l', preis: '3.5' },
+          { id: 'bio-traubenschorle', name: 'Fritz Bio Traubenschorle', menge: '0.33l', preis: '3.5' },
+          { id: 'bio-apfelschorle', name: 'Fritz Bio Apfelschorle', menge: '0.33l', preis: '3.5' },
         ] },
         { hervorhebung: 'eistee', kleinesBistro: false, eintraege: [
           { id: 'eistee-gesuesst', name: 'Hagebutten-Eistee gesüßt', menge: '0.40l', preis: '3.5' },
