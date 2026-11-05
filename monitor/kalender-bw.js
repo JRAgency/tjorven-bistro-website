@@ -1,7 +1,13 @@
 // Kalender Baden-Württemberg für die Display-Monitore: Schulferien und gesetzliche Feiertage.
 //
+// Genutzt von: Monitor 1 (Lasagne-Folie im Abholmonitor) und Monitor 2 (Lasagne auf der Speisekarte) über
+// monitor/lasagne.js, Öffnungszeiten (daten/oeffnungszeiten.js) und die Verwaltung (Hinweis „Heute …“).
+//
 // PFLEGE: Neue Schulferien einfach unten in FERIEN_BW ergänzen (Quelle: Kultusministerium BW,
 // https://km.baden-wuerttemberg.de/de/service/ferien). Datumsangaben als „JJJJ-MM-TT“, „bis“ einschließlich.
+// Eingetragen sind die Schuljahre 2026/27 bis 2029/30 (bis zu den Pfingstferien 2030). Ein halbes Jahr vor dem
+// letzten eingetragenen Ferientag zeigt die Verwaltung (/monitor/admin/, Abschnitt Abholmonitor) einen Hinweis.
+// Danach gelten Werktage ohne Eintrag als Schultage – die Feiertage stimmen trotzdem weiter.
 // Die gesetzlichen Feiertage werden nach den festen Regeln berechnet (auch die beweglichen um Ostern) –
 // sie müssen nicht jedes Jahr nachgetragen werden. Sondertage, an denen das Bistro zusätzlich wie an
 // einem Feiertag öffnet, können in ZUSAETZLICHE_TAGE eingetragen werden.

@@ -4,7 +4,8 @@
 //
 //   monitore/specials.json   { format: 4, aktiv: { <id>: true|false },
 //                              frei: { <id>: { typ: 'text'|'produkt', text, name, preis, farbe: 'gruen'|'rot', bild: null|<Bild-Kennung> } },
-//                              ueberschrift: Text ('' = „Heute bei uns“), kleinesBistro: true|false, geaendert: ISO-Zeit }
+//                              ueberschrift: Text ('' = „Heute bei uns“), kleinesBistro: true|false,
+//                              lasagneAbholmonitor: 'auto'|'immer'|'nie' (Lasagne-Folie Monitor 1; fehlt = 'auto'), geaendert: ISO-Zeit }
 //   monitore/bilder/<sha256>.jpg|png|webp   hochgeladene Bilder der freien Kacheln
 //
 // Ältere Stände werden weiter gelesen und erst beim nächsten Speichern umgeschrieben: format 1 hatte

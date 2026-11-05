@@ -14,7 +14,8 @@
                                     darunter In Vorbereitung | Abholbereit | Werbung hochkant (rechts
                                     als abgerundete Karte auf der Creme-Fläche), unten mittig „Vielen
                                     Dank für deinen Besuch“ (fett), Creme-Fläche der Monitore 2–4
-  Beide Darstellungen zeigen dieselbe Slide-Liste (unten „slides“) im selben Takt.
+  Beide Darstellungen zeigen dieselbe Slide-Liste (unten „slides“) im selben Takt. Die Lasagne-Folie
+  nur an Lasagne-Tagen bzw. nach der Einstellung in der Verwaltung (Modul-Skript unten).
 -->
 <meta charset="UTF-8">
 <title>Abholmonitor – Öffentliche Anzeige</title>
@@ -913,7 +914,9 @@ body[data-modus="bestellung"] .column:not(#werbung) {
    dauer: Anzeigedauer in Sekunden nach Leseaufwand – gilt für Vollbild UND Spalte.
    logoQuer / logoHoch: Ecke des Logos („links“/„rechts“), false = kein Logo; ohne Angabe
    im Vollbild gegenüber der Textfläche, in der Spalte rechts oben.
-   aktiv: false = wird übersprungen. */
+   aktiv: false = wird übersprungen.
+   lasagne: true = nur an Lasagne-Tagen in der Bildfolge (Entscheidung lasagneZeigen() im Modul-Skript
+   unten: Regel aus /monitor/lasagne.js oder „Immer“/„Nie“ aus der Verwaltung). */
 const BILD = "/images/abholmonitor/";
 /* QR-Codes: direkt zur Online-Broschüre mit Planer/Anfrageformular.
    Eigene Seiten für Abendfeiern bzw. Brunch auf der Eventfläche gibt es noch nicht –
@@ -936,7 +939,7 @@ const slides = [
     texte: ["Knackiger Blattsalat auf Quinoa und Buchweizen aus Schwaigern mit gebackenen Kartoffeln, saisonalem Gemüse, gekeimten schwäbischen Linsen, Pickles und kleinen Leckereien an unserem hausgemachten French Dressing."] },
 
   /* Lasagne: Name, Preis und Text 1:1 wie auf der Speisekarte (Canva-PDF / speisekarte.html) */
-  { typ: "produkt", quer: BILD + "35-lasagne-neu-quer.jpeg", text: "rechts", fotoSeitlich: "klein", posHochQuer: "40% 50%", dauer: 15,
+  { typ: "produkt", quer: BILD + "35-lasagne-neu-quer.jpeg", text: "rechts", fotoSeitlich: "klein", posHochQuer: "40% 50%", dauer: 15, lasagne: true,
     name: "Hausgemachte Lasagne & Beilagensalat", preis: "12.5",
     texte: ["Unsere Lasagne basiert auf Sonnenblumenprotein und wird mit einer leckeren Kräutercreme sowie einem würzigen “Sonnenblumenparmesan” serviert.",
             "Es gibt unsere Lasagne samstags, sonntags, feiertags und in den Schulferien."] },
@@ -1197,11 +1200,18 @@ aktiv.forEach(s => {
 /* ---------- Diashow: ein Takt für beide Darstellungen ---------- */
 const querSlides = vollbild.querySelectorAll(".slide");
 const hochSlides = spalte.querySelectorAll(".slide");
-let index = 0;
+let index = 0, vorher = aktiv.length - 1;   // wie bisher: beim Start gilt die letzte Folie als vorige
 const STANDARD_DAUER = 12;   // Sekunden, falls eine Slide keine eigene „dauer“ hat
 
+/* Lasagne-Folie nur, wenn lasagneZeigen() es erlaubt (Modul-Skript unten; noch nicht geladen = nicht zeigen).
+   Übersprungen wird beim Weiterschalten – die Bildfolge läuft ohne Lücke mit der nächsten Folie weiter. */
+const zeigen = i => !aktiv[i].lasagne || (typeof window.lasagneZeigen === "function" && window.lasagneZeigen());
+const naechste = i => {
+  for (let n = 1; n < aktiv.length; n++) { const j = (i + n) % aktiv.length; if (zeigen(j)) return j; }
+  return i;
+};
+
 function showSlide() {
-  const vorher = (index - 1 + aktiv.length) % aktiv.length;
   [querSlides, hochSlides].forEach(liste => {
     liste.forEach((s, i) => {
       s.style.opacity = i === index ? "1" : "0";
@@ -1211,12 +1221,34 @@ function showSlide() {
   });
 
   setTimeout(() => {
-    index = (index + 1) % aktiv.length;
+    vorher = index;   // die gerade gezeigte Folie blendet aus, während die nächste einblendet
+    index = naechste(index);
     showSlide();
   }, (aktiv[index].dauer || STANDARD_DAUER) * 1000);   /* Dauer der GERADE gezeigten Slide – gleich für Vollbild und Spalte */
 }
 
 showSlide();
+</script>
+
+<script type="module">
+/* Lasagne-Folie: „Automatisch“ = Lasagne-Regel aus /monitor/lasagne.js (dieselbe wie auf Monitor 2: Samstag,
+   Sonntag, gesetzlicher Feiertag BW, Schulferien BW – Kalender in /monitor/kalender-bw.js, Zeitzone
+   Europe/Berlin), jedes Mal neu für den heutigen Tag. „Immer“ / „Nie“ stellt die Verwaltung ein
+   (/monitor/admin/); gelesen über die öffentliche Monitor-Antwort, einmal pro Minute. Ohne Antwort gilt
+   die zuletzt bekannte Einstellung, anfangs „Automatisch“. */
+import { lasagneHeute } from "/monitor/lasagne.js";
+let lasagneModus = "auto";
+window.lasagneZeigen = () => lasagneModus === "immer" || (lasagneModus === "auto" && lasagneHeute().verfuegbar);
+async function lasagneEinstellung() {
+  try {
+    const r = await fetch("/api/monitore/specials/");
+    if (!r.ok) return;
+    const d = await r.json();
+    if (d && ["auto", "immer", "nie"].includes(d.lasagneAbholmonitor)) lasagneModus = d.lasagneAbholmonitor;
+  } catch { /* letzter Stand bleibt */ }
+}
+lasagneEinstellung();
+setInterval(lasagneEinstellung, 60 * 1000);
 </script>
 
 <script>

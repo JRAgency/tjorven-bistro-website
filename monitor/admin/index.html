@@ -5,6 +5,7 @@
   Verwaltung der Monitore 2–4 – interner Bereich (nur auf Vercel lauffähig, braucht /api/monitore/*).
   Monitor 4 „Heute bei uns“: Überschrift, Angebote, Öffnungszeiten, vier freie Kacheln.
   Monitore 2 und 3: Schalter „Kleines Bistro / reduziertes Angebot“.
+  Monitor 1 (Abholmonitor): Lasagne-Folie automatisch / immer / nie.
   Anmeldung mit dem Passwort des Tagesabschlusses. Diese Seite enthält keine Daten: Die Auswahl
   wird erst nach der Anmeldung vom Server geladen und nur dort gespeichert.
 -->
@@ -66,6 +67,16 @@
       </li>
     </ul>
     <p class="leise klein hinweis-unter">Eingeschaltet zeigt Monitor 2 nur Brezel 2.0, Butterbrezel 3.0, Gemüse Wrap 6.0, Homemade Cookies und Eiscreme. Monitor 3 zeigt alle Kaltgetränke außer dem Hagebutten-Eistee und als Heißgetränk nur Filterkaffee 2.5. Monitor 4 bleibt, wie er ist.</p>
+
+    <h2>Abholmonitor (Monitor 1)</h2>
+    <fieldset class="wahl lasagne-wahl" id="lasagneWahl">
+      <legend class="feld-name">Lasagne-Folie in der Werbung anzeigen</legend>
+      <label class="option"><input type="radio" name="lasagneAbholmonitor" value="auto"><span>Automatisch</span></label>
+      <label class="option"><input type="radio" name="lasagneAbholmonitor" value="immer"><span>Immer</span></label>
+      <label class="option"><input type="radio" name="lasagneAbholmonitor" value="nie"><span>Nie</span></label>
+    </fieldset>
+    <p class="leise klein hinweis-unter">Automatisch = samstags, sonntags, an Feiertagen in Baden-Württemberg und während der Schulferien in Baden-Württemberg. „Immer“ z. B. für eine Sonderaktion unter der Woche, „Nie“ z. B. wenn die Lasagne ausverkauft ist.</p>
+    <p class="klein lasagne-heute" id="lasagneHeute" aria-live="polite"></p>
 
     <h2>Feste Angebote</h2>
     <h3>Speisen &amp; Kuchen</h3>

@@ -1,5 +1,6 @@
 // Lasagne-Regel – die EINZIGE Stelle, die entscheidet, ob die Lasagne heute angeboten wird.
-// Monitor 2 blendet damit Menüeintrag UND Foto gemeinsam ein oder aus (nie getrennt).
+// Monitor 2 blendet damit Menüeintrag UND Foto gemeinsam ein oder aus (nie getrennt); Monitor 1 (Abholmonitor)
+// zeigt damit im Modus „Automatisch“ der Verwaltung die Lasagne-Folie (sonst fest „Immer“ oder „Nie“).
 //
 // Regel laut Speisekarte: „Es gibt unsere Lasagne samstags, sonntags, feiertags und in den Schulferien.“
 // → Samstag, Sonntag, gesetzlicher Feiertag in Baden-Württemberg, Schulferien BW (inkl. landesweit

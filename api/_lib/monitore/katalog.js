@@ -80,6 +80,8 @@ export const UEBERSCHRIFT_STANDARD = 'Heute bei uns';
 export const FREI_TYPEN = ['text', 'produkt'];
 /** Hintergrund einer freien Kachel: Bistro-Grün (Standard) oder Markenrot */
 export const FREI_FARBEN = ['gruen', 'rot'];
+/** Lasagne-Folie auf Monitor 1 (Abholmonitor): 'auto' = Lasagne-Regel (monitor/lasagne.js), 'immer', 'nie' */
+export const LASAGNE_MODI = ['auto', 'immer', 'nie'];
 /** hochgeladenes Bild einer freien Kachel: SHA-256 des Inhalts + Endung (liegt privat unter monitore/bilder/) */
 export const BILD_MUSTER = /^[0-9a-f]{64}\.(jpg|png|webp)$/;
 /** öffentliche Adresse eines hochgeladenen Bildes (ausgeliefert von /api/monitore/specials/) */
@@ -167,12 +169,14 @@ export function freieKacheln(gespeichert) {
   }));
 }
 
-/** Einstellungen für alle Monitore: eigene Überschrift von Monitor 4 ('' = Standard) und „Kleines Bistro“ */
+/** Einstellungen für alle Monitore: eigene Überschrift von Monitor 4 ('' = Standard), „Kleines Bistro“ und
+ *  die Lasagne-Folie des Abholmonitors (fehlt in älteren Ständen → 'auto') */
 export function einstellungen(gespeichert) {
   const g = gespeichert && typeof gespeichert === 'object' ? gespeichert : {};
   return {
     ueberschrift: bereinigeZeile(g.ueberschrift, UEBERSCHRIFT_MAX_ZEICHEN).text || '',
     kleinesBistro: g.kleinesBistro === true,
+    lasagneAbholmonitor: LASAGNE_MODI.includes(g.lasagneAbholmonitor) ? g.lasagneAbholmonitor : 'auto',
   };
 }
 
@@ -193,8 +197,8 @@ export function anzeige(gespeichert) {
   });
 }
 
-/** öffentliche Antwort für die Monitore 2–4 */
+/** öffentliche Antwort für die Monitore 1–4 (Monitor 1 liest nur lasagneAbholmonitor) */
 export function oeffentlich(gespeichert) {
-  const { ueberschrift, kleinesBistro } = einstellungen(gespeichert);
-  return { angebote: anzeige(gespeichert), ueberschrift: ueberschrift || UEBERSCHRIFT_STANDARD, kleinesBistro };
+  const { ueberschrift, kleinesBistro, lasagneAbholmonitor } = einstellungen(gespeichert);
+  return { angebote: anzeige(gespeichert), ueberschrift: ueberschrift || UEBERSCHRIFT_STANDARD, kleinesBistro, lasagneAbholmonitor };
 }

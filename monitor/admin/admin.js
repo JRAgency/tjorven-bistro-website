@@ -1,6 +1,7 @@
 // Verwaltung der Monitore: Monitor 4 „Heute bei uns“ (Überschrift, feste Angebote, Öffnungszeiten und vier
 // freie Kacheln – je Freitext oder Produkt mit Preis, Farbe, optional ein Foto) und der Schalter
-// „Kleines Bistro“ für die Monitore 2 und 3. Alles wird gemeinsam mit „Speichern“ übernommen.
+// „Kleines Bistro“ für die Monitore 2 und 3, dazu die Lasagne-Folie des Abholmonitors (Monitor 1:
+// Automatisch / Immer / Nie). Alles wird gemeinsam mit „Speichern“ übernommen.
 // Anmeldung und Sitzung wie beim Tagesabschluss (Cookie „__Host-tagesabschluss“, nur serverseitig
 // lesbar). Jede Änderung geht mit dem Kopf „X-Tagesabschluss: 1“ an den Server (CSRF-Schutz).
 // Fotos werden hier im Browser verkleinert (längste Seite 1920 px, JPEG) – dabei fallen auch die
@@ -12,7 +13,9 @@
   let stand = null;          // ETag des geladenen Stands (null = noch nie gespeichert)
   let geladen = new Map();   // id → aktiv (zuletzt vom Server)
   let geladenFrei = new Map();   // id → { typ, text, name, preis, farbe, bild } der freien Kachel (zuletzt vom Server)
-  let geladenAllgemein = { ueberschrift: '', kleinesBistro: false };
+  let geladenAllgemein = { ueberschrift: '', kleinesBistro: false, lasagneAbholmonitor: 'auto' };
+  let lasagneRegel = null;   // /monitor/lasagne.js – dieselbe Regel wie auf den Monitoren (für den Hinweis „Heute …“)
+  let ferienBis = '';        // letzter eingetragener Schulferientag in /monitor/kalender-bw.js
   let angebote = [];
   let entwurf = null;        // eigene Eingaben, falls die Sitzung beim Speichern abgelaufen war
   let laedtHoch = 0;         // laufende Bild-Uploads (solange nicht speichern)
@@ -250,6 +253,8 @@
   }
   const freieKacheln = () => Object.fromEntries([...document.querySelectorAll('#listeFrei li.frei')].map(li => [li.dataset.id, kachelDaten(li)]));
   const gleich = (a, b) => ['typ', 'text', 'name', 'preis', 'farbe', 'bild'].every(f => a[f] === b[f]);
+  const LASAGNE_MODI = ['auto', 'immer', 'nie'];
+  const lasagneWert = () => (document.querySelector('#lasagneWahl input:checked') || {}).value || 'auto';
 
   // grob wie der Server zählen: Zeichen ohne Zeilenumbrüche, Zeilen ohne Leerzeilen am Rand
   function messen(t) {
@@ -283,7 +288,8 @@
   const geaendert = () => Object.entries(auswahl()).some(([id, an]) => geladen.get(id) !== an)
     || Object.entries(freieKacheln()).some(([id, k]) => !gleich(k, geladenFrei.get(id) || LEER))
     || $('ueberschrift').value !== geladenAllgemein.ueberschrift
-    || $('kleinesBistro').checked !== geladenAllgemein.kleinesBistro;
+    || $('kleinesBistro').checked !== geladenAllgemein.kleinesBistro
+    || lasagneWert() !== geladenAllgemein.lasagneAbholmonitor;
 
   /** Eingabefehler vor dem Speichern (dieselben Regeln wie der Server) oder '' */
   function eingabeFehler() {
@@ -355,6 +361,7 @@
         ? 'Noch ausgeschaltet – erscheint erst auf Monitor 4, wenn der Schalter oben eingeschaltet ist.' : '';
       zeichneVorschau(li, k);
     }
+    lasagneHinweis();
     const an = Object.values(auswahl()).filter(Boolean).length;
     const offen = geaendert();
     $('speichern').disabled = !offen || laedtHoch > 0;
@@ -366,13 +373,32 @@
     $('status').classList.toggle('offen', offen);
   }
 
+  /** unter der Lasagne-Auswahl: was der Abholmonitor heute zeigt (deutsche Zeit) */
+  function lasagneHinweis() {
+    const w = lasagneWert();
+    const heute = new Date().toLocaleDateString('de-DE', { timeZone: 'Europe/Berlin', weekday: 'long', day: 'numeric', month: 'long' });
+    let text = '';
+    if (w === 'immer') text = `Heute, ${heute}: Die Lasagne-Folie wird gezeigt (Immer).`;
+    else if (w === 'nie') text = `Heute, ${heute}: Die Lasagne-Folie wird nicht gezeigt (Nie).`;
+    else if (lasagneRegel) {
+      const r = lasagneRegel.lasagneHeute();
+      text = `Heute, ${heute}: Die Lasagne-Folie wird ${r.verfuegbar ? 'gezeigt' : 'nicht gezeigt'} – ${r.verfuegbar ? r.grund : 'normaler Schultag ohne Feiertag und ohne Schulferien'}.`;
+    }
+    // Schulferien stehen fest in kalender-bw.js: rechtzeitig (ein halbes Jahr vorher) melden, wenn sie auslaufen
+    const bald = ferienBis && new Date(ferienBis + 'T12:00:00Z') - Date.now() < 183 * 24 * 60 * 60 * 1000;
+    const warnung = bald ? ` Achtung: Die Schulferien sind nur bis ${ferienBis.split('-').reverse().join('.')} eingetragen – bitte die neuen Termine in monitor/kalender-bw.js ergänzen lassen.` : '';
+    $('lasagneHeute').textContent = text + (w !== geladenAllgemein.lasagneAbholmonitor ? ' Gilt nach „Speichern“.' : '') + warnung;
+    $('lasagneHeute').classList.toggle('aus', w === 'nie' || (w === 'auto' && !!lasagneRegel && !lasagneRegel.lasagneHeute().verfuegbar));
+  }
+
   // eigene: eigene Eingaben (freie Kacheln, Überschrift), die statt des Server-Stands stehen bleiben (Konflikt, abgelaufene Sitzung)
   function zeige(daten, eigene = null) {
     stand = daten.stand;
     angebote = daten.angebote;
     geladen = new Map(angebote.map(a => [a.id, a.aktiv]));
     geladenFrei = new Map(angebote.filter(a => a.art === 'frei').map(a => [a.id, { typ: a.typ || 'text', text: a.text || '', name: a.name || '', preis: a.preis || '', farbe: a.farbe || 'gruen', bild: a.freiBild || null }]));
-    geladenAllgemein = { ueberschrift: typeof daten.ueberschrift === 'string' ? daten.ueberschrift : '', kleinesBistro: daten.kleinesBistro === true };
+    geladenAllgemein = { ueberschrift: typeof daten.ueberschrift === 'string' ? daten.ueberschrift : '', kleinesBistro: daten.kleinesBistro === true,
+      lasagneAbholmonitor: LASAGNE_MODI.includes(daten.lasagneAbholmonitor) ? daten.lasagneAbholmonitor : 'auto' };
     zuletzt = zeitText(daten.geaendert);
     const eigeneFrei = (eigene && eigene.frei) || {};
     $('listeFrei').replaceChildren(...angebote.filter(a => a.art === 'frei').map(a => {
@@ -384,6 +410,7 @@
     $('listeInfo').replaceChildren(...angebote.filter(a => a.art === 'info').map(infoZeile));
     $('ueberschrift').value = eigene && typeof eigene.ueberschrift === 'string' ? eigene.ueberschrift : geladenAllgemein.ueberschrift;
     $('kleinesBistro').checked = geladenAllgemein.kleinesBistro;
+    for (const r of document.querySelectorAll('#lasagneWahl input')) r.checked = r.value === geladenAllgemein.lasagneAbholmonitor;
     $('anmeldung').hidden = true;
     $('verwaltung').hidden = false;
     $('abmelden').hidden = false;
@@ -416,6 +443,12 @@
 
   $('ueberschrift').addEventListener('input', aktualisiere);
   $('kleinesBistro').addEventListener('change', aktualisiere);
+  for (const r of document.querySelectorAll('#lasagneWahl input')) r.addEventListener('change', aktualisiere);
+  Promise.all([import('/monitor/lasagne.js'), import('/monitor/kalender-bw.js')]).then(([regel, kalender]) => {
+    lasagneRegel = regel;
+    ferienBis = kalender.FERIEN_BW.reduce((spaetester, f) => (f.bis > spaetester ? f.bis : spaetester), '');
+    if (!$('verwaltung').hidden) aktualisiere();
+  }).catch(() => { /* ohne Hinweis „Heute …“ */ });
 
   $('speichern').addEventListener('click', async () => {
     $('meldung').textContent = '';
@@ -430,7 +463,7 @@
       .map(li => [li.dataset.id, { ...frei[li.dataset.id], bildAdresse: li.querySelector('.bild-vorschau').getAttribute('src') }])) };
     if ($('ueberschrift').value !== geladenAllgemein.ueberschrift) eigene.ueberschrift = $('ueberschrift').value;
     try {
-      const daten = await api('/api/monitore/verwaltung/', { method: 'PUT', body: JSON.stringify({ aktiv: auswahl(), frei, ueberschrift: $('ueberschrift').value, kleinesBistro: $('kleinesBistro').checked, stand }) });
+      const daten = await api('/api/monitore/verwaltung/', { method: 'PUT', body: JSON.stringify({ aktiv: auswahl(), frei, ueberschrift: $('ueberschrift').value, kleinesBistro: $('kleinesBistro').checked, lasagneAbholmonitor: lasagneWert(), stand }) });
       zeige(daten);
       $('meldung').textContent = daten.monitor === false
         ? 'Gespeichert. Die Monitore übernehmen die Änderung spätestens in einer Stunde.'

@@ -6,7 +6,8 @@
 // Angenommen werden ausschließlich die Kennungen aus dem Katalog mit true/false, für die vier freien
 // Kacheln je Typ (Freitext oder Produkt), ein kurzer reiner Text bzw. Produktname und Preis (serverseitig
 // bereinigt und begrenzt), eine der zwei Farben und optional die Kennung eines zuvor hochgeladenen
-// Bildes, dazu die Überschrift von Monitor 4 und der Schalter „Kleines Bistro“ (Monitore 2 und 3).
+// Bildes, dazu die Überschrift von Monitor 4, der Schalter „Kleines Bistro“ (Monitore 2 und 3) und die
+// Lasagne-Folie des Abholmonitors (Monitor 1: automatisch / immer / nie).
 // Keine Adresse kommt vom Browser.
 //
 // Bilder: Die Verwaltung verkleinert das Foto im Browser (längste Seite 1920 px, JPEG) und schickt es
@@ -18,7 +19,7 @@
 import crypto from 'node:crypto';
 import { json, fehler, nurMethoden, vonEigenerSeite, fremdeSeite, leseJson } from '../_lib/tagesabschluss/antwort.js';
 import { brauchtSitzung } from '../_lib/tagesabschluss/sitzung.js';
-import { KATALOG, IDS, FREI_IDS, FREI_TYPEN, FREI_FARBEN, BILD_MUSTER, NAME_MAX_ZEICHEN, UEBERSCHRIFT_MAX_ZEICHEN, zustand, freieKacheln, einstellungen,
+import { KATALOG, IDS, FREI_IDS, FREI_TYPEN, FREI_FARBEN, LASAGNE_MODI, BILD_MUSTER, NAME_MAX_ZEICHEN, UEBERSCHRIFT_MAX_ZEICHEN, zustand, freieKacheln, einstellungen,
   bereinigeFreitext, bereinigeZeile, bereinigePreis, bildAdresse } from '../_lib/monitore/katalog.js';
 import { liesSpecials, schreibeSpecials, speichereBild, listeBilder, loescheBilder, CACHE_TAG } from '../_lib/monitore/speicher.js';
 import { dangerouslyDeleteByTag } from '@vercel/functions';
@@ -60,12 +61,13 @@ const genau = (o, schluessel) => o && typeof o === 'object' && !Array.isArray(o)
 const FREI_FELDER = ['typ', 'text', 'name', 'preis', 'farbe', 'bild'];
 
 /**
- * { aktiv: { id: bool, … }, frei: { id: { typ, text, name, preis, farbe, bild }, … }, ueberschrift, kleinesBistro, stand }
- * prüfen → { aktiv, frei, ueberschrift, kleinesBistro, stand } | { fehler, code } | null
+ * { aktiv: { id: bool, … }, frei: { id: { typ, text, name, preis, farbe, bild }, … }, ueberschrift, kleinesBistro, lasagneAbholmonitor?, stand }
+ * prüfen → { aktiv, frei, ueberschrift, kleinesBistro, lasagneAbholmonitor, stand } | { fehler, code } | null
+ * lasagneAbholmonitor fehlt bei einer Verwaltung von vor dieser Einstellung → undefined = gespeicherten Wert behalten
  */
 function pruefe(eingabe) {
   if (!eingabe || typeof eingabe !== 'object' || Array.isArray(eingabe)) return null;
-  const { aktiv, frei, ueberschrift, kleinesBistro, stand } = eingabe;
+  const { aktiv, frei, ueberschrift, kleinesBistro, lasagneAbholmonitor, stand } = eingabe;
   // ältere Verwaltung (noch offen im Browser): kannte weder Überschrift noch „Kleines Bistro“
   if (!Object.hasOwn(eingabe, 'kleinesBistro') || !Object.hasOwn(eingabe, 'ueberschrift')) return { fehler: 'Die Verwaltung wurde aktualisiert. Bitte die Seite neu laden und die Änderung noch einmal vornehmen.', code: 'veraltet' };
   if (!aktiv || typeof aktiv !== 'object' || Array.isArray(aktiv)) return null;
@@ -73,6 +75,7 @@ function pruefe(eingabe) {
   if (schluessel.length !== IDS.size || !schluessel.every(id => IDS.has(id) && typeof aktiv[id] === 'boolean')) return null;
   if (!genau(frei, FREI_IDS) || !FREI_IDS.every(id => genau(frei[id], FREI_FELDER))) return null;
   if (typeof kleinesBistro !== 'boolean' || typeof ueberschrift !== 'string') return null;
+  if (lasagneAbholmonitor !== undefined && !LASAGNE_MODI.includes(lasagneAbholmonitor)) return null;
   if (stand !== null && (typeof stand !== 'string' || stand.length > 200)) return null;
   const titel = bereinigeZeile(ueberschrift, UEBERSCHRIFT_MAX_ZEICHEN);
   if (titel.fehler) return { fehler: `Überschrift Monitor 4: ${titel.fehler}`, code: 'eingabe' };
@@ -93,7 +96,7 @@ function pruefe(eingabe) {
     if (aktiv[id] && typ === 'produkt' && (!n.text || !p.preis)) return { fehler: `${titelVon(id)} ist als Produkt eingeschaltet und braucht einen Produktnamen und einen Preis.`, code: 'eingabe' };
     kacheln[id] = { typ, text: t.text || '', name: n.text || '', preis: p.preis || '', farbe, bild };
   }
-  return { aktiv: Object.fromEntries(KATALOG.map(k => [k.id, aktiv[k.id]])), frei: kacheln, ueberschrift: titel.text, kleinesBistro, stand };
+  return { aktiv: Object.fromEntries(KATALOG.map(k => [k.id, aktiv[k.id]])), frei: kacheln, ueberschrift: titel.text, kleinesBistro, lasagneAbholmonitor, stand };
 }
 
 const bilderIn = daten => new Set(Object.values(freieKacheln(daten)).map(k => k.bild).filter(Boolean));
@@ -159,7 +162,8 @@ export default {
         const fehlt = FREI_IDS.find(id => eingabe.frei[id].bild && !da.has(eingabe.frei[id].bild));
         if (fehlt) return fehler(400, `${titelVon(fehlt)}: Das Bild ist nicht mehr vorhanden. Bitte erneut auswählen.`, { code: 'eingabe' });
       }
-      const daten = { format: 4, aktiv: eingabe.aktiv, frei: eingabe.frei, ueberschrift: eingabe.ueberschrift, kleinesBistro: eingabe.kleinesBistro, geaendert: new Date().toISOString() };
+      const daten = { format: 4, aktiv: eingabe.aktiv, frei: eingabe.frei, ueberschrift: eingabe.ueberschrift, kleinesBistro: eingabe.kleinesBistro,
+        lasagneAbholmonitor: eingabe.lasagneAbholmonitor || einstellungen(aktuell.daten).lasagneAbholmonitor, geaendert: new Date().toISOString() };
       const neu = await schreibeSpecials(daten, aktuell.stand);
       if (neu === null) {
         const jetzt = await liesSpecials();

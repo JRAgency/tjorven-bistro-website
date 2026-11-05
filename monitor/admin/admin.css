@@ -161,3 +161,10 @@ li.frei[data-typ="text"] .nur-produkt, li.frei[data-typ="produkt"] .nur-text { d
 .leiste .status, .leiste .meldung { margin: 0; }
 .leiste .status { font-size: .9rem; line-height: 1.35; }
 .monitore-links { margin-top: 30px; }
+
+/* Abholmonitor: Lasagne-Folie Automatisch / Immer / Nie – drei gleich große Felder, am Handy untereinander */
+.lasagne-wahl .option { padding-left: 14px; flex: 1 1 0; justify-content: center; min-width: 0; }
+@media (max-width: 520px) { .lasagne-wahl .option { flex-basis: 100%; } }
+.lasagne-heute { margin: 4px 2px 0; font-weight: 600; color: var(--gruen-tief); }
+.lasagne-heute.aus { color: var(--grau); }
+.lasagne-heute:empty { display: none; }
