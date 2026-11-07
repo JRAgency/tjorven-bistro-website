@@ -9,8 +9,8 @@
 //   kurz           kurzer Name für Monitor 4 („Lasagne“)
 //   bild           Foto (nur vorhandene Fotos); alt = Bildbeschreibung, fokus = Mitte des Gerichts im Foto
 //                  (CSS object-position), nah = leichte Vergrößerung auf Monitor 2
-//   toppings       Toppings unter dem Eintrag (Monitor 2): inklusive = ohne Aufpreis, mitAufpreis = je „aufpreis“
-//                  (Namen wie auf der Karte bzw. speisekarte.html)
+//   toppings       Toppings unter dem Eintrag (Monitor 2): inklusive = kostenlose Wahl, eine davon („A oder B“),
+//                  mitAufpreis = je eine eigene Zeile mit Punktlinie und „aufpreis“ in der Preisspalte
 
 const ORDNER = '/images/abholmonitor/';
 
@@ -40,7 +40,7 @@ export const SPEISEN = {
     {
       id: 'suess', titel: 'süß', eintraege: [
         { id: 'waffel', name: 'Hausgemachte Belgische Waffel', preis: '4.5', bild: BILD.waffel,
-          toppings: { inklusive: ['Puderzucker', 'Zimt & Zucker'], aufpreis: '+1.0', mitAufpreis: ['Schokosauce', 'Rübensirup', 'Apfelmus'] } },
+          toppings: { inklusive: ['Puderzucker', 'Zimt & Zucker'], aufpreis: '+1.0', mitAufpreis: ['Schokosoße', 'Rübensirup', 'Apfelmus'] } },
         { id: 'cookies', name: 'Homemade Cookies', preis: '2.0' },
         { id: 'eis', name: 'Eiscreme', preis: '2.2 | 3.0' },
       ],

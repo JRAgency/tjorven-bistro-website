@@ -15,12 +15,16 @@ import { beobachteModus } from '/monitor/modus.js';
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const nurMitLasagne = (node, e) => { if (e.nurMitLasagne) { node.setAttribute('data-nur-mit-lasagne', ''); node.hidden = true; } return node; };
 
-/** Toppings unter einem Eintrag (Waffel): „inklusive: …“ und „je +1.0: …“ – kein .zeile, zählt nicht beim Fett-Muster */
+/** Toppings unter einem Eintrag (Waffel): erst die kostenlose Wahl („Puderzucker oder Zimt & Zucker“), dann je
+ *  Topping mit Aufpreis eine eigene Zeile mit Punktlinie und Preis in der Preisspalte – keine .zeile, zählt also
+ *  nicht beim Fett-Muster */
 function toppings(t) {
   const box = el('div', 'toppings');
-  for (const [art, liste] of [['inklusive:', t.inklusive], [`je ${t.aufpreis}:`, t.mitAufpreis]]) {
-    const z = el('p');
-    z.append(el('span', 'toppings-art', art), ' ' + liste.join(' · '));
+  const wahl = t.inklusive.length > 1 ? `${t.inklusive.slice(0, -1).join(', ')} oder ${t.inklusive.at(-1)}` : t.inklusive.join('');
+  box.append(el('p', 'toppings-wahl', wahl));
+  for (const name of t.mitAufpreis) {
+    const z = el('div', 'topping');
+    z.append(el('span', 'name', name), el('span', 'fuell'), el('span', 'preis', t.aufpreis));
     box.append(z);
   }
   return box;

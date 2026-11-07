@@ -19,11 +19,21 @@
 .speisen .zeile .name, .speisen .zeile .preis { font-weight: 400; }
 .speisen .zeile.fett .name, .speisen .zeile.fett .preis { font-weight: 600; }
 
-/* Toppings der Waffel direkt unter dem Eintrag: wie die Zusatzzeile auf Monitor 3 (28 px, Grau),
-   „inklusive:“ und „je +1.0:“ in Bistro-Grün, damit kostenlose und kostenpflichtige klar getrennt sind */
-.speisen .toppings { margin: -4px 0 8px; font-size: 28px; line-height: 1.2; color: var(--grau); }
-.speisen .toppings p { margin: 0; white-space: nowrap; }
-.speisen .toppings-art { font-weight: 600; color: var(--gruen); }
+/* Toppings der Waffel direkt unter dem Eintrag, kleiner und grau wie die Zusatzzeile auf Monitor 3 (28 px):
+   oben die kostenlose Wahl ohne Preis, darunter die Toppings mit Aufpreis als eigene Zeilen – Punktlinie und
+   Preisfarbe wie bei den Speisen, „+1.0“ rechtsbündig in derselben Preisspalte. Enger Zeilenabstand, damit die
+   Karte auch an Lasagne-Tagen (eine Zeile mehr) vollständig passt. */
+.speisen .toppings { margin: -4px 0 6px; font-size: 28px; line-height: 1.05; color: var(--grau); }
+.speisen .toppings-wahl { margin: 0; white-space: nowrap; }
+.speisen .topping { display: flex; align-items: baseline; gap: 16px; }
+.speisen .topping .name, .speisen .topping .preis { white-space: nowrap; }
+.speisen .topping .fuell { flex: 1; border-bottom: 3px dotted #cdbfa6; transform: translateY(-6px); min-width: 24px; }
+.speisen .topping .preis { color: var(--gruen-tief); font-variant-numeric: tabular-nums; }
+/* Lasagne-Tag (data-lasagne von speisen.js): eine Speise mehr – die Einträge rücken etwas enger zusammen
+   (je 6 px, Abstand der Abschnitte 30 → 20 px), damit die Karte mit den Waffel-Toppings vollständig passt.
+   An anderen Tagen und im Kleinen Bistro unverändert. */
+html[data-lasagne="ja"] .speisen .inhalt:not(.klein) .karte { gap: 20px; }
+html[data-lasagne="ja"] .speisen .inhalt:not(.klein) .gruppe .zeile { padding: 1px 0; }
 
 /* Lasagne: hellgrüner, leicht schräger „Pinselstrich“ hinter dem Eintrag (Farbe der Original-Karte) */
 .speisen .zeile.lasagne { position: relative; z-index: 0; }
