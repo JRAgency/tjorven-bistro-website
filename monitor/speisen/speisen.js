@@ -15,6 +15,17 @@ import { beobachteModus } from '/monitor/modus.js';
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const nurMitLasagne = (node, e) => { if (e.nurMitLasagne) { node.setAttribute('data-nur-mit-lasagne', ''); node.hidden = true; } return node; };
 
+/** Toppings unter einem Eintrag (Waffel): „inklusive: …“ und „je +1.0: …“ – kein .zeile, zählt nicht beim Fett-Muster */
+function toppings(t) {
+  const box = el('div', 'toppings');
+  for (const [art, liste] of [['inklusive:', t.inklusive], [`je ${t.aufpreis}:`, t.mitAufpreis]]) {
+    const z = el('p');
+    z.append(el('span', 'toppings-art', art), ' ' + liste.join(' · '));
+    box.append(z);
+  }
+  return box;
+}
+
 function aufbauen(klein, rahmenBilder, rahmenKarte) {
   const { gruppen, bildfolge } = karte(klein);
   bildfolge.forEach((e, i) => rahmenBilder.append(nurMitLasagne(folie({
@@ -29,6 +40,7 @@ function aufbauen(klein, rahmenBilder, rahmenKarte) {
       preis.dataset.artikel = e.name;
       zeile.append(el('span', 'name', e.name), el('span', 'fuell'), preis);
       abschnitt.append(nurMitLasagne(zeile, e));
+      if (e.toppings) abschnitt.append(toppings(e.toppings));
     }
     rahmenKarte.append(abschnitt);
   }

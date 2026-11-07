@@ -19,6 +19,12 @@
 .speisen .zeile .name, .speisen .zeile .preis { font-weight: 400; }
 .speisen .zeile.fett .name, .speisen .zeile.fett .preis { font-weight: 600; }
 
+/* Toppings der Waffel direkt unter dem Eintrag: wie die Zusatzzeile auf Monitor 3 (28 px, Grau),
+   „inklusive:“ und „je +1.0:“ in Bistro-Grün, damit kostenlose und kostenpflichtige klar getrennt sind */
+.speisen .toppings { margin: -4px 0 8px; font-size: 28px; line-height: 1.2; color: var(--grau); }
+.speisen .toppings p { margin: 0; white-space: nowrap; }
+.speisen .toppings-art { font-weight: 600; color: var(--gruen); }
+
 /* Lasagne: hellgrüner, leicht schräger „Pinselstrich“ hinter dem Eintrag (Farbe der Original-Karte) */
 .speisen .zeile.lasagne { position: relative; z-index: 0; }
 .speisen .zeile.lasagne::before {
