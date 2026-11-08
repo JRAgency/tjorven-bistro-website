@@ -24,11 +24,19 @@
 // auf Monitor 2.
 //
 // Gemeinsame Daten (dieselben wie Monitore 2/3 und Startseite, Ordner daten/): Preis und Foto der Lasagne
-// kommen aus daten/speisen.js, Texte und Fotos der Feiern aus daten/feiern.js, der Text der Kachel
-// „Öffnungszeiten“ wird bei jeder Anfrage aus daten/oeffnungszeiten.js erzeugt. Hier stehen nur die
-// Monitor-4-Angebote selbst (Zimtschnecke, Apfelkuchen, Mousse) und die Darstellung (Bildausschnitt, QR).
+// und der Zimtschnecke kommen aus daten/speisen.js, Texte und Fotos der Feiern aus daten/feiern.js, der Text
+// der Kachel „Öffnungszeiten“ wird bei jeder Anfrage aus daten/oeffnungszeiten.js erzeugt. Hier stehen nur die
+// übrigen Monitor-4-Angebote (Apfelkuchen, Mousse) und die Darstellung (Bildausschnitt, QR).
+//
+//   bildSchmal  eigener Ausschnitt desselben Fotos für hochkant stehende Kacheln (drei Angebote nebeneinander,
+//               581 × 814 px) – Monitor 4 nimmt ihn statt „bild“, sobald die Kachel höher als breit ist.
+//               Nur die Lasagne: Teller und Salatschale stehen im Querformat nebeneinander, ein Hochkant-
+//               Ausschnitt per „pos“ allein zeigte je nach Bildschirm fast nur den Salat.
+//
+// Monitor 2 nach 16 Uhr (NACH16 in daten/speisen.js): die Verwaltung speichert nur, welche dieser Produkte
+// heute angeboten werden (nach16: { id: true/false }); fehlt ein Wert, ist das Produkt eingeschaltet.
 
-import { speise } from '../../../daten/speisen.js';
+import { speise, ZIMTSCHNECKE, NACH16 } from '../../../daten/speisen.js';
 import { feier } from '../../../daten/feiern.js';
 import { monitorKachel } from '../../../daten/oeffnungszeiten.js';
 import { heuteInBerlin } from '../../../monitor/kalender-bw.js';
@@ -52,10 +60,10 @@ export const KATALOG = [
   { id: 'frei-2', titel: 'Freie Kachel 2', art: 'frei', standard: false },
   { id: 'frei-3', titel: 'Freie Kachel 3', art: 'frei', standard: false },
   { id: 'frei-4', titel: 'Freie Kachel 4', art: 'frei', standard: false },
-  { id: 'zimtschnecke', titel: 'Zimtschnecke', art: 'produkt', bild: BILD + '06-zimtschnecken-quer.jpeg', pos: '50% 60%', preis: '3.5', standard: false },
+  { id: 'zimtschnecke', titel: ZIMTSCHNECKE.name, art: 'produkt', bild: ZIMTSCHNECKE.bild.datei, pos: '50% 60%', preis: ZIMTSCHNECKE.preis, standard: false },
   { id: 'apfelkuchen', titel: 'Apfelkuchen', art: 'produkt', standard: false },
   { id: 'mousse-au-chocolat', titel: 'Mousse au Chocolat', art: 'produkt', preis: '2.0', standard: false },
-  { id: 'lasagne', titel: LASAGNE.kurz, art: 'produkt', bild: LASAGNE.bild.datei, pos: '45% 55%', preis: LASAGNE.preis, standard: false },
+  { id: 'lasagne', titel: LASAGNE.kurz, art: 'produkt', bild: LASAGNE.bild.datei, pos: '45% 55%', bildSchmal: BILD + '36-lasagne-hochkant-monitor4.jpeg', preis: LASAGNE.preis, standard: false },
   feierAngebot('kindergeburtstag', { pos: '45% 0%', zoom: 2.3 }, 'kindergeburtstag'),
   feierAngebot('familienfeiern', { pos: '50% 30%' }, 'catering'),
   feierAngebot('feiern-im-bistro', { pos: '50% 40%' }, 'catering'),
@@ -82,6 +90,8 @@ export const FREI_TYPEN = ['text', 'produkt'];
 export const FREI_FARBEN = ['gruen', 'rot'];
 /** Lasagne-Folie auf Monitor 1 (Abholmonitor): 'auto' = Lasagne-Regel (monitor/lasagne.js), 'immer', 'nie' */
 export const LASAGNE_MODI = ['auto', 'immer', 'nie'];
+/** Produkte von Monitor 2 nach 16 Uhr (Kennungen aus daten/speisen.js) – je ein Schalter in der Verwaltung */
+export const NACH16_IDS = NACH16.map(e => e.id);
 /** hochgeladenes Bild einer freien Kachel: SHA-256 des Inhalts + Endung (liegt privat unter monitore/bilder/) */
 export const BILD_MUSTER = /^[0-9a-f]{64}\.(jpg|png|webp)$/;
 /** öffentliche Adresse eines hochgeladenen Bildes (ausgeliefert von /api/monitore/specials/) */
@@ -169,14 +179,17 @@ export function freieKacheln(gespeichert) {
   }));
 }
 
-/** Einstellungen für alle Monitore: eigene Überschrift von Monitor 4 ('' = Standard), „Kleines Bistro“ und
- *  die Lasagne-Folie des Abholmonitors (fehlt in älteren Ständen → 'auto') */
+/** Einstellungen für alle Monitore: eigene Überschrift von Monitor 4 ('' = Standard), „Kleines Bistro“,
+ *  die Lasagne-Folie des Abholmonitors (fehlt in älteren Ständen → 'auto') und die Produkte von Monitor 2
+ *  nach 16 Uhr (fehlt ein Wert → eingeschaltet) */
 export function einstellungen(gespeichert) {
   const g = gespeichert && typeof gespeichert === 'object' ? gespeichert : {};
+  const n16 = g.nach16 && typeof g.nach16 === 'object' && !Array.isArray(g.nach16) ? g.nach16 : {};
   return {
     ueberschrift: bereinigeZeile(g.ueberschrift, UEBERSCHRIFT_MAX_ZEICHEN).text || '',
     kleinesBistro: g.kleinesBistro === true,
     lasagneAbholmonitor: LASAGNE_MODI.includes(g.lasagneAbholmonitor) ? g.lasagneAbholmonitor : 'auto',
+    nach16: Object.fromEntries(NACH16_IDS.map(id => [id, typeof n16[id] === 'boolean' ? n16[id] : true])),
   };
 }
 
@@ -197,8 +210,8 @@ export function anzeige(gespeichert) {
   });
 }
 
-/** öffentliche Antwort für die Monitore 1–4 (Monitor 1 liest nur lasagneAbholmonitor) */
+/** öffentliche Antwort für die Monitore 1–4 (Monitor 1 liest nur lasagneAbholmonitor, Monitor 2 zusätzlich nach16) */
 export function oeffentlich(gespeichert) {
-  const { ueberschrift, kleinesBistro, lasagneAbholmonitor } = einstellungen(gespeichert);
-  return { angebote: anzeige(gespeichert), ueberschrift: ueberschrift || UEBERSCHRIFT_STANDARD, kleinesBistro, lasagneAbholmonitor };
+  const { ueberschrift, kleinesBistro, lasagneAbholmonitor, nach16 } = einstellungen(gespeichert);
+  return { angebote: anzeige(gespeichert), ueberschrift: ueberschrift || UEBERSCHRIFT_STANDARD, kleinesBistro, lasagneAbholmonitor, nach16 };
 }

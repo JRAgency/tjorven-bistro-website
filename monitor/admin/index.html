@@ -5,6 +5,7 @@
   Verwaltung der Monitore 2–4 – interner Bereich (nur auf Vercel lauffähig, braucht /api/monitore/*).
   Monitor 4 „Heute bei uns“: Überschrift, Angebote, Öffnungszeiten, vier freie Kacheln.
   Monitore 2 und 3: Schalter „Kleines Bistro / reduziertes Angebot“.
+  Monitor 2 nach 16 Uhr: je Produkt (Cookies, Eiscreme, Zimtschnecke) ein Schalter.
   Monitor 1 (Abholmonitor): Lasagne-Folie automatisch / immer / nie.
   Anmeldung mit dem Passwort des Tagesabschlusses. Diese Seite enthält keine Daten: Die Auswahl
   wird erst nach der Anmeldung vom Server geladen und nur dort gespeichert.
@@ -67,6 +68,13 @@
       </li>
     </ul>
     <p class="leise klein hinweis-unter">Eingeschaltet zeigt Monitor 2 nur Brezel 2.0, Butterbrezel 3.0, Gemüse Wrap 6.0, Homemade Cookies und Eiscreme. Monitor 3 zeigt alle Kaltgetränke außer dem Hagebutten-Eistee und als Heißgetränk nur Filterkaffee 2.5. Monitor 4 bleibt, wie er ist.</p>
+
+    <div id="bereichNach16" hidden>
+      <h2>Speisekarte nach 16 Uhr (Monitor 2)</h2>
+      <p class="leise klein">Ab <span class="n16-ab">16</span> Uhr (Ende der warmen Küche) zeigt Monitor 2 statt der Speisekarte automatisch nur diese Produkte – bis <span class="n16-bis">17</span> Uhr. Ausverkauft? Einfach ausschalten und „Speichern“ – dann erscheint das Produkt nicht mehr. Ist nichts eingeschaltet, zeigt Monitor 2 ein Dankeschön an die Gäste.</p>
+      <ul class="liste" id="listeNach16"></ul>
+      <p class="klein nach16-stand" id="nach16Stand" aria-live="polite"></p>
+    </div>
 
     <h2>Abholmonitor (Monitor 1)</h2>
     <fieldset class="wahl lasagne-wahl" id="lasagneWahl">

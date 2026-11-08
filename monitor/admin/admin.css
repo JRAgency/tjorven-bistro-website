@@ -168,3 +168,7 @@ li.frei[data-typ="text"] .nur-produkt, li.frei[data-typ="produkt"] .nur-text { d
 .lasagne-heute { margin: 4px 2px 0; font-weight: 600; color: var(--gruen-tief); }
 .lasagne-heute.aus { color: var(--grau); }
 .lasagne-heute:empty { display: none; }
+/* Monitor 2 nach 16 Uhr: was der Monitor nach dem Ende der warmen Küche zeigt (wie der Hinweis zur Lasagne) */
+.nach16-stand { margin: 4px 2px 0; font-weight: 600; color: var(--gruen-tief); }
+.nach16-stand.aus { color: var(--grau); }
+.nach16-stand:empty { display: none; }

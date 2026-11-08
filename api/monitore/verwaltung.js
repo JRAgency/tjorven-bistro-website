@@ -6,8 +6,9 @@
 // Angenommen werden ausschließlich die Kennungen aus dem Katalog mit true/false, für die vier freien
 // Kacheln je Typ (Freitext oder Produkt), ein kurzer reiner Text bzw. Produktname und Preis (serverseitig
 // bereinigt und begrenzt), eine der zwei Farben und optional die Kennung eines zuvor hochgeladenen
-// Bildes, dazu die Überschrift von Monitor 4, der Schalter „Kleines Bistro“ (Monitore 2 und 3) und die
-// Lasagne-Folie des Abholmonitors (Monitor 1: automatisch / immer / nie).
+// Bildes, dazu die Überschrift von Monitor 4, der Schalter „Kleines Bistro“ (Monitore 2 und 3), die
+// Lasagne-Folie des Abholmonitors (Monitor 1: automatisch / immer / nie) und je Produkt von Monitor 2 nach
+// 16 Uhr ein true/false (nach16; fehlt das Feld – Verwaltung von vorher –, bleibt der gespeicherte Stand).
 // Keine Adresse kommt vom Browser.
 //
 // Bilder: Die Verwaltung verkleinert das Foto im Browser (längste Seite 1920 px, JPEG) und schickt es
@@ -19,8 +20,9 @@
 import crypto from 'node:crypto';
 import { json, fehler, nurMethoden, vonEigenerSeite, fremdeSeite, leseJson } from '../_lib/tagesabschluss/antwort.js';
 import { brauchtSitzung } from '../_lib/tagesabschluss/sitzung.js';
-import { KATALOG, IDS, FREI_IDS, FREI_TYPEN, FREI_FARBEN, LASAGNE_MODI, BILD_MUSTER, NAME_MAX_ZEICHEN, UEBERSCHRIFT_MAX_ZEICHEN, zustand, freieKacheln, einstellungen,
+import { KATALOG, IDS, FREI_IDS, FREI_TYPEN, FREI_FARBEN, LASAGNE_MODI, NACH16_IDS, BILD_MUSTER, NAME_MAX_ZEICHEN, UEBERSCHRIFT_MAX_ZEICHEN, zustand, freieKacheln, einstellungen,
   bereinigeFreitext, bereinigeZeile, bereinigePreis, bildAdresse } from '../_lib/monitore/katalog.js';
+import { NACH16 } from '../../daten/speisen.js';
 import { liesSpecials, schreibeSpecials, speichereBild, listeBilder, loescheBilder, CACHE_TAG } from '../_lib/monitore/speicher.js';
 import { dangerouslyDeleteByTag } from '@vercel/functions';
 
@@ -46,6 +48,8 @@ function antwort(daten, stand, extra = {}) {
       ...(k.art === 'frei' ? freiFelder(frei[k.id]) : {}),
       ...(k.art === 'info' ? { zeilen: k.zeilen, klein: k.klein } : {}),
     })),
+    // Monitor 2 nach 16 Uhr: Liste für die Schalter (Name, Preis, Foto aus daten/speisen.js), aktiv steht in nach16
+    nach16Angebote: NACH16.map(e => ({ id: e.id, titel: e.name, preis: e.preis, bild: e.bild ? e.bild.datei : null })),
     ...extra,
   };
 }
@@ -61,13 +65,13 @@ const genau = (o, schluessel) => o && typeof o === 'object' && !Array.isArray(o)
 const FREI_FELDER = ['typ', 'text', 'name', 'preis', 'farbe', 'bild'];
 
 /**
- * { aktiv: { id: bool, … }, frei: { id: { typ, text, name, preis, farbe, bild }, … }, ueberschrift, kleinesBistro, lasagneAbholmonitor?, stand }
- * prüfen → { aktiv, frei, ueberschrift, kleinesBistro, lasagneAbholmonitor, stand } | { fehler, code } | null
- * lasagneAbholmonitor fehlt bei einer Verwaltung von vor dieser Einstellung → undefined = gespeicherten Wert behalten
+ * { aktiv: { id: bool, … }, frei: { id: { typ, text, name, preis, farbe, bild }, … }, ueberschrift, kleinesBistro, lasagneAbholmonitor?, nach16?, stand }
+ * prüfen → { aktiv, frei, ueberschrift, kleinesBistro, lasagneAbholmonitor, nach16, stand } | { fehler, code } | null
+ * lasagneAbholmonitor bzw. nach16 fehlen bei einer Verwaltung von vor dieser Einstellung → undefined = gespeicherten Wert behalten
  */
 function pruefe(eingabe) {
   if (!eingabe || typeof eingabe !== 'object' || Array.isArray(eingabe)) return null;
-  const { aktiv, frei, ueberschrift, kleinesBistro, lasagneAbholmonitor, stand } = eingabe;
+  const { aktiv, frei, ueberschrift, kleinesBistro, lasagneAbholmonitor, nach16, stand } = eingabe;
   // ältere Verwaltung (noch offen im Browser): kannte weder Überschrift noch „Kleines Bistro“
   if (!Object.hasOwn(eingabe, 'kleinesBistro') || !Object.hasOwn(eingabe, 'ueberschrift')) return { fehler: 'Die Verwaltung wurde aktualisiert. Bitte die Seite neu laden und die Änderung noch einmal vornehmen.', code: 'veraltet' };
   if (!aktiv || typeof aktiv !== 'object' || Array.isArray(aktiv)) return null;
@@ -76,6 +80,7 @@ function pruefe(eingabe) {
   if (!genau(frei, FREI_IDS) || !FREI_IDS.every(id => genau(frei[id], FREI_FELDER))) return null;
   if (typeof kleinesBistro !== 'boolean' || typeof ueberschrift !== 'string') return null;
   if (lasagneAbholmonitor !== undefined && !LASAGNE_MODI.includes(lasagneAbholmonitor)) return null;
+  if (nach16 !== undefined && (!genau(nach16, NACH16_IDS) || !NACH16_IDS.every(id => typeof nach16[id] === 'boolean'))) return null;
   if (stand !== null && (typeof stand !== 'string' || stand.length > 200)) return null;
   const titel = bereinigeZeile(ueberschrift, UEBERSCHRIFT_MAX_ZEICHEN);
   if (titel.fehler) return { fehler: `Überschrift Monitor 4: ${titel.fehler}`, code: 'eingabe' };
@@ -96,7 +101,8 @@ function pruefe(eingabe) {
     if (aktiv[id] && typ === 'produkt' && (!n.text || !p.preis)) return { fehler: `${titelVon(id)} ist als Produkt eingeschaltet und braucht einen Produktnamen und einen Preis.`, code: 'eingabe' };
     kacheln[id] = { typ, text: t.text || '', name: n.text || '', preis: p.preis || '', farbe, bild };
   }
-  return { aktiv: Object.fromEntries(KATALOG.map(k => [k.id, aktiv[k.id]])), frei: kacheln, ueberschrift: titel.text, kleinesBistro, lasagneAbholmonitor, stand };
+  return { aktiv: Object.fromEntries(KATALOG.map(k => [k.id, aktiv[k.id]])), frei: kacheln, ueberschrift: titel.text, kleinesBistro, lasagneAbholmonitor,
+    nach16: nach16 === undefined ? undefined : Object.fromEntries(NACH16_IDS.map(id => [id, nach16[id]])), stand };
 }
 
 const bilderIn = daten => new Set(Object.values(freieKacheln(daten)).map(k => k.bild).filter(Boolean));
@@ -163,7 +169,8 @@ export default {
         if (fehlt) return fehler(400, `${titelVon(fehlt)}: Das Bild ist nicht mehr vorhanden. Bitte erneut auswählen.`, { code: 'eingabe' });
       }
       const daten = { format: 4, aktiv: eingabe.aktiv, frei: eingabe.frei, ueberschrift: eingabe.ueberschrift, kleinesBistro: eingabe.kleinesBistro,
-        lasagneAbholmonitor: eingabe.lasagneAbholmonitor || einstellungen(aktuell.daten).lasagneAbholmonitor, geaendert: new Date().toISOString() };
+        lasagneAbholmonitor: eingabe.lasagneAbholmonitor || einstellungen(aktuell.daten).lasagneAbholmonitor,
+        nach16: eingabe.nach16 || einstellungen(aktuell.daten).nach16, geaendert: new Date().toISOString() };
       const neu = await schreibeSpecials(daten, aktuell.stand);
       if (neu === null) {
         const jetzt = await liesSpecials();

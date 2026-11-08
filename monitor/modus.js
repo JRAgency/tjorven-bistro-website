@@ -3,10 +3,12 @@
 // zwischengespeicherte Antwort wie Monitor 4, keine eigene Schnittstelle.
 // Bis zur ersten Antwort bleibt der Inhalt unsichtbar (höchstens 3 s, dann Normalbetrieb). Bei einem
 // Fehler bleibt der zuletzt gezeigte Stand stehen.
+// Monitor 2 liest aus derselben Antwort zusätzlich, welche Produkte er nach 16 Uhr zeigt (beiDaten).
 const API = '/api/monitore/specials/';
 
-/** anwenden(klein: boolean) wird beim Start und bei jeder Änderung aufgerufen */
-export function beobachteModus(anwenden) {
+/** anwenden(klein: boolean) wird beim Start und bei jeder Änderung aufgerufen; beiDaten(antwort) – optional,
+ *  nur Monitor 2 – bekommt jede erfolgreiche Antwort, und zwar vor anwenden */
+export function beobachteModus(anwenden, beiDaten) {
   let zuletzt = null;
   const setzen = klein => {
     if (klein === zuletzt) return;
@@ -22,6 +24,7 @@ export function beobachteModus(anwenden) {
       const r = await fetch(API);   // Standard-Cache-Modus, damit die Antwort aus dem CDN kommen kann (siehe Monitor 4)
       if (!r.ok) throw new Error(String(r.status));
       const d = await r.json();
+      if (beiDaten && d && typeof d === 'object') beiDaten(d);
       setzen(!!d && d.kleinesBistro === true);
     } catch {
       if (zuletzt === null) setzen(false);

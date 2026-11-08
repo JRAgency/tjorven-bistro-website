@@ -1,7 +1,8 @@
 // Verwaltung der Monitore: Monitor 4 „Heute bei uns“ (Überschrift, feste Angebote, Öffnungszeiten und vier
 // freie Kacheln – je Freitext oder Produkt mit Preis, Farbe, optional ein Foto) und der Schalter
-// „Kleines Bistro“ für die Monitore 2 und 3, dazu die Lasagne-Folie des Abholmonitors (Monitor 1:
-// Automatisch / Immer / Nie). Alles wird gemeinsam mit „Speichern“ übernommen.
+// „Kleines Bistro“ für die Monitore 2 und 3, die Lasagne-Folie des Abholmonitors (Monitor 1:
+// Automatisch / Immer / Nie) und je Produkt ein Schalter für Monitor 2 nach 16 Uhr (Liste vom Server, aus
+// daten/speisen.js). Alles wird gemeinsam mit „Speichern“ übernommen.
 // Anmeldung und Sitzung wie beim Tagesabschluss (Cookie „__Host-tagesabschluss“, nur serverseitig
 // lesbar). Jede Änderung geht mit dem Kopf „X-Tagesabschluss: 1“ an den Server (CSRF-Schutz).
 // Fotos werden hier im Browser verkleinert (längste Seite 1920 px, JPEG) – dabei fallen auch die
@@ -13,7 +14,7 @@
   let stand = null;          // ETag des geladenen Stands (null = noch nie gespeichert)
   let geladen = new Map();   // id → aktiv (zuletzt vom Server)
   let geladenFrei = new Map();   // id → { typ, text, name, preis, farbe, bild } der freien Kachel (zuletzt vom Server)
-  let geladenAllgemein = { ueberschrift: '', kleinesBistro: false, lasagneAbholmonitor: 'auto' };
+  let geladenAllgemein = { ueberschrift: '', kleinesBistro: false, lasagneAbholmonitor: 'auto', nach16: {} };
   let lasagneRegel = null;   // /monitor/lasagne.js – dieselbe Regel wie auf den Monitoren (für den Hinweis „Heute …“)
   let ferienBis = '';        // letzter eingetragener Schulferientag in /monitor/kalender-bw.js
   let angebote = [];
@@ -54,7 +55,8 @@
     return e;
   }
 
-  function schalter(a, vorschau, artText) {
+  // feld: 'id' = Angebot von Monitor 4 (geht in „aktiv“), 'nach16' = Produkt von Monitor 2 nach 16 Uhr
+  function schalter(a, vorschau, artText, feld = 'id') {
     const label = el('label', 'schalter');
     label.append(vorschau);
     const name = el('span', 'name');
@@ -62,7 +64,7 @@
     const box = el('input');
     box.type = 'checkbox';
     box.setAttribute('role', 'switch');
-    box.dataset.id = a.id;
+    box.dataset[feld] = a.id;
     box.checked = a.aktiv;
     box.addEventListener('change', aktualisiere);
     label.append(name, box, el('span', 'regler'));
@@ -80,6 +82,16 @@
     }
     const art = a.bild ? (a.art === 'event' ? 'mit Foto und QR-Code' : 'mit Foto') : 'als Textkarte';
     li.append(schalter(a, vorschau, a.preis ? `${art} · ${a.preis}` : art));
+    return li;
+  }
+
+  // Monitor 2 nach 16 Uhr: Foto (oder Anfangsbuchstabe), Name, Preis, Schalter
+  function nach16Zeile(a) {
+    const li = el('li');
+    let vorschau;
+    if (a.bild) { vorschau = el('img', 'vorschau'); vorschau.src = a.bild; vorschau.alt = ''; vorschau.loading = 'lazy'; }
+    else vorschau = el('span', 'vorschau ohne', a.titel.charAt(0));
+    li.append(schalter(a, vorschau, `${a.bild ? 'mit Foto' : 'als grüne Karte'} · ${a.preis}`, 'nach16'));
     return li;
   }
 
@@ -240,6 +252,11 @@
   function auswahl() {
     return Object.fromEntries([...document.querySelectorAll('#verwaltung input[type=checkbox][data-id]')].map(b => [b.dataset.id, b.checked]));
   }
+  /** Schalter von Monitor 2 nach 16 Uhr → { cookies: true, … } – null, falls der Server (noch) keine Liste geschickt hat */
+  function nach16Auswahl() {
+    const boxen = [...document.querySelectorAll('#listeNach16 input[data-nach16]')];
+    return boxen.length ? Object.fromEntries(boxen.map(b => [b.dataset.nach16, b.checked])) : null;
+  }
   const gewaehlt = (li, gruppe, standard) => (li.querySelector(`.${gruppe} input:checked`) || {}).value || standard;
   function kachelDaten(li) {
     return {
@@ -289,7 +306,8 @@
     || Object.entries(freieKacheln()).some(([id, k]) => !gleich(k, geladenFrei.get(id) || LEER))
     || $('ueberschrift').value !== geladenAllgemein.ueberschrift
     || $('kleinesBistro').checked !== geladenAllgemein.kleinesBistro
-    || lasagneWert() !== geladenAllgemein.lasagneAbholmonitor;
+    || lasagneWert() !== geladenAllgemein.lasagneAbholmonitor
+    || Object.entries(nach16Auswahl() || {}).some(([id, an]) => geladenAllgemein.nach16[id] !== an);
 
   /** Eingabefehler vor dem Speichern (dieselben Regeln wie der Server) oder '' */
   function eingabeFehler() {
@@ -362,6 +380,7 @@
       zeichneVorschau(li, k);
     }
     lasagneHinweis();
+    nach16Hinweis();
     const an = Object.values(auswahl()).filter(Boolean).length;
     const offen = geaendert();
     $('speichern').disabled = !offen || laedtHoch > 0;
@@ -391,14 +410,29 @@
     $('lasagneHeute').classList.toggle('aus', w === 'nie' || (w === 'auto' && !!lasagneRegel && !lasagneRegel.lasagneHeute().verfuegbar));
   }
 
+  /** unter den Schaltern nach 16 Uhr: was Monitor 2 ab dem Ende der warmen Küche zeigt */
+  function nach16Hinweis() {
+    const n16 = nach16Auswahl();
+    if (!n16) return;
+    const namen = [...document.querySelectorAll('#listeNach16 input[data-nach16]')].filter(b => b.checked)
+      .map(b => b.closest('.schalter').querySelector('.titel').textContent);
+    const offen = Object.entries(n16).some(([id, an]) => geladenAllgemein.nach16[id] !== an);
+    $('nach16Stand').textContent = (namen.length ? `Monitor 2 zeigt nach 16 Uhr: ${namen.join(', ')}.` : 'Nichts eingeschaltet – Monitor 2 zeigt nach 16 Uhr das Dankeschön.')
+      + (offen ? ' Gilt nach „Speichern“.' : '');
+    $('nach16Stand').classList.toggle('aus', !namen.length);
+  }
+
   // eigene: eigene Eingaben (freie Kacheln, Überschrift), die statt des Server-Stands stehen bleiben (Konflikt, abgelaufene Sitzung)
   function zeige(daten, eigene = null) {
     stand = daten.stand;
     angebote = daten.angebote;
     geladen = new Map(angebote.map(a => [a.id, a.aktiv]));
     geladenFrei = new Map(angebote.filter(a => a.art === 'frei').map(a => [a.id, { typ: a.typ || 'text', text: a.text || '', name: a.name || '', preis: a.preis || '', farbe: a.farbe || 'gruen', bild: a.freiBild || null }]));
+    const n16Liste = Array.isArray(daten.nach16Angebote) ? daten.nach16Angebote : [];
+    const n16 = daten.nach16 && typeof daten.nach16 === 'object' ? daten.nach16 : {};
     geladenAllgemein = { ueberschrift: typeof daten.ueberschrift === 'string' ? daten.ueberschrift : '', kleinesBistro: daten.kleinesBistro === true,
-      lasagneAbholmonitor: LASAGNE_MODI.includes(daten.lasagneAbholmonitor) ? daten.lasagneAbholmonitor : 'auto' };
+      lasagneAbholmonitor: LASAGNE_MODI.includes(daten.lasagneAbholmonitor) ? daten.lasagneAbholmonitor : 'auto',
+      nach16: Object.fromEntries(n16Liste.map(a => [a.id, n16[a.id] !== false])) };
     zuletzt = zeitText(daten.geaendert);
     const eigeneFrei = (eigene && eigene.frei) || {};
     $('listeFrei').replaceChildren(...angebote.filter(a => a.art === 'frei').map(a => {
@@ -408,6 +442,8 @@
     $('listeProdukt').replaceChildren(...angebote.filter(a => a.art === 'produkt').map(zeile));
     $('listeEvent').replaceChildren(...angebote.filter(a => a.art === 'event').map(zeile));
     $('listeInfo').replaceChildren(...angebote.filter(a => a.art === 'info').map(infoZeile));
+    $('listeNach16').replaceChildren(...n16Liste.map(a => nach16Zeile({ ...a, aktiv: geladenAllgemein.nach16[a.id] })));
+    $('bereichNach16').hidden = !n16Liste.length;
     $('ueberschrift').value = eigene && typeof eigene.ueberschrift === 'string' ? eigene.ueberschrift : geladenAllgemein.ueberschrift;
     $('kleinesBistro').checked = geladenAllgemein.kleinesBistro;
     for (const r of document.querySelectorAll('#lasagneWahl input')) r.checked = r.value === geladenAllgemein.lasagneAbholmonitor;
@@ -444,6 +480,11 @@
   $('ueberschrift').addEventListener('input', aktualisiere);
   $('kleinesBistro').addEventListener('change', aktualisiere);
   for (const r of document.querySelectorAll('#lasagneWahl input')) r.addEventListener('change', aktualisiere);
+  // Uhrzeiten im Hinweis „nach 16 Uhr“ aus den zentralen Öffnungszeiten (Ende der warmen Küche, Ende Cookies & Eis)
+  import('/daten/oeffnungszeiten.js').then(o => {
+    for (const s of document.querySelectorAll('.n16-ab')) s.textContent = o.kurz(o.OEFFNUNGSZEITEN.warmeKueche.bis);
+    for (const s of document.querySelectorAll('.n16-bis')) s.textContent = o.kurz(o.OEFFNUNGSZEITEN.kalt.bis);
+  }).catch(() => { /* Standardtext bleibt */ });
   Promise.all([import('/monitor/lasagne.js'), import('/monitor/kalender-bw.js')]).then(([regel, kalender]) => {
     lasagneRegel = regel;
     ferienBis = kalender.FERIEN_BW.reduce((spaetester, f) => (f.bis > spaetester ? f.bis : spaetester), '');
@@ -463,7 +504,8 @@
       .map(li => [li.dataset.id, { ...frei[li.dataset.id], bildAdresse: li.querySelector('.bild-vorschau').getAttribute('src') }])) };
     if ($('ueberschrift').value !== geladenAllgemein.ueberschrift) eigene.ueberschrift = $('ueberschrift').value;
     try {
-      const daten = await api('/api/monitore/verwaltung/', { method: 'PUT', body: JSON.stringify({ aktiv: auswahl(), frei, ueberschrift: $('ueberschrift').value, kleinesBistro: $('kleinesBistro').checked, lasagneAbholmonitor: lasagneWert(), stand }) });
+      const n16 = nach16Auswahl();
+      const daten = await api('/api/monitore/verwaltung/', { method: 'PUT', body: JSON.stringify({ aktiv: auswahl(), frei, ueberschrift: $('ueberschrift').value, kleinesBistro: $('kleinesBistro').checked, lasagneAbholmonitor: lasagneWert(), ...(n16 ? { nach16: n16 } : {}), stand }) });
       zeige(daten);
       $('meldung').textContent = daten.monitor === false
         ? 'Gespeichert. Die Monitore übernehmen die Änderung spätestens in einer Stunde.'

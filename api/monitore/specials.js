@@ -1,6 +1,7 @@
 // GET /api/monitore/specials – öffentlich, nur lesend: die aktiven Angebote und die Überschrift für
 // Monitor 4 sowie der Schalter „Kleines Bistro“, nach dem sich die Monitore 2 und 3 richten, und die
-// Einstellung der Lasagne-Folie auf Monitor 1 (lasagneAbholmonitor: auto / immer / nie).
+// Einstellung der Lasagne-Folie auf Monitor 1 (lasagneAbholmonitor: auto / immer / nie) und welche Produkte
+// Monitor 2 nach 16 Uhr zeigt (nach16: { cookies, eis, zimtschnecke: true/false }).
 // GET /api/monitore/specials/?bild=<Kennung> – ein in der Verwaltung hochgeladenes Bild einer freien Kachel.
 //
 // Die Antwort liegt bis zu einer Stunde im Vercel-CDN (Cache-Tag „monitor-specials“), damit die drei

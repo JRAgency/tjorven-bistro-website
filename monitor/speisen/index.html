@@ -7,6 +7,9 @@
      zentral in /monitor/lasagne.js.
      „Kleines Bistro“ (Schalter in der Verwaltung von Monitor 4): eigenes, ruhiges Layout mit dem reduzierten
      Sortiment. Ein Foto von Brezel, Cookies oder Eis gibt es noch nicht – deshalb nur das Wrap-Foto.
+     Nach 16 Uhr (Ende der warmen Küche, zentrale Öffnungszeiten; Zeit Europe/Berlin): statt der Karte nur die
+     Produkte, die dann noch erhältlich und in der Verwaltung eingeschaltet sind; ab Ladenschluss bzw. wenn
+     keines eingeschaltet ist, ein Dankeschön. Entscheidung in /monitor/speisen/tageszeit.js.
      Namen, Preise, Kategorien und Fotos stehen nur in /daten/speisen.js (dieselben Daten wie die Startseite). -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -36,6 +39,20 @@
   <div class="inhalt klein modus" id="klein" hidden>
     <div class="diashow" id="diashowKlein"></div>
     <div class="karte" id="karteKlein"></div>
+  </div>
+
+  <!-- Nach 16 Uhr: Einleitung und die noch erhältlichen Produkte (speisen.js baut sie aus /daten/speisen.js) –
+       oder, wenn nichts mehr erhältlich ist, das Dankeschön -->
+  <div class="inhalt nach16 modus" id="nach16" hidden>
+    <div class="angebot" id="angebot16"></div>
+    <div class="feierabend" id="feierabend" hidden>
+      <img class="foto" src="/images/abholmonitor/21-team-tjorven-quer-lachend.jpeg" alt="Das Team des Tjorven Bistro">
+      <div class="feier-text">
+        <div class="feier-linie"></div>
+        <h2>Vielen Dank für deinen Besuch!</h2>
+        <p>Für heute ist unser Bistroangebot beendet – wir freuen uns auf dich beim nächsten Mal.</p>
+      </div>
+    </div>
   </div>
 </main>
 </body>

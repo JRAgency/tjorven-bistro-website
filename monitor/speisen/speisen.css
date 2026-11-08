@@ -1,7 +1,8 @@
 /* Monitor 2 – Speisekarte: links eine ruhige Bildfolge (ein großes Foto, darunter die grüne Leiste mit Name
    und Preis – Grundgestaltung in monitor.css), rechts die vollständige Karte.
    Karte: jeder zweite sichtbare Eintrag fett (speisen.js), Lasagne mit hellgrünem „Pinselstrich“ wie auf der
-   Original-Karte. „Kleines Bistro“: dasselbe Prinzip, die Karte mit nur fünf Speisen größer und luftiger. */
+   Original-Karte. „Kleines Bistro“: dasselbe Prinzip, die Karte mit nur fünf Speisen größer und luftiger.
+   Nach 16 Uhr: eigene Fläche mit den noch erhältlichen Produkten bzw. dem Dankeschön (unten). */
 .speisen .inhalt { flex: 1; min-height: 0; display: flex; gap: 48px; }
 .speisen .diashow { flex: none; width: 848px; }
 
@@ -49,3 +50,43 @@ html[data-lasagne="ja"] .speisen .inhalt:not(.klein) .gruppe .zeile { padding: 1
 .speisen .klein .gruppe h2 { font-size: 62px; margin-bottom: 18px; }
 .speisen .klein .gruppe .zeile { font-size: 54px; line-height: 1.3; padding: 8px 0; }
 .speisen .klein .zeile .fuell { transform: translateY(-12px); }
+
+/* ── Nach 16 Uhr (tageszeit.js): statt der Karte nur die noch erhältlichen Produkte ─────────────────────────
+   Oben eine kurze Einleitung, darunter je Produkt eine Karte wie die Bildfolge (Foto, darunter die grüne
+   Leiste „Name Preis“, Ecken 18 px); ohne Foto eine grüne Karte mit Name und Preis. Die Fläche (1792 × 814 px)
+   teilen sich die Produkte gleichmäßig: 3 und 2 nebeneinander; ein einzelnes Produkt groß links, die
+   Einleitung rechts daneben. Nichts erhältlich bzw. nach Ladenschluss: Dankeschön mit Team-Foto. */
+.speisen .nach16 > * { flex: 1; min-width: 0; min-height: 0; }
+.speisen .angebot { display: grid; grid-template-rows: auto minmax(0, 1fr); row-gap: 34px; }
+.speisen .einleitung h2 { margin: 0; font-size: 60px; line-height: 1.05; font-weight: 600; color: var(--gruen); }
+.speisen .einleitung p { margin: 12px 0 0; font-size: 36px; line-height: 1.3; color: var(--grau); }
+.speisen .karten { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 40px; min-height: 0; }
+.speisen .karten .dia { position: relative; margin: 0; min-width: 0; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto;
+  border-radius: 18px; overflow: hidden; background: var(--gruen); }
+.speisen .anzahl-2 .karten { gap: 48px; }
+.speisen .anzahl-2 .karten .beschriftung { font-size: 48px; }
+
+/* ein Produkt: Karte links (so breit wie die Bildfolge plus ein Viertel), Einleitung rechts mittig, größer */
+.speisen .angebot.anzahl-1 { grid-template-columns: 1100px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); column-gap: 64px; }
+.speisen .anzahl-1 .karten { grid-column: 1; grid-row: 1; }
+.speisen .anzahl-1 .einleitung { grid-column: 2; grid-row: 1; align-self: center; }
+.speisen .anzahl-1 .einleitung h2 { font-size: 72px; line-height: 1.08; }
+.speisen .anzahl-1 .einleitung p { margin-top: 26px; font-size: 40px; line-height: 1.32; }
+.speisen .anzahl-1 .karten .beschriftung { font-size: 56px; }
+
+/* Produkt ohne Foto: grüne Karte, Name und Preis mittig, dazwischen eine kurze goldene Linie */
+.speisen .karten .dia.ohne-foto { display: flex; align-items: center; justify-content: center; }
+.speisen .textkarte { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px; color: #fff; }
+.speisen .textkarte .t-name { font-size: 72px; line-height: 1.1; font-weight: 600; }
+.speisen .textkarte .t-linie { width: 120px; height: 5px; border-radius: 3px; background: var(--gold); margin: 30px 0; }
+.speisen .textkarte .t-preis { font-size: 66px; line-height: 1.1; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.speisen .anzahl-1 .textkarte .t-name { font-size: 104px; }
+.speisen .anzahl-1 .textkarte .t-preis { font-size: 92px; }
+
+/* Dankeschön: Team-Foto links wie die Bildfolge (848 px), Text rechts mittig */
+.speisen .feierabend { display: grid; grid-template-columns: 848px minmax(0, 1fr); gap: 64px; }
+.speisen .feierabend .foto { object-position: 50% 40%; }
+.speisen .feier-text { align-self: center; padding-right: 24px; }
+.speisen .feier-linie { width: 120px; height: 5px; border-radius: 3px; background: var(--gold); margin-bottom: 38px; }
+.speisen .feier-text h2 { margin: 0; font-size: 76px; line-height: 1.08; font-weight: 600; color: var(--gruen-tief); }
+.speisen .feier-text p { margin: 30px 0 0; font-size: 42px; line-height: 1.32; color: var(--grau); }

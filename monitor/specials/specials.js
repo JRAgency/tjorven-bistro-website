@@ -12,6 +12,8 @@
 //          Freitexte und die Öffnungszeiten nie. Die Bildfolge zeigt alles mit Foto und zusätzlich alles,
 //          was nicht in der Liste steht (Freitext, Öffnungszeiten); Produkte ohne Foto stehen nur in der Liste.
 //          Steht nichts in der Liste (z. B. nur Freitexte), bleibt es bei Kacheln.
+// Angebote mit eigenem Hochkant-Ausschnitt (bildSchmal, nur die Lasagne – siehe api/_lib/monitore/katalog.js):
+// in hochkant stehenden Kacheln (drei nebeneinander) dieser Ausschnitt, sonst das Querformat (bildformate).
 import { wechseln } from '/monitor/diashow.js';
 
 const API = '/api/monitore/specials/';
@@ -50,9 +52,13 @@ function freiZeilen(ziel, a) {
     Freitext: als eigene, gut lesbare Tafel in Grün oder Rot über dem Foto. */
 function fotoKachel(a, k) {
   const img = el('img', 'kachel-foto');
-  img.src = a.bild;
+  if (eigenesBild(a.bildSchmal)) {   // eigener Hochkant-Ausschnitt (Lasagne): Quelle wählt bildformate(), sobald die Kachelform feststeht
+    img.dataset.breit = a.bild;
+    img.dataset.schmal = a.bildSchmal;
+    if (a.pos) img.dataset.pos = a.pos;
+  } else img.src = a.bild;
   img.alt = a.art === 'frei' ? zeilenVon(a).filter(Boolean).join(' ') : text(a.titel);
-  if (a.pos) img.style.objectPosition = a.pos;
+  if (a.pos && !img.dataset.schmal) img.style.objectPosition = a.pos;
   if (typeof a.zoom === 'number' && a.zoom > 1 && a.zoom <= 4) img.style.height = a.zoom * 100 + '%';   // nur oberer Bildteil
   k.append(img);
 
@@ -234,6 +240,18 @@ function zeigeRaster(liste) {
   angebote.replaceChildren(...karten);
 }
 
+/** Kacheln mit eigenem Hochkant-Ausschnitt (bildSchmal, nur die Lasagne): Kachel höher als breit (drei Angebote
+    nebeneinander) → den Ausschnitt ganz zeigen, sonst das Querformat mit seinem Bildausschnitt (pos) */
+function bildformate() {
+  for (const img of angebote.querySelectorAll('img.kachel-foto[data-schmal]')) {
+    const k = img.closest('.kachel').getBoundingClientRect();
+    const schmal = k.height > k.width;
+    const src = schmal ? img.dataset.schmal : img.dataset.breit;
+    if (img.getAttribute('src') !== src) img.src = src;
+    img.style.objectPosition = schmal ? '50% 50%' : (img.dataset.pos || '');
+  }
+}
+
 function zeigen(d) {
   const liste = d.angebote;
   const leer = liste.length === 0;
@@ -249,6 +267,7 @@ function zeigen(d) {
   document.documentElement.dataset.ansicht = ansicht;
   if (ansicht === 'geteilt') zeigeGeteilt(liste, preisliste);
   else if (!leer) zeigeRaster(liste);
+  bildformate();
   einpassen();
 }
 

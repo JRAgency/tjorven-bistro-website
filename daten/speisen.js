@@ -1,6 +1,6 @@
 // Speisekarte des Tjorven Bistro – die EINZIGE Stelle für Namen, Preise, Kategorien und Fotos der Speisen.
 // Gelesen von: Monitor 2 (/monitor/speisen/), der Startseite (Abschnitt „Unsere Speisen“) und Monitor 4
-// (Angebot „Lasagne“ übernimmt Preis und Foto von hier, siehe api/_lib/monitore/katalog.js).
+// (Angebote „Lasagne“ und „Zimtschnecke“ übernehmen Preis und Foto von hier, siehe api/_lib/monitore/katalog.js).
 // Namen und Preise wie auf der Original-Karte (downloads/speisekarte-getraenkekarte.pdf): Preise mit genau
 // einer Nachkommastelle, zwei Preise mit „ | “.
 //
@@ -11,6 +11,10 @@
 //                  (CSS object-position), nah = leichte Vergrößerung auf Monitor 2
 //   toppings       Toppings unter dem Eintrag (Monitor 2): inklusive = kostenlose Wahl, eine davon („A oder B“),
 //                  mitAufpreis = je eine eigene Zeile mit Punktlinie und „aufpreis“ in der Preisspalte
+//
+// NACH 16 UHR (unten, NACH16): Ab dem Ende der warmen Küche (daten/oeffnungszeiten.js) zeigt Monitor 2 statt der
+// Karte nur diese Produkte – Name, Preis und Foto stehen hier, ob ein Produkt heute angeboten wird, schaltet die
+// Verwaltung (/monitor/admin/, „Monitor 2 – nach 16 Uhr“) einzeln an und aus.
 
 const ORDNER = '/images/abholmonitor/';
 
@@ -21,7 +25,12 @@ const BILD = {
   wrap: { datei: ORDNER + '09-wrap-gemuese-quer.jpeg', alt: 'Getoasteter Wrap', fokus: '52% 64%', nah: 1.08 },
   pommes: { datei: ORDNER + '23-pommes-service-hochkant.jpeg', alt: 'Knusprige Pommes mit Dips', fokus: '46% 88%', nah: 1.12 },
   waffel: { datei: ORDNER + '18-waffel-puderzucker-quer.jpeg', alt: 'Hausgemachte Belgische Waffel mit Puderzucker', fokus: '47% 60%', nah: 1.15 },
+  cookies: { datei: ORDNER + '37-cookies-hell-dunkel-quer.jpeg', alt: 'Helle und dunkle Cookies auf einem Teller', fokus: '45% 62%', nah: 1.12 },
+  zimtschnecke: { datei: ORDNER + '06-zimtschnecken-quer.jpeg', alt: 'Zimtschnecken', fokus: '50% 72%', nah: 1 },
 };
+
+/** Zimtschnecke: nicht auf der Karte, aber Angebot auf Monitor 4 (api/_lib/monitore/katalog.js) und nach 16 Uhr auf Monitor 2 */
+export const ZIMTSCHNECKE = { id: 'zimtschnecke', name: 'Zimtschnecke', preis: '3.5', bild: BILD.zimtschnecke };
 
 export const SPEISEN = {
   gruppen: [
@@ -71,6 +80,17 @@ const ALLE = new Map(SPEISEN.gruppen.flatMap(g => g.eintraege).map(e => [e.id, e
 
 /** ein Eintrag des Normalbetriebs (z. B. 'lasagne') */
 export const speise = id => ALLE.get(id);
+
+/**
+ * Monitor 2 nach dem Ende der warmen Küche bis Ladenschluss: nur diese Produkte (Reihenfolge = Monitor).
+ * Preise aus den Einträgen oben – nie doppelt pflegen. bild: null = noch kein Foto (Monitor zeigt eine grüne
+ * Karte mit Name und Preis). Die Kennungen sind zugleich die Schalter in der Verwaltung – nie wiederverwenden.
+ */
+export const NACH16 = [
+  { id: 'cookies', name: 'Cookies hell & dunkel', preis: speise('cookies').preis, bild: BILD.cookies },
+  { id: 'eis', name: speise('eis').name, preis: speise('eis').preis, bild: null },
+  { id: 'zimtschnecke', name: ZIMTSCHNECKE.name, preis: ZIMTSCHNECKE.preis, bild: ZIMTSCHNECKE.bild },
+];
 
 /**
  * Karte für einen Modus → [{ id, titel, eintraege: [Eintrag] }] und die Fotos in Reihenfolge.
