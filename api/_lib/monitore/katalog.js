@@ -93,6 +93,13 @@ export const FREI_FARBEN = ['gruen', 'rot'];
 export const LASAGNE_MODI = ['auto', 'immer', 'nie'];
 /** Produkte von Monitor 2 nach 16 Uhr (Kennungen aus daten/speisen.js) – je ein Schalter in der Verwaltung */
 export const NACH16_IDS = NACH16.map(e => e.id);
+/** Sonderzeit „Ende der warmen Küche“ für Monitor 2 – gilt nur an ihrem Datum (deutsche Zeit, entscheidet der Monitor) */
+export const UHRZEIT_MUSTER = /^([01]\d|2[0-3]):[0-5]\d$/;
+const istDatum = d => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d) && new Date(d + 'T12:00:00Z').toISOString().slice(0, 10) === d;
+/** gespeicherte Sonderzeit → { datum: 'JJJJ-MM-TT', bis: 'HH:MM' } oder null (= automatisch); Ungültiges = null */
+export function sonderzeit(w) {
+  return w && typeof w === 'object' && !Array.isArray(w) && istDatum(w.datum) && typeof w.bis === 'string' && UHRZEIT_MUSTER.test(w.bis) ? { datum: w.datum, bis: w.bis } : null;
+}
 /** hochgeladenes Bild einer freien Kachel: SHA-256 des Inhalts + Endung (liegt privat unter monitore/bilder/) */
 export const BILD_MUSTER = /^[0-9a-f]{64}\.(jpg|png|webp)$/;
 /** öffentliche Adresse eines hochgeladenen Bildes (ausgeliefert von /api/monitore/specials/) */
@@ -182,7 +189,8 @@ export function freieKacheln(gespeichert) {
 
 /** Einstellungen für alle Monitore: eigene Überschrift von Monitor 4 ('' = Standard), „Kleines Bistro“,
  *  die Lasagne-Folie des Abholmonitors und die Lasagne auf der Speisekarte (Monitor 2) – zwei getrennte Werte,
- *  fehlen sie in älteren Ständen → 'auto' – und die Produkte von Monitor 2 nach 16 Uhr (fehlt ein Wert → eingeschaltet) */
+ *  fehlen sie in älteren Ständen → 'auto' –, die Produkte von Monitor 2 nach 16 Uhr (fehlt ein Wert → eingeschaltet)
+ *  und die Sonderzeit für das Ende der warmen Küche auf Monitor 2 (fehlt → null = automatisch) */
 export function einstellungen(gespeichert) {
   const g = gespeichert && typeof gespeichert === 'object' ? gespeichert : {};
   const n16 = g.nach16 && typeof g.nach16 === 'object' && !Array.isArray(g.nach16) ? g.nach16 : {};
@@ -192,6 +200,7 @@ export function einstellungen(gespeichert) {
     lasagneAbholmonitor: LASAGNE_MODI.includes(g.lasagneAbholmonitor) ? g.lasagneAbholmonitor : 'auto',
     lasagneSpeisekarte: LASAGNE_MODI.includes(g.lasagneSpeisekarte) ? g.lasagneSpeisekarte : 'auto',
     nach16: Object.fromEntries(NACH16_IDS.map(id => [id, typeof n16[id] === 'boolean' ? n16[id] : true])),
+    warmeKueche: sonderzeit(g.warmeKueche),
   };
 }
 
@@ -213,8 +222,9 @@ export function anzeige(gespeichert) {
 }
 
 /** öffentliche Antwort für die Monitore 1–4 (Monitor 1 liest nur lasagneAbholmonitor, Monitor 2 zusätzlich
- *  lasagneSpeisekarte und nach16) */
+ *  lasagneSpeisekarte, nach16 und warmeKueche). warmeKueche geht mit Datum hinaus: ob sie heute gilt, entscheidet
+ *  der Monitor – die Antwort liegt bis zu einer Stunde im CDN und darf nach Mitternacht nicht falsch werden. */
 export function oeffentlich(gespeichert) {
-  const { ueberschrift, kleinesBistro, lasagneAbholmonitor, lasagneSpeisekarte, nach16 } = einstellungen(gespeichert);
-  return { angebote: anzeige(gespeichert), ueberschrift: ueberschrift || UEBERSCHRIFT_STANDARD, kleinesBistro, lasagneAbholmonitor, lasagneSpeisekarte, nach16 };
+  const { ueberschrift, kleinesBistro, lasagneAbholmonitor, lasagneSpeisekarte, nach16, warmeKueche } = einstellungen(gespeichert);
+  return { angebote: anzeige(gespeichert), ueberschrift: ueberschrift || UEBERSCHRIFT_STANDARD, kleinesBistro, lasagneAbholmonitor, lasagneSpeisekarte, nach16, warmeKueche };
 }

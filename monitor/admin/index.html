@@ -5,8 +5,9 @@
   Verwaltung der Monitore 2–4 – interner Bereich (nur auf Vercel lauffähig, braucht /api/monitore/*).
   Monitor 4 „Heute bei uns“: Überschrift, Angebote, Öffnungszeiten, vier freie Kacheln.
   Monitore 2 und 3: Schalter „Kleines Bistro / reduziertes Angebot“.
-  Monitor 2: Lasagne auf der Speisekarte automatisch / anzeigen / ausblenden (getrennt von Monitor 1) und
-  nach 16 Uhr je Produkt (Cookies, Eiscreme, Zimtschnecke) ein Schalter.
+  Monitor 2: Lasagne auf der Speisekarte automatisch / anzeigen / ausblenden (getrennt von Monitor 1), Ende der
+  warmen Küche (automatisch oder eine Sonderzeit nur für heute) und nach 16 Uhr je Produkt (Cookies, Eiscreme,
+  Zimtschnecke) ein Schalter.
   Monitor 1 (Abholmonitor): Lasagne-Folie automatisch / immer / nie.
   Anmeldung mit dem Passwort des Tagesabschlusses. Diese Seite enthält keine Daten: Die Auswahl
   wird erst nach der Anmeldung vom Server geladen und nur dort gespeichert.
@@ -80,9 +81,17 @@
     <p class="leise klein hinweis-unter">Automatisch = Anzeige nach regulärem Lasagne-Zeitplan (samstags, sonntags, an Feiertagen und in den Schulferien in Baden-Württemberg). Mit Anzeigen/Ausblenden kann die Anzeige vorübergehend manuell überschrieben werden – z. B. Rest-Lasagne unter der Woche oder ausverkauft. Gilt nur für die Speisekarte, nicht für den Abholmonitor.</p>
     <p class="klein lasagne-heute" id="lasagneSpeisekarteHeute" aria-live="polite"></p>
 
+    <fieldset class="wahl kueche-wahl" id="kuecheWahl">
+      <legend class="feld-name">Ende der warmen Küche</legend>
+      <label class="option"><input type="radio" name="kueche" value="auto"><span>Automatisch – <span class="kueche-auto">16:00</span> Uhr</span></label>
+      <label class="option option-zeit"><input type="radio" name="kueche" value="heute"><span>Heute bis</span><input type="time" id="kuecheBis" class="kueche-bis" step="300" aria-label="Uhrzeit, bis zu der die warme Küche heute geöffnet ist"><span>Uhr</span></label>
+    </fieldset>
+    <p class="leise klein hinweis-unter">Für Catering, Gruppen oder Veranstaltungen: Bis zu dieser Uhrzeit zeigt Monitor 2 die normale Speisekarte, danach die Ansicht mit Cookies, Eis &amp; Co. Eine Sonderzeit gilt nur für heute – ab morgen gilt automatisch wieder <span class="kueche-auto">16:00</span> Uhr.</p>
+    <p class="klein lasagne-heute" id="kuecheHeute" aria-live="polite"></p>
+
     <div id="bereichNach16" hidden>
       <h3>Nach 16 Uhr</h3>
-      <p class="leise klein">Ab <span class="n16-ab">16</span> Uhr (Ende der warmen Küche) zeigt Monitor 2 statt der Speisekarte automatisch nur diese Produkte – bis <span class="n16-bis">17</span> Uhr. Ausverkauft? Einfach ausschalten und „Speichern“ – dann erscheint das Produkt nicht mehr. Ist nichts eingeschaltet, zeigt Monitor 2 ein Dankeschön an die Gäste.</p>
+      <p class="leise klein">Nach dem Ende der warmen Küche (automatisch <span class="n16-ab">16</span> Uhr, sonst die Sonderzeit oben) zeigt Monitor 2 statt der Speisekarte nur diese Produkte – normalerweise bis <span class="n16-bis">17</span> Uhr. Ausverkauft? Einfach ausschalten und „Speichern“ – dann erscheint das Produkt nicht mehr. Ist nichts eingeschaltet, zeigt Monitor 2 ein Dankeschön an die Gäste.</p>
       <ul class="liste" id="listeNach16"></ul>
       <p class="klein nach16-stand" id="nach16Stand" aria-live="polite"></p>
     </div>

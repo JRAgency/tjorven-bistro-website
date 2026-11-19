@@ -172,3 +172,11 @@ li.frei[data-typ="text"] .nur-produkt, li.frei[data-typ="produkt"] .nur-text { d
 .nach16-stand { margin: 4px 2px 0; font-weight: 600; color: var(--gruen-tief); }
 .nach16-stand.aus { color: var(--grau); }
 .nach16-stand:empty { display: none; }
+/* Monitor 2: Ende der warmen Küche – „Automatisch – 16:00 Uhr“ | „Heute bis [Uhrzeit] Uhr“, am Handy untereinander */
+.kueche-wahl { margin-top: 22px; }
+.kueche-wahl .option { padding-left: 14px; flex: 1 1 0; justify-content: center; min-width: 0; }
+@media (max-width: 520px) { .kueche-wahl .option { flex-basis: 100%; } }
+.kueche-wahl .option input.kueche-bis { position: static; opacity: 1; width: auto; height: auto; min-height: 36px; padding: 2px 8px;
+  font: inherit; font-weight: 600; color: var(--tinte); background: var(--weiss); border: 2px solid var(--linie); border-radius: 8px; }
+.kueche-wahl .option input.kueche-bis:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
+.kueche-wahl .option input.kueche-bis.falsch { border-color: #b8173a; }

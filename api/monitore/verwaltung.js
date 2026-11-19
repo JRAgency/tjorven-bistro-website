@@ -8,9 +8,11 @@
 // bereinigt und begrenzt), eine der zwei Farben und optional die Kennung eines zuvor hochgeladenen
 // Bildes, dazu die Überschrift von Monitor 4, der Schalter „Kleines Bistro“ (Monitore 2 und 3), die
 // Lasagne-Folie des Abholmonitors (Monitor 1: automatisch / immer / nie), getrennt davon die Lasagne auf der
-// Speisekarte (Monitor 2: lasagneSpeisekarte, ebenfalls auto / immer / nie) und je Produkt von Monitor 2 nach
-// 16 Uhr ein true/false (nach16). Fehlt eines dieser drei Felder – Verwaltung von vorher –, bleibt der
-// gespeicherte Stand.
+// Speisekarte (Monitor 2: lasagneSpeisekarte, ebenfalls auto / immer / nie), je Produkt von Monitor 2 nach
+// 16 Uhr ein true/false (nach16) und die Sonderzeit für das Ende der warmen Küche auf Monitor 2 (warmeKueche:
+// null = automatisch, { datum: 'heute', bis: 'HH:MM' } = neu für heute – das Datum setzt der Server in deutscher
+// Zeit –, { datum: 'JJJJ-MM-TT', bis } = unverändert mitgeschickt). Fehlt eines dieser vier Felder – Verwaltung
+// von vorher –, bleibt der gespeicherte Stand. Felder, die diese Version nicht kennt, bleiben beim Speichern erhalten.
 // Keine Adresse kommt vom Browser.
 //
 // Bilder: Die Verwaltung verkleinert das Foto im Browser (längste Seite 1920 px, JPEG) und schickt es
@@ -23,7 +25,8 @@ import crypto from 'node:crypto';
 import { json, fehler, nurMethoden, vonEigenerSeite, fremdeSeite, leseJson } from '../_lib/tagesabschluss/antwort.js';
 import { brauchtSitzung } from '../_lib/tagesabschluss/sitzung.js';
 import { KATALOG, IDS, FREI_IDS, FREI_TYPEN, FREI_FARBEN, LASAGNE_MODI, NACH16_IDS, BILD_MUSTER, NAME_MAX_ZEICHEN, UEBERSCHRIFT_MAX_ZEICHEN, zustand, freieKacheln, einstellungen,
-  bereinigeFreitext, bereinigeZeile, bereinigePreis, bildAdresse } from '../_lib/monitore/katalog.js';
+  bereinigeFreitext, bereinigeZeile, bereinigePreis, bildAdresse, sonderzeit, UHRZEIT_MUSTER } from '../_lib/monitore/katalog.js';
+import { heuteInBerlin } from '../../monitor/kalender-bw.js';
 import { NACH16 } from '../../daten/speisen.js';
 import { liesSpecials, schreibeSpecials, speichereBild, listeBilder, loescheBilder, CACHE_TAG } from '../_lib/monitore/speicher.js';
 import { dangerouslyDeleteByTag } from '@vercel/functions';
@@ -73,7 +76,7 @@ const FREI_FELDER = ['typ', 'text', 'name', 'preis', 'farbe', 'bild'];
  */
 function pruefe(eingabe) {
   if (!eingabe || typeof eingabe !== 'object' || Array.isArray(eingabe)) return null;
-  const { aktiv, frei, ueberschrift, kleinesBistro, lasagneAbholmonitor, lasagneSpeisekarte, nach16, stand } = eingabe;
+  const { aktiv, frei, ueberschrift, kleinesBistro, lasagneAbholmonitor, lasagneSpeisekarte, nach16, warmeKueche, stand } = eingabe;
   // ältere Verwaltung (noch offen im Browser): kannte weder Überschrift noch „Kleines Bistro“
   if (!Object.hasOwn(eingabe, 'kleinesBistro') || !Object.hasOwn(eingabe, 'ueberschrift')) return { fehler: 'Die Verwaltung wurde aktualisiert. Bitte die Seite neu laden und die Änderung noch einmal vornehmen.', code: 'veraltet' };
   if (!aktiv || typeof aktiv !== 'object' || Array.isArray(aktiv)) return null;
@@ -83,6 +86,10 @@ function pruefe(eingabe) {
   if (typeof kleinesBistro !== 'boolean' || typeof ueberschrift !== 'string') return null;
   if (lasagneAbholmonitor !== undefined && !LASAGNE_MODI.includes(lasagneAbholmonitor)) return null;
   if (lasagneSpeisekarte !== undefined && !LASAGNE_MODI.includes(lasagneSpeisekarte)) return null;
+  // Sonderzeit warme Küche: null, { datum: 'heute', bis } oder { datum: 'JJJJ-MM-TT', bis } (unverändert mitgeschickt)
+  if (warmeKueche !== undefined && warmeKueche !== null
+    && (!genau(warmeKueche, ['datum', 'bis']) || typeof warmeKueche.bis !== 'string' || !UHRZEIT_MUSTER.test(warmeKueche.bis)
+      || !(warmeKueche.datum === 'heute' || sonderzeit(warmeKueche)))) return null;
   if (nach16 !== undefined && (!genau(nach16, NACH16_IDS) || !NACH16_IDS.every(id => typeof nach16[id] === 'boolean'))) return null;
   if (stand !== null && (typeof stand !== 'string' || stand.length > 200)) return null;
   const titel = bereinigeZeile(ueberschrift, UEBERSCHRIFT_MAX_ZEICHEN);
@@ -105,7 +112,8 @@ function pruefe(eingabe) {
     kacheln[id] = { typ, text: t.text || '', name: n.text || '', preis: p.preis || '', farbe, bild };
   }
   return { aktiv: Object.fromEntries(KATALOG.map(k => [k.id, aktiv[k.id]])), frei: kacheln, ueberschrift: titel.text, kleinesBistro, lasagneAbholmonitor, lasagneSpeisekarte,
-    nach16: nach16 === undefined ? undefined : Object.fromEntries(NACH16_IDS.map(id => [id, nach16[id]])), stand };
+    nach16: nach16 === undefined ? undefined : Object.fromEntries(NACH16_IDS.map(id => [id, nach16[id]])),
+    warmeKueche: warmeKueche === undefined || warmeKueche === null ? warmeKueche : { datum: warmeKueche.datum, bis: warmeKueche.bis }, stand };
 }
 
 const bilderIn = daten => new Set(Object.values(freieKacheln(daten)).map(k => k.bild).filter(Boolean));
@@ -171,10 +179,16 @@ export default {
         const fehlt = FREI_IDS.find(id => eingabe.frei[id].bild && !da.has(eingabe.frei[id].bild));
         if (fehlt) return fehler(400, `${titelVon(fehlt)}: Das Bild ist nicht mehr vorhanden. Bitte erneut auswählen.`, { code: 'eingabe' });
       }
-      const daten = { format: 4, aktiv: eingabe.aktiv, frei: eingabe.frei, ueberschrift: eingabe.ueberschrift, kleinesBistro: eingabe.kleinesBistro,
-        lasagneAbholmonitor: eingabe.lasagneAbholmonitor || einstellungen(aktuell.daten).lasagneAbholmonitor,
-        lasagneSpeisekarte: eingabe.lasagneSpeisekarte || einstellungen(aktuell.daten).lasagneSpeisekarte,
-        nach16: eingabe.nach16 || einstellungen(aktuell.daten).nach16, geaendert: new Date().toISOString() };
+      const bisher = einstellungen(aktuell.daten);
+      const kueche = eingabe.warmeKueche === undefined ? bisher.warmeKueche
+        : eingabe.warmeKueche === null ? null
+        : { datum: eingabe.warmeKueche.datum === 'heute' ? heuteInBerlin() : eingabe.warmeKueche.datum, bis: eingabe.warmeKueche.bis };
+      // Felder, die diese Version nicht kennt (z. B. von einer neueren Verwaltung), bleiben erhalten
+      const unbekannt = aktuell.daten && typeof aktuell.daten === 'object' && !Array.isArray(aktuell.daten) ? aktuell.daten : {};
+      const daten = { ...unbekannt, format: 4, aktiv: eingabe.aktiv, frei: eingabe.frei, ueberschrift: eingabe.ueberschrift, kleinesBistro: eingabe.kleinesBistro,
+        lasagneAbholmonitor: eingabe.lasagneAbholmonitor || bisher.lasagneAbholmonitor,
+        lasagneSpeisekarte: eingabe.lasagneSpeisekarte || bisher.lasagneSpeisekarte,
+        nach16: eingabe.nach16 || bisher.nach16, warmeKueche: kueche, geaendert: new Date().toISOString() };
       const neu = await schreibeSpecials(daten, aktuell.stand);
       if (neu === null) {
         const jetzt = await liesSpecials();

@@ -2,7 +2,8 @@
 // Monitor 4 sowie der Schalter „Kleines Bistro“, nach dem sich die Monitore 2 und 3 richten, und die
 // Einstellung der Lasagne-Folie auf Monitor 1 (lasagneAbholmonitor: auto / immer / nie), getrennt davon die Lasagne
 // auf der Speisekarte von Monitor 2 (lasagneSpeisekarte: auto / immer / nie) und welche Produkte Monitor 2 nach
-// 16 Uhr zeigt (nach16: { cookies, eis, zimtschnecke: true/false }).
+// 16 Uhr zeigt (nach16: { cookies, eis, zimtschnecke: true/false }) und eine Sonderzeit für das Ende der warmen
+// Küche (warmeKueche: null oder { datum, bis } – gilt nur an diesem Datum, das prüft Monitor 2).
 // GET /api/monitore/specials/?bild=<Kennung> – ein in der Verwaltung hochgeladenes Bild einer freien Kachel.
 //
 // Die Antwort liegt bis zu einer Stunde im Vercel-CDN (Cache-Tag „monitor-specials“), damit die drei

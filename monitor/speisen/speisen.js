@@ -12,7 +12,8 @@
 // Nach 16 Uhr (tageszeit.js): statt Karte bzw. Kleinem Bistro nur die noch erhältlichen Produkte (NACH16 aus
 // /daten/speisen.js, je Produkt in der Verwaltung ein-/ausschaltbar – kommt mit derselben Antwort wie
 // „Kleines Bistro“), ab Ladenschluss oder wenn keines eingeschaltet ist das Dankeschön. Geprüft wird alle
-// 15 Sekunden; neu aufgebaut wird nur, wenn sich etwas ändert.
+// 15 Sekunden; neu aufgebaut wird nur, wenn sich etwas ändert. Eine Sonderzeit „Ende der warmen Küche“ aus der
+// Verwaltung (warmeKueche, gilt nur an ihrem Datum) verschiebt den Wechsel – entschieden in tageszeit.js.
 import { karte, NACH16 } from '/daten/speisen.js';
 import { lasagneHeute } from '/monitor/lasagne.js';
 import { diashow, folie, leistenEinpassen } from '/monitor/diashow.js';
@@ -92,7 +93,8 @@ setInterval(anwenden, 5 * 60 * 1000);   // nach Mitternacht stimmt die Anzeige s
 // Bis zur ersten Antwort gelten alle Produkte als eingeschaltet (wie in der Verwaltung, solange nie gespeichert).
 let nach16An = Object.fromEntries(NACH16.map(e => [e.id, true]));
 let klein = false;
-let zeit = ansichtJetzt();
+let kueche = null;   // Sonderzeit warme Küche aus der Verwaltung ({ datum, bis } oder null) – ob sie heute gilt, prüft tageszeit.js
+let zeit = ansichtJetzt(new Date(), kueche);
 let gezeichnet = '';
 
 /** Karte eines Produkts: mit Foto wie die Bildfolge (Foto, darunter die grüne Leiste „Name Preis“),
@@ -120,7 +122,7 @@ function nach16Zeichnen() {
   if (!produkte.length) { angebot.replaceChildren(); return; }
   const einleitung = el('div', 'einleitung');
   einleitung.append(el('h2', '', 'Für den kleinen Genuss danach'),
-    el('p', '', `Unsere warme Küche ist für heute beendet. Diese Leckereien bekommst du weiterhin bis ${zeit.bis} Uhr.`));
+    el('p', '', `Unsere warme Küche ist für heute beendet. Diese Leckereien bekommst du weiterhin${zeit.bis ? ` bis ${zeit.bis} Uhr` : ''}.`));
   const karten = el('div', 'karten');
   karten.append(...produkte.map(produktKarte));
   angebot.replaceChildren(einleitung, karten);
@@ -138,7 +140,7 @@ function sichtbar() {
 }
 
 function zeitPruefen() {
-  const neu = ansichtJetzt();
+  const neu = ansichtJetzt(new Date(), kueche);
   if (JSON.stringify(neu) === JSON.stringify(zeit)) return;
   zeit = neu;
   sichtbar();
@@ -147,6 +149,8 @@ setInterval(zeitPruefen, 15 * 1000);
 
 beobachteModus(k => { klein = k; sichtbar(); }, d => {
   if (['auto', 'immer', 'nie'].includes(d.lasagneSpeisekarte) && d.lasagneSpeisekarte !== lasagneModus) { lasagneModus = d.lasagneSpeisekarte; anwenden(); }
+  const k = d.warmeKueche && typeof d.warmeKueche === 'object' ? { datum: d.warmeKueche.datum, bis: d.warmeKueche.bis } : null;   // fehlt in älteren Antworten → automatisch
+  if (JSON.stringify(k) !== JSON.stringify(kueche)) { kueche = k; zeitPruefen(); }
   if (!d.nach16 || typeof d.nach16 !== 'object') return;   // ältere Antwort: alles bleibt eingeschaltet
   nach16An = Object.fromEntries(NACH16.map(e => [e.id, d.nach16[e.id] !== false]));
   if (zeit.ansicht !== 'karte') { nach16Zeichnen(); leisten(); }

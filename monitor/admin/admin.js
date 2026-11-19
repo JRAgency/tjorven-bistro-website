@@ -2,8 +2,10 @@
 // freie Kacheln – je Freitext oder Produkt mit Preis, Farbe, optional ein Foto) und der Schalter
 // „Kleines Bistro“ für die Monitore 2 und 3, die Lasagne-Folie des Abholmonitors (Monitor 1:
 // Automatisch / Immer / Nie), getrennt davon die Lasagne auf der Speisekarte (Monitor 2: Automatisch /
-// Anzeigen / Ausblenden – gespeichert ebenfalls als auto / immer / nie) und je Produkt ein Schalter für
-// Monitor 2 nach 16 Uhr (Liste vom Server, aus daten/speisen.js). Alles wird gemeinsam mit „Speichern“ übernommen.
+// Anzeigen / Ausblenden – gespeichert ebenfalls als auto / immer / nie), das Ende der warmen Küche auf Monitor 2
+// (Automatisch oder „Heute bis …“ – gilt nur für den Tag, an dem gespeichert wird; das Datum setzt der Server) und
+// je Produkt ein Schalter für Monitor 2 nach 16 Uhr (Liste vom Server, aus daten/speisen.js). Alles wird gemeinsam
+// mit „Speichern“ übernommen.
 // Anmeldung und Sitzung wie beim Tagesabschluss (Cookie „__Host-tagesabschluss“, nur serverseitig
 // lesbar). Jede Änderung geht mit dem Kopf „X-Tagesabschluss: 1“ an den Server (CSRF-Schutz).
 // Fotos werden hier im Browser verkleinert (längste Seite 1920 px, JPEG) – dabei fallen auch die
@@ -15,7 +17,9 @@
   let stand = null;          // ETag des geladenen Stands (null = noch nie gespeichert)
   let geladen = new Map();   // id → aktiv (zuletzt vom Server)
   let geladenFrei = new Map();   // id → { typ, text, name, preis, farbe, bild } der freien Kachel (zuletzt vom Server)
-  let geladenAllgemein = { ueberschrift: '', kleinesBistro: false, lasagneAbholmonitor: 'auto', lasagneSpeisekarte: 'auto', nach16: {} };
+  let geladenAllgemein = { ueberschrift: '', kleinesBistro: false, lasagneAbholmonitor: 'auto', lasagneSpeisekarte: 'auto', nach16: {}, warmeKueche: null };
+  let kuecheGeladen = null;  // beim Laden heute gültige Sonderzeit 'HH:MM' oder null (= automatisch)
+  let oeffnung = null;       // /daten/oeffnungszeiten.js (Ende der warmen Küche ohne Sonderzeit)
   let lasagneRegel = null;   // /monitor/lasagne.js – dieselbe Regel wie auf den Monitoren (für den Hinweis „Heute …“)
   let ferienBis = '';        // letzter eingetragener Schulferientag in /monitor/kalender-bw.js
   let angebote = [];
@@ -274,6 +278,10 @@
   const LASAGNE_MODI = ['auto', 'immer', 'nie'];
   const lasagneWert = () => (document.querySelector('#lasagneWahl input:checked') || {}).value || 'auto';
   const lasagneSpeisekarteWert = () => (document.querySelector('#lasagneSpeisekarteWahl input:checked') || {}).value || 'auto';
+  // Ende der warmen Küche: Datum „heute“ in deutscher Zeit; Eingabe → null (automatisch) oder 'HH:MM' ('' = noch keine Uhrzeit)
+  const heuteBerlin = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const kuecheWert = () => ((document.querySelector('#kuecheWahl input:checked') || {}).value === 'heute' ? $('kuecheBis').value : null);
+  const kuecheAuto = () => (oeffnung ? oeffnung.oeffnungAm(heuteBerlin()).warmeKuecheBis || oeffnung.OEFFNUNGSZEITEN.warmeKueche.bis : '16:00');
 
   // grob wie der Server zählen: Zeichen ohne Zeilenumbrüche, Zeilen ohne Leerzeilen am Rand
   function messen(t) {
@@ -310,11 +318,14 @@
     || $('kleinesBistro').checked !== geladenAllgemein.kleinesBistro
     || lasagneWert() !== geladenAllgemein.lasagneAbholmonitor
     || lasagneSpeisekarteWert() !== geladenAllgemein.lasagneSpeisekarte
+    || kuecheWert() !== kuecheGeladen
     || Object.entries(nach16Auswahl() || {}).some(([id, an]) => geladenAllgemein.nach16[id] !== an);
 
   /** Eingabefehler vor dem Speichern (dieselben Regeln wie der Server) oder '' */
   function eingabeFehler() {
     if (zeilenLaenge($('ueberschrift').value) > TITEL_MAX) return `Überschrift Monitor 4: höchstens ${TITEL_MAX} Zeichen.`;
+    const k = kuecheWert();
+    if (k !== null && !/^([01]\d|2[0-3]):[0-5]\d$/.test(k)) return 'Ende der warmen Küche: Bitte bei „Heute bis“ eine Uhrzeit wählen – oder „Automatisch“.';
     const an = auswahl();
     for (const [id, k] of Object.entries(freieKacheln())) {
       const titel = titelVon(id);
@@ -384,6 +395,7 @@
     }
     lasagneHinweis();
     lasagneSpeisekarteHinweis();
+    kuecheHinweis();
     nach16Hinweis();
     const an = Object.values(auswahl()).filter(Boolean).length;
     const offen = geaendert();
@@ -429,6 +441,24 @@
     $('lasagneSpeisekarteHeute').classList.toggle('aus', w === 'nie' || (w === 'auto' && !!lasagneRegel && !lasagneRegel.lasagneHeute().verfuegbar));
   }
 
+  /** unter „Ende der warmen Küche“: was heute gilt – Sonderzeit deutlich als „nur heute“ */
+  function kuecheHinweis() {
+    const auto = kuecheAuto().slice(0, 5);
+    for (const s of document.querySelectorAll('.kueche-auto')) s.textContent = auto;
+    const k = kuecheWert();
+    $('kuecheBis').classList.toggle('falsch', k !== null && !k);
+    const w = geladenAllgemein.warmeKueche;
+    // Seite über Mitternacht offen: geladene Sonderzeit ist inzwischen abgelaufen
+    const abgelaufen = kuecheGeladen !== null && (!w || w.datum !== heuteBerlin()) && k === kuecheGeladen;
+    let text;
+    if (abgelaufen) text = `Die Sonderzeit (bis ${kuecheGeladen} Uhr) galt nur für ${w.datum.split('-').reverse().join('.')} – heute gilt wieder automatisch ${auto} Uhr. Bitte die Seite neu laden.`;
+    else if (k === null) text = `Automatisch: Warme Küche heute bis ${auto} Uhr.`;
+    else if (!k) text = 'Bitte eine Uhrzeit wählen.';
+    else text = `Heute endet die warme Küche um ${k} Uhr. Sonderzeit nur für heute – morgen wieder automatisch ${auto} Uhr.`;
+    $('kuecheHeute').textContent = text + (!abgelaufen && k !== kuecheGeladen && k !== '' ? ' Gilt nach „Speichern“.' : '');
+    $('kuecheHeute').classList.toggle('aus', k === null || abgelaufen);
+  }
+
   /** unter den Schaltern nach 16 Uhr: was Monitor 2 ab dem Ende der warmen Küche zeigt */
   function nach16Hinweis() {
     const n16 = nach16Auswahl();
@@ -452,6 +482,7 @@
     geladenAllgemein = { ueberschrift: typeof daten.ueberschrift === 'string' ? daten.ueberschrift : '', kleinesBistro: daten.kleinesBistro === true,
       lasagneAbholmonitor: LASAGNE_MODI.includes(daten.lasagneAbholmonitor) ? daten.lasagneAbholmonitor : 'auto',
       lasagneSpeisekarte: LASAGNE_MODI.includes(daten.lasagneSpeisekarte) ? daten.lasagneSpeisekarte : 'auto',
+      warmeKueche: daten.warmeKueche && typeof daten.warmeKueche === 'object' ? { datum: daten.warmeKueche.datum, bis: daten.warmeKueche.bis } : null,
       nach16: Object.fromEntries(n16Liste.map(a => [a.id, n16[a.id] !== false])) };
     zuletzt = zeitText(daten.geaendert);
     const eigeneFrei = (eigene && eigene.frei) || {};
@@ -468,6 +499,11 @@
     $('kleinesBistro').checked = geladenAllgemein.kleinesBistro;
     for (const r of document.querySelectorAll('#lasagneWahl input')) r.checked = r.value === geladenAllgemein.lasagneAbholmonitor;
     for (const r of document.querySelectorAll('#lasagneSpeisekarteWahl input')) r.checked = r.value === geladenAllgemein.lasagneSpeisekarte;
+    // Sonderzeit nur zeigen, wenn sie heute gilt – eine von gestern ist abgelaufen (= automatisch)
+    const wk = geladenAllgemein.warmeKueche;
+    kuecheGeladen = wk && wk.datum === heuteBerlin() ? wk.bis : null;
+    for (const r of document.querySelectorAll('#kuecheWahl input[type=radio]')) r.checked = r.value === (kuecheGeladen ? 'heute' : 'auto');
+    $('kuecheBis').value = kuecheGeladen || '';
     $('anmeldung').hidden = true;
     $('verwaltung').hidden = false;
     $('abmelden').hidden = false;
@@ -500,11 +536,19 @@
 
   $('ueberschrift').addEventListener('input', aktualisiere);
   $('kleinesBistro').addEventListener('change', aktualisiere);
-  for (const r of document.querySelectorAll('#lasagneWahl input, #lasagneSpeisekarteWahl input')) r.addEventListener('change', aktualisiere);
-  // Uhrzeiten im Hinweis „nach 16 Uhr“ aus den zentralen Öffnungszeiten (Ende der warmen Küche, Ende Cookies & Eis)
+  for (const r of document.querySelectorAll('#lasagneWahl input, #lasagneSpeisekarteWahl input, #kuecheWahl input[type=radio]')) r.addEventListener('change', aktualisiere);
+  // Uhrzeit antippen oder ändern wählt „Heute bis“ mit aus
+  // eine Meldung zur fehlenden Uhrzeit verschwindet, sobald an der Küchenzeit etwas geändert wird
+  const kuecheMeldungWeg = () => { if ($('meldung').textContent.startsWith('Ende der warmen Küche')) { $('meldung').textContent = ''; $('meldung').className = 'meldung'; } };
+  for (const typ of ['focus', 'input', 'change']) $('kuecheBis').addEventListener(typ, () => { document.querySelector('#kuecheWahl input[value=heute]').checked = true; if (typ !== 'focus') kuecheMeldungWeg(); aktualisiere(); });
+  document.querySelector('#kuecheWahl input[value=auto]').addEventListener('change', kuecheMeldungWeg);
+  document.querySelector('#kuecheWahl input[value=heute]').addEventListener('change', () => { if (!$('kuecheBis').value) $('kuecheBis').focus(); });
+  // Uhrzeiten im Hinweis „nach 16 Uhr“ und „Automatisch – … Uhr“ aus den zentralen Öffnungszeiten (Ende der warmen Küche, Ende Cookies & Eis)
   import('/daten/oeffnungszeiten.js').then(o => {
+    oeffnung = o;
     for (const s of document.querySelectorAll('.n16-ab')) s.textContent = o.kurz(o.OEFFNUNGSZEITEN.warmeKueche.bis);
     for (const s of document.querySelectorAll('.n16-bis')) s.textContent = o.kurz(o.OEFFNUNGSZEITEN.kalt.bis);
+    if (!$('verwaltung').hidden) aktualisiere();
   }).catch(() => { /* Standardtext bleibt */ });
   Promise.all([import('/monitor/lasagne.js'), import('/monitor/kalender-bw.js')]).then(([regel, kalender]) => {
     lasagneRegel = regel;
@@ -526,7 +570,11 @@
     if ($('ueberschrift').value !== geladenAllgemein.ueberschrift) eigene.ueberschrift = $('ueberschrift').value;
     try {
       const n16 = nach16Auswahl();
-      const daten = await api('/api/monitore/verwaltung/', { method: 'PUT', body: JSON.stringify({ aktiv: auswahl(), frei, ueberschrift: $('ueberschrift').value, kleinesBistro: $('kleinesBistro').checked, lasagneAbholmonitor: lasagneWert(), lasagneSpeisekarte: lasagneSpeisekarteWert(), ...(n16 ? { nach16: n16 } : {}), stand }) });
+      // Sonderzeit: unverändert → so mitschicken, wie sie geladen wurde (inkl. Datum); neu oder geändert → „heute“ (Datum setzt der Server)
+      const k = kuecheWert();
+      const wk = geladenAllgemein.warmeKueche;
+      const warmeKueche = k === null ? null : (k === kuecheGeladen && wk ? { datum: wk.datum, bis: wk.bis } : { datum: 'heute', bis: k });
+      const daten = await api('/api/monitore/verwaltung/', { method: 'PUT', body: JSON.stringify({ aktiv: auswahl(), frei, ueberschrift: $('ueberschrift').value, kleinesBistro: $('kleinesBistro').checked, lasagneAbholmonitor: lasagneWert(), lasagneSpeisekarte: lasagneSpeisekarteWert(), ...(n16 ? { nach16: n16 } : {}), warmeKueche, stand }) });
       zeige(daten);
       $('meldung').textContent = daten.monitor === false
         ? 'Gespeichert. Die Monitore übernehmen die Änderung spätestens in einer Stunde.'
