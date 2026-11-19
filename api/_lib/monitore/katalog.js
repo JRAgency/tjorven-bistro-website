@@ -88,7 +88,8 @@ export const UEBERSCHRIFT_STANDARD = 'Heute bei uns';
 export const FREI_TYPEN = ['text', 'produkt'];
 /** Hintergrund einer freien Kachel: Bistro-Grün (Standard) oder Markenrot */
 export const FREI_FARBEN = ['gruen', 'rot'];
-/** Lasagne-Folie auf Monitor 1 (Abholmonitor): 'auto' = Lasagne-Regel (monitor/lasagne.js), 'immer', 'nie' */
+/** Lasagne auf Monitor 1 (Folie im Abholmonitor) und – davon getrennt gespeichert – auf Monitor 2 (Speisekarte):
+ *  'auto' = Lasagne-Regel (monitor/lasagne.js), 'immer' (Verwaltung: „Immer“ bzw. „Anzeigen“), 'nie' („Nie“ bzw. „Ausblenden“) */
 export const LASAGNE_MODI = ['auto', 'immer', 'nie'];
 /** Produkte von Monitor 2 nach 16 Uhr (Kennungen aus daten/speisen.js) – je ein Schalter in der Verwaltung */
 export const NACH16_IDS = NACH16.map(e => e.id);
@@ -180,8 +181,8 @@ export function freieKacheln(gespeichert) {
 }
 
 /** Einstellungen für alle Monitore: eigene Überschrift von Monitor 4 ('' = Standard), „Kleines Bistro“,
- *  die Lasagne-Folie des Abholmonitors (fehlt in älteren Ständen → 'auto') und die Produkte von Monitor 2
- *  nach 16 Uhr (fehlt ein Wert → eingeschaltet) */
+ *  die Lasagne-Folie des Abholmonitors und die Lasagne auf der Speisekarte (Monitor 2) – zwei getrennte Werte,
+ *  fehlen sie in älteren Ständen → 'auto' – und die Produkte von Monitor 2 nach 16 Uhr (fehlt ein Wert → eingeschaltet) */
 export function einstellungen(gespeichert) {
   const g = gespeichert && typeof gespeichert === 'object' ? gespeichert : {};
   const n16 = g.nach16 && typeof g.nach16 === 'object' && !Array.isArray(g.nach16) ? g.nach16 : {};
@@ -189,6 +190,7 @@ export function einstellungen(gespeichert) {
     ueberschrift: bereinigeZeile(g.ueberschrift, UEBERSCHRIFT_MAX_ZEICHEN).text || '',
     kleinesBistro: g.kleinesBistro === true,
     lasagneAbholmonitor: LASAGNE_MODI.includes(g.lasagneAbholmonitor) ? g.lasagneAbholmonitor : 'auto',
+    lasagneSpeisekarte: LASAGNE_MODI.includes(g.lasagneSpeisekarte) ? g.lasagneSpeisekarte : 'auto',
     nach16: Object.fromEntries(NACH16_IDS.map(id => [id, typeof n16[id] === 'boolean' ? n16[id] : true])),
   };
 }
@@ -210,8 +212,9 @@ export function anzeige(gespeichert) {
   });
 }
 
-/** öffentliche Antwort für die Monitore 1–4 (Monitor 1 liest nur lasagneAbholmonitor, Monitor 2 zusätzlich nach16) */
+/** öffentliche Antwort für die Monitore 1–4 (Monitor 1 liest nur lasagneAbholmonitor, Monitor 2 zusätzlich
+ *  lasagneSpeisekarte und nach16) */
 export function oeffentlich(gespeichert) {
-  const { ueberschrift, kleinesBistro, lasagneAbholmonitor, nach16 } = einstellungen(gespeichert);
-  return { angebote: anzeige(gespeichert), ueberschrift: ueberschrift || UEBERSCHRIFT_STANDARD, kleinesBistro, lasagneAbholmonitor, nach16 };
+  const { ueberschrift, kleinesBistro, lasagneAbholmonitor, lasagneSpeisekarte, nach16 } = einstellungen(gespeichert);
+  return { angebote: anzeige(gespeichert), ueberschrift: ueberschrift || UEBERSCHRIFT_STANDARD, kleinesBistro, lasagneAbholmonitor, lasagneSpeisekarte, nach16 };
 }

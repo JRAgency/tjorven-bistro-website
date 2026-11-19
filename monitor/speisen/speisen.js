@@ -1,7 +1,9 @@
 // Monitor 2: baut Bildfolge und Karte aus den gemeinsamen Speisedaten (/daten/speisen.js – dieselben Daten
 // wie die Startseite) und blendet Lasagne-Menüeintrag und Lasagne-Foto gemeinsam ein/aus.
-// Eine einzige Entscheidung (lasagne.js) steuert alle Elemente mit data-nur-mit-lasagne – an Schultagen
-// erscheint die Lasagne also weder in der Karte noch in der Bildfolge.
+// Eine einzige Entscheidung steuert alle Elemente mit data-nur-mit-lasagne – an Schultagen erscheint die
+// Lasagne also weder in der Karte noch in der Bildfolge: Verwaltung „Lasagne auf Speisekarte“
+// (lasagneSpeisekarte, kommt mit derselben Antwort wie „Kleines Bistro“) – „Automatisch“ = Lasagne-Regel
+// (lasagne.js), „Anzeigen“ = immer, „Ausblenden“ = nie. Getrennt von der Lasagne-Folie auf Monitor 1.
 // Danach wird jeder zweite SICHTBARE Eintrag je Abschnitt fett gesetzt (mit Lasagne: Lasagne ist der
 // erste fette Eintrag; ohne Lasagne läuft das Muster ohne Lücke weiter).
 // Bildfolge: alle 8 Sekunden langsam zum nächsten Gericht, unter dem Foto der vollständige Name wie in
@@ -71,9 +73,10 @@ function fettAbwechselnd() {
   }
 }
 
+let lasagneModus = 'auto';   // aus der Verwaltung: 'auto' | 'immer' | 'nie' – bis zur ersten Antwort die Regel
 let zuletzt = null;
 function anwenden() {
-  const { verfuegbar } = lasagneHeute();
+  const verfuegbar = lasagneModus === 'immer' || (lasagneModus === 'auto' && lasagneHeute().verfuegbar);
   if (verfuegbar === zuletzt) return;
   zuletzt = verfuegbar;
   for (const el of document.querySelectorAll('[data-nur-mit-lasagne]')) el.hidden = !verfuegbar;
@@ -143,6 +146,7 @@ function zeitPruefen() {
 setInterval(zeitPruefen, 15 * 1000);
 
 beobachteModus(k => { klein = k; sichtbar(); }, d => {
+  if (['auto', 'immer', 'nie'].includes(d.lasagneSpeisekarte) && d.lasagneSpeisekarte !== lasagneModus) { lasagneModus = d.lasagneSpeisekarte; anwenden(); }
   if (!d.nach16 || typeof d.nach16 !== 'object') return;   // ältere Antwort: alles bleibt eingeschaltet
   nach16An = Object.fromEntries(NACH16.map(e => [e.id, d.nach16[e.id] !== false]));
   if (zeit.ansicht !== 'karte') { nach16Zeichnen(); leisten(); }
