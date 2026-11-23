@@ -1,15 +1,19 @@
 // Öffnungszeiten des Tjorven Bistro – die EINZIGE Stelle, an der sie gepflegt werden.
-// Gelesen von: Startseite (Öffnungsstatus, Wochenübersicht, Fußzeile) und Monitor 4 (Kachel
-// „Öffnungszeiten“, erzeugt auf dem Server in api/_lib/monitore/katalog.js).
+// Gelesen von: Startseiten-Vorschau (Öffnungsstatus, Wochenübersicht, Fußzeile), Monitor 4 (Kachel
+// „Öffnungszeiten“, erzeugt auf dem Server in api/_lib/monitore/katalog.js), Monitor 2 (Ende der warmen
+// Küche) und – über tools/oeffnungszeiten-website.mjs – die öffentliche Website (ALL-INKL: Fußzeilen,
+// Startseite, Kontakt, Instagram-Seite, „Über uns“, strukturierte Daten).
 //
-// Regel (Stand Oktober 2026, Vorgabe des Bistros): täglich 10–17 Uhr, in der Schulwoche Montag bis
-// Freitag schon ab 9 Uhr. „Schulwoche“ = Montag bis Freitag, kein gesetzlicher Feiertag in
-// Baden-Württemberg, keine Schulferien und kein landesweit schulfreier Tag – dieselben Kalenderdaten
-// wie bei der Lasagne-Regel (monitor/kalender-bw.js).
+// Regel (Stand November 2026, Vorgabe des Bistros): Montag bis Freitag 9–17 Uhr; Samstag, Sonntag, gesetzliche
+// Feiertage und Schulferien in Baden-Württemberg 10–17 Uhr – also täglich geöffnet (Montag und Dienstag sind
+// seit November 2026 keine Ruhetage mehr). Technisch: täglich 10–17 Uhr, in der „Schulwoche“ schon ab 9 Uhr;
+// „Schulwoche“ = Montag bis Freitag, kein gesetzlicher Feiertag in Baden-Württemberg, keine Schulferien und
+// kein landesweit schulfreier Tag – dieselben Kalenderdaten wie bei der Lasagne-Regel (monitor/kalender-bw.js).
 //
 // PFLEGE: Uhrzeiten unten ändern („HH:MM“). Einzelne Schließtage oder abweichende Zeiten in
-// GESCHLOSSEN bzw. SONDERZEITEN eintragen (Datum „JJJJ-MM-TT“) – Startseite und Monitor 4 übernehmen
-// das automatisch.
+// GESCHLOSSEN bzw. SONDERZEITEN eintragen (Datum „JJJJ-MM-TT“) – Startseiten-Vorschau und Monitore übernehmen
+// das automatisch. Danach „node tools/oeffnungszeiten-website.mjs“ ausführen: schreibt die Wochenzeiten in die
+// statischen Seiten der öffentlichen Website (einzelne Schließtage/Sonderzeiten stehen dort nicht).
 
 import { tagesInfo, wochentag, heuteInBerlin } from '../monitor/kalender-bw.js';
 

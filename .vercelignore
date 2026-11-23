@@ -7,3 +7,4 @@ inc/abholmonitor-data.php
 inc/abholmonitor-login.php
 .claude/
 *.bak
+tools/
